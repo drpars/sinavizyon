@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "SİNA VİZYON",
+  "version": "1.5.4",
+  "permissions": ["storage", "sidePanel"],
+  "host_permissions": ["https://sina.saglik.gov.tr/*", "https://hyp.saglik.gov.tr/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Paneli Aç"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://sina.saglik.gov.tr/*", "https://hyp.saglik.gov.tr/*"],
+      "js": ["content.js"],
+      "all_frames": false,
+      "run_at": "document_end"
+    }
+  ]
+}
