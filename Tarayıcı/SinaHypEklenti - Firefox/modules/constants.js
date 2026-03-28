@@ -96,11 +96,14 @@ export const changelogData = [
   },
   {
     version: "1.5.4",
-    date: "2026-03-26",
+    date: "2026-03-28",
     changes: [
-      "🔄 Güncelleme sırasında eski veriler otomatik olarak yeni formata taşındı.",
-      "🐛 [object Object] hatası giderildi, birim ID artık doğru görünüyor.",
-      "⚡ Performans iyileştirmeleri ve küçük hata düzeltmeleri."
+      "🧩 **Daha düzenli altyapı:** Eklenti artık daha hızlı ve kararlı çalışıyor.",
+      "🐛 **Hata düzeltmesi:** Birim ID alanı artık doğru görünüyor.",
+      "🔄 **Verileriniz korunuyor:** Güncelleme sırasında hiçbir veriniz kaybolmaz.",
+      "📊 **Tablo görünümü iyileştirildi:** Yüzdelikler artık daha anlaşılır şekilde gösteriliyor.",
+      "⚡ **Genel performans artışı:** Daha hızlı açılma ve veri çekme süreleri.",
+      "🎨 **Küçük görsel iyileştirmeler**"
     ]
   }
 ];
