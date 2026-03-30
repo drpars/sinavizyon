@@ -105,5 +105,18 @@ export const changelogData = [
       "⚡ **Genel performans artışı:** Daha hızlı açılma ve veri çekme süreleri.",
       "🎨 **Küçük görsel iyileştirmeler**"
     ]
+  },
+  {
+    version: "1.5.5",
+    date: "2026-03-30",
+    changes: [
+      "👥 **Kullanıcı türü seçimi eklendi:** Aile Hekimi / Aile Sağlığı Çalışanı (ASÇ).",
+      "🔧 **ASÇ modülü altyapısı hazırlandı:** ASÇ seçildiğinde SİNA butonu şimdilik çalışmaz, uyarı verir.",
+      "📁 **Veriler ayrı saklanıyor:** Doktor ve hemşire verileri artık farklı storage anahtarlarında tutulur.",
+      "🔄 **Güncelleme desteği:** 1.5.4 ve öncesinden gelen veriler otomatik olarak doktor verisi olarak taşınır.",
+      "🎯 **HYP butonu artık SİNA verisi yokken devre dışı:** Kullanıcı deneyimi iyileştirildi.",
+      "⚡ **Küçük performans iyileştirmeleri ve hata düzeltmeleri.**"
+    ]
   }
 ];
+

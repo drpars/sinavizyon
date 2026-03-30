@@ -1,79 +1,167 @@
-import { getStorageKey } from './storage.js';
+// Migration: Storage sürümüne göre veri taşıma
+const CURRENT_STORAGE_VERSION = "1.5.5";
 
 export function migrateFromOldStorage() {
-  chrome.storage.local.get(["migrationDone"], (res) => {
-    if (res.migrationDone === true) {
-      console.log("Migration daha önce yapılmış.");
+  // Önce eski veri varlığını kontrol et
+  chrome.storage.local.get(null, (allItems) => {
+    let birimId = allItems.birimId;
+    if (typeof birimId === "object" && birimId.data) birimId = birimId.data;
+    if (!birimId) birimId = "default";
+    
+    // Eski formatları kontrol et
+    const hasOldSavedResults = Object.keys(allItems).some(k => 
+      k === "savedResults" || (k.startsWith("savedResults_") && !k.includes("_doctor_") && !k.includes("_nurse_"))
+    );
+    
+    const newKeyExists = allItems[`savedResults_doctor_${birimId}`] !== undefined;
+    
+    // Eski veri varsa ve yeni yapıda yoksa, migration'ı zorla çalıştır
+    if (hasOldSavedResults && !newKeyExists) {
+      console.log("🔄 Eski veri bulundu ama yeni yapıda yok, migration zorlanıyor...");
+      performMigration(allItems, birimId);
       return;
     }
     
-    chrome.storage.local.get(["savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId"], (oldItems) => {
-      let hasMigrated = false;
+    // Eski veri yoksa, normal version kontrolü yap
+    chrome.storage.local.get(["storageVersion"], (res) => {
+      const oldVersion = res.storageVersion;
       
-      if (oldItems.savedResults && Array.isArray(oldItems.savedResults)) {
-        const birimId = (oldItems.birimId && typeof oldItems.birimId === "string") ? oldItems.birimId : "default";
-        const newKey = getStorageKey("savedResults", birimId);
-        const timestamp = Date.now();
-        chrome.storage.local.set({ [newKey]: { data: oldItems.savedResults, timestamp } });
-        console.log(`✅ Migrated savedResults to ${newKey}`);
-        hasMigrated = true;
+      if (oldVersion === CURRENT_STORAGE_VERSION) {
+        console.log(`ℹ️ Storage zaten güncel (v${CURRENT_STORAGE_VERSION})`);
+        return;
       }
       
-      if (oldItems.sinaLastTime) {
-        const birimId = (oldItems.birimId && typeof oldItems.birimId === "string") ? oldItems.birimId : "default";
-        const newKey = getStorageKey("sinaLastTime", birimId);
-        const timestamp = Date.now();
-        let dataValue = oldItems.sinaLastTime;
-        if (typeof dataValue === "object" && dataValue.data) dataValue = dataValue.data;
-        chrome.storage.local.set({ [newKey]: { data: dataValue, timestamp } });
-        console.log(`✅ Migrated sinaLastTime to ${newKey}`);
-        hasMigrated = true;
-      }
-      
-      if (oldItems.hypLastTime) {
-        const birimId = (oldItems.birimId && typeof oldItems.birimId === "string") ? oldItems.birimId : "default";
-        const newKey = getStorageKey("hypLastTime", birimId);
-        const timestamp = Date.now();
-        let dataValue = oldItems.hypLastTime;
-        if (typeof dataValue === "object" && dataValue.data) dataValue = dataValue.data;
-        chrome.storage.local.set({ [newKey]: { data: dataValue, timestamp } });
-        console.log(`✅ Migrated hypLastTime to ${newKey}`);
-        hasMigrated = true;
-      }
-      
-      if (oldItems.nufus && typeof oldItems.nufus === "string") {
-        const birimId = (oldItems.birimId && typeof oldItems.birimId === "string") ? oldItems.birimId : "default";
-        const key = `nufus_${birimId}`;
-        chrome.storage.local.set({ [key]: oldItems.nufus });
-        console.log(`✅ Migrated nufus to ${key}`);
-        hasMigrated = true;
-      }
-      
-      if (oldItems.birimId && typeof oldItems.birimId !== "string") {
-        let correctBirimId = "default";
-        if (typeof oldItems.birimId === "object" && oldItems.birimId.data) {
-          correctBirimId = oldItems.birimId.data;
-        } else {
-          correctBirimId = String(oldItems.birimId);
-        }
-        chrome.storage.local.set({ birimId: correctBirimId });
-        console.log(`✅ Fixed birimId from ${JSON.stringify(oldItems.birimId)} to ${correctBirimId}`);
-        hasMigrated = true;
-      }
-      
-      if (hasMigrated) {
-        const oldKeys = ["savedResults", "sinaLastTime", "hypLastTime", "nufus"];
-        chrome.storage.local.remove(oldKeys, () => {
-          console.log("🗑️ Eski storage anahtarları temizlendi.");
-        });
-      }
-      
-      chrome.storage.local.set({ migrationDone: true });
-      if (hasMigrated) {
-        console.log("🎉 Migration tamamlandı! Sayfayı yenileyin.");
-      } else {
-        console.log("ℹ️ Migration gerekli değil, yeni yapı kullanılıyor.");
-      }
+      console.log(`🔄 Storage sürümü: ${oldVersion || "yok"} → ${CURRENT_STORAGE_VERSION} migration başlıyor...`);
+      performMigration(allItems, birimId);
     });
   });
+}
+
+// Migration işlemlerini gerçekleştir
+function performMigration(allItems, birimId) {
+  const userType = "doctor";
+  let hasMigrated = false;
+  
+  // Eski savedResults_123 formatını bul
+  const oldSavedKeys = Object.keys(allItems).filter(k => 
+    k.startsWith("savedResults_") && !k.includes("_doctor_") && !k.includes("_nurse_")
+  );
+  
+  for (const oldKey of oldSavedKeys) {
+    const data = allItems[oldKey];
+    if (data) {
+      const newKey = `savedResults_${userType}_${birimId}`;
+      const timestamp = Date.now();
+      const valueToStore = Array.isArray(data) ? { data, timestamp } : data;
+      chrome.storage.local.set({ [newKey]: valueToStore });
+      console.log(`✅ Migrated ${oldKey} → ${newKey}`);
+      chrome.storage.local.remove(oldKey);
+      hasMigrated = true;
+    }
+  }
+  
+  // Eski savedResults (düz) formatını bul
+  if (allItems.savedResults && Array.isArray(allItems.savedResults)) {
+    const newKey = `savedResults_${userType}_${birimId}`;
+    const timestamp = Date.now();
+    chrome.storage.local.set({ [newKey]: { data: allItems.savedResults, timestamp } });
+    console.log(`✅ Migrated savedResults → ${newKey}`);
+    chrome.storage.local.remove("savedResults");
+    hasMigrated = true;
+  }
+  
+  // sinaLastTime_* taşı
+  const oldSinaKeys = Object.keys(allItems).filter(k => 
+    k.startsWith("sinaLastTime_") && !k.includes("_doctor_") && !k.includes("_nurse_")
+  );
+  for (const oldKey of oldSinaKeys) {
+    const data = allItems[oldKey];
+    if (data) {
+      const newKey = `sinaLastTime_${userType}_${birimId}`;
+      const timestamp = Date.now();
+      const valueToStore = data.timestamp ? data : { data, timestamp };
+      chrome.storage.local.set({ [newKey]: valueToStore });
+      console.log(`✅ Migrated ${oldKey} → ${newKey}`);
+      chrome.storage.local.remove(oldKey);
+      hasMigrated = true;
+    }
+  }
+  
+  if (allItems.sinaLastTime) {
+    const newKey = `sinaLastTime_${userType}_${birimId}`;
+    const timestamp = Date.now();
+    let dataValue = allItems.sinaLastTime;
+    if (typeof dataValue === "object" && dataValue.data) dataValue = dataValue.data;
+    chrome.storage.local.set({ [newKey]: { data: dataValue, timestamp } });
+    console.log(`✅ Migrated sinaLastTime → ${newKey}`);
+    chrome.storage.local.remove("sinaLastTime");
+    hasMigrated = true;
+  }
+  
+  // hypLastTime için benzer işlemler
+  const oldHypKeys = Object.keys(allItems).filter(k => 
+    k.startsWith("hypLastTime_") && !k.includes("_doctor_") && !k.includes("_nurse_")
+  );
+  for (const oldKey of oldHypKeys) {
+    const data = allItems[oldKey];
+    if (data) {
+      const newKey = `hypLastTime_${userType}_${birimId}`;
+      const timestamp = Date.now();
+      const valueToStore = data.timestamp ? data : { data, timestamp };
+      chrome.storage.local.set({ [newKey]: valueToStore });
+      console.log(`✅ Migrated ${oldKey} → ${newKey}`);
+      chrome.storage.local.remove(oldKey);
+      hasMigrated = true;
+    }
+  }
+  
+  if (allItems.hypLastTime) {
+    const newKey = `hypLastTime_${userType}_${birimId}`;
+    const timestamp = Date.now();
+    let dataValue = allItems.hypLastTime;
+    if (typeof dataValue === "object" && dataValue.data) dataValue = dataValue.data;
+    chrome.storage.local.set({ [newKey]: { data: dataValue, timestamp } });
+    console.log(`✅ Migrated hypLastTime → ${newKey}`);
+    chrome.storage.local.remove("hypLastTime");
+    hasMigrated = true;
+  }
+  
+  // Nüfus taşı
+  const oldNufusKeys = Object.keys(allItems).filter(k => k === "nufus" || (k.startsWith("nufus_") && !k.includes("_doctor_")));
+  for (const oldKey of oldNufusKeys) {
+    const nufus = allItems[oldKey];
+    if (nufus && typeof nufus === "string") {
+      const newKey = `nufus_${birimId}`;
+      chrome.storage.local.set({ [newKey]: nufus });
+      console.log(`✅ Migrated ${oldKey} → ${newKey}`);
+      chrome.storage.local.remove(oldKey);
+      hasMigrated = true;
+    }
+  }
+  
+  // BirimId düzeltme
+  if (allItems.birimId && typeof allItems.birimId !== "string") {
+    let correctBirimId = "default";
+    if (typeof allItems.birimId === "object" && allItems.birimId.data) {
+      correctBirimId = allItems.birimId.data;
+    } else {
+      correctBirimId = String(allItems.birimId);
+    }
+    chrome.storage.local.set({ birimId: correctBirimId });
+    console.log(`✅ Fixed birimId from ${JSON.stringify(allItems.birimId)} to ${correctBirimId}`);
+    hasMigrated = true;
+  }
+  
+  // Storage sürümünü güncelle
+  chrome.storage.local.set({ storageVersion: CURRENT_STORAGE_VERSION });
+  
+  // Eski migration flag'ini temizle (artık kullanılmıyor)
+  chrome.storage.local.remove("migrationDone");
+  
+  if (hasMigrated) {
+    console.log("🎉 Migration tamamlandı! Sayfayı yenileyin.");
+    location.reload();
+  } else {
+    console.log("ℹ️ Migration gerekli değil, yeni yapı kullanılıyor.");
+  }
 }

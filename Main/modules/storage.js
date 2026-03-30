@@ -1,37 +1,40 @@
 import { RETENTION_DAYS } from './constants.js';
 import { updateTable } from './ui.js';
 
-// Storage ile ilgili yardımcı fonksiyonlar
 // Mevcut birimId'yi al
 export function getCurrentBirimId() {
   const input = document.getElementById("birimId");
   return input?.value?.trim() || "";
 }
 
-// Storage anahtarını birimId ile oluştur
-export function getStorageKey(baseKey, birimId) {
-  if (!birimId) return baseKey;
-  return `${baseKey}_${birimId}`;
+// Mevcut kullanıcı tipini al
+export function getCurrentUserType() {
+  const select = document.getElementById("userTypeSelect");
+  return select?.value || "doctor";
 }
 
-// Verileri birimId ile kaydet (zaman damgalı)
-export function storeDataWithTimestamp(baseKey, data) {
+// Storage anahtarını birimId ve userType ile oluştur
+export function getStorageKey(baseKey, birimId, userType) {
+  if (!birimId) return `${baseKey}_${userType}`;
+  return `${baseKey}_${userType}_${birimId}`;
+}
+
+// Verileri birimId ve userType ile kaydet
+export function storeDataWithTimestamp(baseKey, data, userType, birimId) {
   const timestamp = Date.now();
-  const birimId = getCurrentBirimId();
-  const key = getStorageKey(baseKey, birimId);
+  const key = getStorageKey(baseKey, birimId, userType);
   chrome.storage.local.set({ [key]: { data, timestamp } }).catch(console.error);
 }
 
-// Verileri birimId ile oku (callback)
-export function getDataWithTimestamp(baseKey, callback) {
-  const birimId = getCurrentBirimId();
-  const key = getStorageKey(baseKey, birimId);
+// Verileri okumak için yardımcı (callback)
+export function getDataWithTimestamp(baseKey, userType, birimId, callback) {
+  const key = getStorageKey(baseKey, birimId, userType);
   chrome.storage.local.get([key], (res) => {
     callback(res[key]?.data || null);
   });
 }
 
-// Nüfusu birim ID ile kaydet
+// Nüfus işlemleri (birim bazlı, userType'den bağımsız - aynı nüfus)
 export function saveNufusForBirim(birimId, nufus) {
   if (!birimId) return;
   const key = `nufus_${birimId}`;
@@ -60,25 +63,27 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
   });
 }
 
-// Veri yükleme (tablo, zaman damgaları)
-export function loadDataForCurrentBirim(updateTableFn) {
-  const birimId = getCurrentBirimId();
+// Veri yükleme (tablo ve zaman damgaları) – artık userType parametresi alır
+export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onDataLoaded) {
   if (!birimId) {
     if (updateTableFn) updateTableFn([]);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
+    if (onDataLoaded) onDataLoaded(false); // veri yok
     return;
   }
-  const key = getStorageKey("savedResults", birimId);
+  const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
-    if (res[key]?.data) {
+    const hasData = !!(res[key]?.data && res[key].data.length > 0);
+    if (hasData) {
       if (updateTableFn) updateTableFn(res[key].data);
     } else {
       if (updateTableFn) updateTableFn([]);
     }
+    if (onDataLoaded) onDataLoaded(hasData);
   });
-  const sinaKey = getStorageKey("sinaLastTime", birimId);
-  const hypKey = getStorageKey("hypLastTime", birimId);
+  const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
+  const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {
     const sinaTimeSpan = document.getElementById("sinaTime");
     const hypTimeSpan = document.getElementById("hypTime");
@@ -87,7 +92,7 @@ export function loadDataForCurrentBirim(updateTableFn) {
   });
 }
 
-// Süresi dolmuş verileri temizle
+// Süresi dolmuş verileri temizle (prefix bazlı)
 export function cleanExpiredData(updateTableFn) {
   chrome.storage.local.get(null, (items) => {
     const now = Date.now();
@@ -105,7 +110,6 @@ export function cleanExpiredData(updateTableFn) {
     if (keysToRemove.length > 0) {
       chrome.storage.local.remove(keysToRemove, () => {
         console.log("Süresi dolan veriler temizlendi:", keysToRemove);
-        // Eğer savedResults silindiyse, tabloyu temizle
         if (keysToRemove.some(k => k.startsWith("savedResults_"))) {
           if (updateTableFn) updateTableFn([]);
           const sinaTimeSpan = document.getElementById("sinaTime");
@@ -118,25 +122,26 @@ export function cleanExpiredData(updateTableFn) {
   });
 }
 
-// Tüm verileri sil (tüm birimler)
+// Tüm verileri sil (tüm userType ve birimler)
 export function deleteAllData() {
   if (confirm("TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?")) {
-    // Silinecek anahtar kalıpları
     const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_"];
-    
     chrome.storage.local.get(null, (items) => {
       const keysToRemove = Object.keys(items).filter(key => {
         return prefixes.some(prefix => key.startsWith(prefix));
       });
-      
       if (keysToRemove.length > 0) {
         chrome.storage.local.remove(keysToRemove, () => {
-          // UI'ı sıfırla
           updateTable([]);
           document.getElementById("sinaTime").textContent = "";
           document.getElementById("hypTime").textContent = "";
           document.getElementById("nufus").value = "";
           document.getElementById("birimId").value = "";
+          
+          // HYP butonunu devre dışı bırak
+          const hypBtn = document.getElementById("btnHyp");
+          if (hypBtn) hypBtn.disabled = true;
+          
           alert("Tüm birimlere ait veriler silindi.");
         });
       } else {
@@ -146,18 +151,26 @@ export function deleteAllData() {
   }
 }
 
-// Veri dışa aktar
+// Veri dışa aktar (userType ile)
 export function exportData() {
   const birimId = getCurrentBirimId();
   if (!birimId) {
     alert("Önce Birim ID girin!");
     return;
   }
-  const key = getStorageKey("savedResults", birimId);
-  chrome.storage.local.get([key, "birimId"], (res) => {
+  
+  const userType = getCurrentUserType(); // userType'ı al
+  
+  // Sürüm numarasını manifest'ten al
+  const manifest = chrome.runtime.getManifest();
+  const currentVersion = manifest.version;
+  
+  const key = getStorageKey("savedResults", birimId, userType); // userType eklendi
+  chrome.storage.local.get([key], (res) => {
     const exportData = {
       exportDate: new Date().toISOString(),
-      version: "1.5.3",
+      version: currentVersion,
+      userType: userType,           // userType eklendi
       birimId: birimId,
       data: res[key]?.data || [],
       metadata: {
@@ -168,7 +181,7 @@ export function exportData() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `sina_hyp_${birimId}_${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `sina_hyp_${userType}_${birimId}_${new Date().toISOString().split("T")[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -183,8 +196,14 @@ export function revokeConsent() {
       document.getElementById("hypTime").textContent = "";
       document.getElementById("nufus").value = "";
       document.getElementById("birimId").value = "";
+      
+      // HYP butonunu devre dışı bırak
+      const hypBtn = document.getElementById("btnHyp");
+      if (hypBtn) hypBtn.disabled = true;
+      
       setUIEnabled(false);
       alert("Rıza geri çekildi ve tüm veriler silindi.");
     });
   }
 }
+

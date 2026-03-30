@@ -9,6 +9,21 @@ import { requestConsent, showChangelog, closeModal } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
+// Global değişkenler
+let currentUserType = "doctor";
+let currentBirimId = "";
+
+// Storage anahtarı oluşturma (userType ve birimId ile)
+function getStorageKeyWithType(baseKey) {
+  return `${baseKey}_${currentUserType}_${currentBirimId}`;
+}
+
+// HYP buton durumunu güncelleyen yardımcı fonksiyon
+function updateHypButtonState(hasData) {
+  const hypBtn = document.getElementById("btnHyp");
+  if (hypBtn) hypBtn.disabled = !hasData;
+}
+
 // Sayfa yüklendiğinde
 document.addEventListener("DOMContentLoaded", async function () {
   // Tarih ve ay seçimleri
@@ -42,6 +57,37 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Migration (eski storage'dan yeni yapıya geçiş)
   migrateFromOldStorage();
 
+  // ========== KULLANICI TİPİ ==========
+  const userTypeSelect = document.getElementById("userTypeSelect");
+  
+  function setUserType(type) {
+    currentUserType = type;
+    chrome.storage.local.set({ userType: type });
+    currentBirimId = getCurrentBirimId();
+    
+    if (type === "nurse") {
+      alert("ASÇ modülü henüz geliştirme aşamasındadır. SİNA butonu şimdilik çalışmayacaktır.");
+      document.getElementById("btnSina").disabled = true;
+    } else {
+      document.getElementById("btnSina").disabled = false;
+    }
+    
+    // Verileri yeniden yükle
+    loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState);
+  }
+
+  // Storage'dan kullanıcı tipini yükle
+  chrome.storage.local.get(["userType"], (res) => {
+    const savedType = res.userType || "doctor";
+    if (userTypeSelect) userTypeSelect.value = savedType;
+    setUserType(savedType);
+  });
+
+  // Dropdown değişince
+  userTypeSelect.addEventListener("change", (e) => {
+    setUserType(e.target.value);
+  });
+
   // ========== TEMA ==========
   const themeSelect = document.getElementById("themeSelect");
   chrome.storage.local.get(["themePreference"], (res) => {
@@ -54,9 +100,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       const theme = e.target.value;
       applyTheme(theme);
       chrome.storage.local.set({ themePreference: theme });
-      const birimId = getCurrentBirimId();
-      if (birimId) {
-        const key = getStorageKey("savedResults", birimId);
+      if (currentBirimId) {
+        const key = getStorageKeyWithType("savedResults");
         chrome.storage.local.get([key], (res) => {
           if (res[key]?.data) updateTable(res[key].data);
         });
@@ -74,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   } catch (e) {
     console.warn("Sürüm numarası okunamadı:", e);
     const versionBadge = document.getElementById("versionBadge");
-    if (versionBadge) versionBadge.textContent = "v1.5.4";
+    if (versionBadge) versionBadge.textContent = "v1.5.5";
   }
 
   // ========== SÜREÇ YÖNETİMİ ==========
@@ -85,8 +130,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       else surecSelect.value = "1.03";
     });
     surecSelect.addEventListener("change", (e) => {
-      storeDataWithTimestamp("surec", e.target.value);
-      loadDataForCurrentBirim(updateTable, tavanHesapla);
+      storeDataWithTimestamp("surec", e.target.value, currentUserType, currentBirimId);
+      loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId);
     });
   }
 
@@ -96,15 +141,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     chrome.storage.local.get(["birimId"], (res) => {
       if (res.birimId) {
         birimIdInput.value = res.birimId;
+        currentBirimId = res.birimId;
         loadNufusForBirim(res.birimId, tavanHesapla);
-        loadDataForCurrentBirim(updateTable, tavanHesapla);
+        loadDataForCurrentBirim(updateTable, currentUserType, res.birimId, updateHypButtonState);
       }
     });
     birimIdInput.addEventListener("change", (e) => {
       const newBirimId = e.target.value.trim();
+      currentBirimId = newBirimId;
       chrome.storage.local.set({ birimId: newBirimId });
       loadNufusForBirim(newBirimId, tavanHesapla);
-      loadDataForCurrentBirim(updateTable, tavanHesapla);
+      loadDataForCurrentBirim(updateTable, currentUserType, newBirimId, updateHypButtonState);
     });
   }
 
@@ -113,8 +160,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (nufusInput) {
     nufusInput.addEventListener("change", (e) => {
       const val = e.target.value;
-      const birimId = getCurrentBirimId();
-      if (birimId) saveNufusForBirim(birimId, val);
+      if (currentBirimId) saveNufusForBirim(currentBirimId, val);
       tavanHesapla(val);
     });
     nufusInput.addEventListener("input", (e) => {
@@ -129,6 +175,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // ========== BUTONLAR ==========
   document.getElementById("btnSina")?.addEventListener("click", () => {
+    if (currentUserType === "nurse") {
+      alert("ASÇ modülü henüz geliştirme aşamasındadır. Lütfen Aile Hekimi modunu kullanın.");
+      return;
+    }
     const ayStr = document.getElementById("ay")?.value || "";
     const yil = parseInt(document.getElementById("yil")?.value || "0");
     const ayNum = getMonthNumber(ayStr);
@@ -141,12 +191,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       alert(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi dönem için çalışır.`);
       return;
     }
-    const birimId = getCurrentBirimId();
-    if (!birimId) {
+    if (!currentBirimId) {
       alert("Lütfen Birim ID girin!");
       return;
     }
-    const url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${birimId}%26252916=${yil}%26330586#kopyala`;
+    const url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
     chrome.tabs.create({ url });
   });
 
@@ -167,7 +216,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   document.getElementById("btnDeleteData")?.addEventListener("click", deleteAllData);
-  document.getElementById("btnExportData")?.addEventListener("click", exportData);
+  document.getElementById("btnExportData")?.addEventListener("click", () => {
+    exportData(currentUserType, currentBirimId);
+  });
   document.getElementById("btnRevokeConsent")?.addEventListener("click", revokeConsent);
   
   const btnChangelog = document.getElementById("btnChangelog");
@@ -207,9 +258,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     if (msg.action === "dataParsed") {
-      const birimId = getCurrentBirimId();
-      if (!birimId) return;
-      const key = getStorageKey("savedResults", birimId);
+      if (!currentBirimId) return;
+      const key = getStorageKeyWithType("savedResults");
       chrome.storage.local.get([key], (res) => {
         let existingData = res[key]?.data || [];
         const hypYapilanMap = new Map();
@@ -221,16 +271,19 @@ document.addEventListener("DOMContentLoaded", async function () {
           }
           return sinaItem;
         });
-        storeDataWithTimestamp("savedResults", merged);
-        storeDataWithTimestamp("sinaLastTime", simdi);
+        storeDataWithTimestamp("savedResults", merged, currentUserType, currentBirimId);
+        storeDataWithTimestamp("sinaLastTime", simdi, currentUserType, currentBirimId);
         const sinaTimeSpan = document.getElementById("sinaTime");
         if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
         updateTable(merged);
+        
+        // HYP butonunu etkinleştir (veri başarıyla kaydedildikten sonra)
+        const hypBtn = document.getElementById("btnHyp");
+        if (hypBtn) hypBtn.disabled = false;
       });
     } else if (msg.action === "hypDataParsed") {
-      const birimId = getCurrentBirimId();
-      if (!birimId) return;
-      const key = getStorageKey("savedResults", birimId);
+      if (!currentBirimId) return;
+      const key = getStorageKeyWithType("savedResults");
       chrome.storage.local.get([key], (res) => {
         if (!res[key]?.data) {
           alert("Önce SİNA verilerini çekmelisiniz.");
@@ -248,8 +301,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
           }
         });
-        storeDataWithTimestamp("savedResults", guncelVeri);
-        storeDataWithTimestamp("hypLastTime", simdi);
+        storeDataWithTimestamp("savedResults", guncelVeri, currentUserType, currentBirimId);
+        storeDataWithTimestamp("hypLastTime", simdi, currentUserType, currentBirimId);
         const hypTimeSpan = document.getElementById("hypTime");
         if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         updateTable(guncelVeri);
@@ -257,3 +310,4 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 });
+
