@@ -150,6 +150,13 @@ document.addEventListener("DOMContentLoaded", async function () {
       const newBirimId = e.target.value.trim();
       currentBirimId = newBirimId;
       chrome.storage.local.set({ birimId: newBirimId });
+      
+      // Hemen HYP zamanını temizle (eski birimin zamanı kalmasın)
+      const hypTimeSpan = document.getElementById("hypTime");
+      if (hypTimeSpan) hypTimeSpan.textContent = "";
+      const sinaTimeSpan = document.getElementById("sinaTime");
+      if (sinaTimeSpan) sinaTimeSpan.textContent = "";
+      
       loadNufusForBirim(newBirimId, tavanHesapla);
       loadDataForCurrentBirim(updateTable, currentUserType, newBirimId, updateHypButtonState);
     });

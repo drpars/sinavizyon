@@ -69,9 +69,10 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
     if (updateTableFn) updateTableFn([]);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
-    if (onDataLoaded) onDataLoaded(false); // veri yok
+    if (onDataLoaded) onDataLoaded(false);
     return;
   }
+  
   const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     const hasData = !!(res[key]?.data && res[key].data.length > 0);
@@ -82,13 +83,20 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
+  
+  // Zaman damgalarını yükle (HER ZAMAN güncelle, veri yoksa temizle)
   const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
   const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {
     const sinaTimeSpan = document.getElementById("sinaTime");
     const hypTimeSpan = document.getElementById("hypTime");
-    if (sinaTimeSpan && res[sinaKey]?.data) sinaTimeSpan.textContent = res[sinaKey].data;
-    if (hypTimeSpan && res[hypKey]?.data) hypTimeSpan.textContent = res[hypKey].data;
+    
+    if (sinaTimeSpan) {
+      sinaTimeSpan.textContent = res[sinaKey]?.data || "";
+    }
+    if (hypTimeSpan) {
+      hypTimeSpan.textContent = res[hypKey]?.data || "";
+    }
   });
 }
 

@@ -115,7 +115,8 @@ export const changelogData = [
       "📁 **Veriler ayrı saklanıyor:** Doktor ve hemşire verileri artık farklı storage anahtarlarında tutulur.",
       "🔄 **Güncelleme desteği:** 1.5.4 ve öncesinden gelen veriler otomatik olarak doktor verisi olarak taşınır.",
       "🎯 **HYP butonu artık SİNA verisi yokken devre dışı:** Kullanıcı deneyimi iyileştirildi.",
-      "⚡ **Küçük performans iyileştirmeleri ve hata düzeltmeleri.**"
+      "⚡ **Küçük performans iyileştirmeleri ve hata düzeltmeleri.**",
+      "🐛 **HYP zaman göstergesi düzeltmesi:** Birim ID değiştiğinde eski birimin HYP zamanı artık gözükmüyor."
     ]
   }
 ];
