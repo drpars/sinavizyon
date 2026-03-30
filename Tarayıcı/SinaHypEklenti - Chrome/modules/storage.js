@@ -157,7 +157,7 @@ export function exportData() {
   chrome.storage.local.get([key, "birimId"], (res) => {
     const exportData = {
       exportDate: new Date().toISOString(),
-      version: "1.5.3",
+      version: "1.5.4",
       birimId: birimId,
       data: res[key]?.data || [],
       metadata: {
