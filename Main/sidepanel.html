@@ -55,14 +55,14 @@
         margin-bottom: 12px;
       }
       .title {
-        font-size: 14px;
+        font-size: 1.17rem;
         font-weight: bold;
         color: var(--blue);
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
       #versionBadge {
-        font-size: 10px;
+        font-size: 0.83rem;
         font-weight: normal;
         background: var(--bg-dark);
         border: 1px solid var(--border);
@@ -91,7 +91,7 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
       .kvkk-settings-note {
-        font-size: 10px;
+        font-size: 0.83rem;
         margin-top: 8px;
         border-top: 1px solid var(--border);
         padding-top: 6px;
@@ -123,7 +123,7 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 8px;
-        font-size: 12px;
+        font-size: 1rem;
         font-weight: bold;
         color: var(--blue);
       }
@@ -141,7 +141,13 @@
       .kht-bar-fill {
         width: 0%;
         height: 100%;
-        background: linear-gradient(90deg, #e74c3c 0%, #f39c12 50%, #2ecc71 70%, #2ecc71 100%);
+        background: linear-gradient(
+          90deg,
+          #e74c3c 0%,
+          #f39c12 50%,
+          #2ecc71 70%,
+          #2ecc71 100%
+        );
         border-radius: 4px;
         transition: width 0.3s ease;
       }
@@ -153,7 +159,7 @@
       .kht-bar-marks span {
         position: absolute;
         transform: translateX(-50%);
-        font-size: 9px;
+        font-size: 0.75rem;
         color: var(--fg);
         opacity: 0.8;
         white-space: nowrap;
@@ -188,19 +194,19 @@
         font-size: 9px;
         opacity: 0.7;
         text-transform: uppercase;
-        margin-top: 4px;      /* Üstte hafif boşluk */
+        margin-top: 4px; /* Üstte hafif boşluk */
       }
       .score-value {
-        font-size: 18px;
+        font-size: 1.5rem;
         font-weight: bold;
-        margin-bottom: 4px;   /* Altta hafif boşluk */
+        margin-bottom: 4px; /* Altta hafif boşluk */
       }
       #totalKatsayi {
-        font-size: 22px;
+        font-size: 1.83rem;
         font-weight: bold;
         margin: 2px 0;
       }
-      
+
       /* GELİŞMİŞ AYARLAR BUTONU */
       .toggle-advanced-btn {
         background: var(--bg-dark);
@@ -219,7 +225,7 @@
         background: var(--blue);
         color: var(--bg-dark);
       }
-      
+
       /* GELİŞMİŞ AYARLAR ALANI (başlangıçta gizli) */
       .advanced-settings {
         display: none;
@@ -227,26 +233,27 @@
       .advanced-settings.show {
         display: block;
       }
-      
+
       .row {
         margin-bottom: 8px;
         display: flex;
         flex-direction: column;
       }
       label {
-        font-size: 10px;
+        font-size: 0.83rem;
         color: var(--blue);
         margin-bottom: 3px;
         font-weight: bold;
         text-transform: uppercase;
       }
-      select, input {
+      select,
+      input {
         background: var(--bg-dark);
         border: 1px solid var(--border);
         color: var(--fg);
         padding: 6px;
         border-radius: 4px;
-        font-size: 12px;
+        font-size: 1rem;
         outline: none;
       }
       .btn-group {
@@ -269,20 +276,26 @@
         cursor: pointer;
         font-weight: bold;
         text-transform: uppercase;
-        font-size: 11px;
+        font-size: 0.92rem;
         transition: opacity 0.2s;
       }
       .btn:active {
         opacity: 0.8;
       }
-      #btnSina { background-color: var(--blue); color: #fff; }
-      #btnHyp { background-color: var(--magenta); color: #fff; }
+      #btnSina {
+        background-color: var(--blue);
+        color: #fff;
+      }
+      #btnHyp {
+        background-color: var(--magenta);
+        color: #fff;
+      }
       .small-btn {
         background: var(--bg);
         border: 1px solid var(--blue);
         padding: 6px 10px;
         margin: 4px 0;
-        font-size: 11px;
+        font-size: 0.92rem;
         border-radius: 6px;
         cursor: pointer;
         color: var(--blue);
@@ -305,7 +318,7 @@
         color: white;
       }
       .time-label {
-        font-size: 9px;
+        font-size: 0.75rem;
         opacity: 0.7;
         margin-top: 4px;
         text-align: center;
@@ -325,7 +338,7 @@
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 11px;
+        /* font-size: 11px; */
       }
       th {
         position: sticky;
@@ -384,7 +397,7 @@
         background: var(--bg);
         border-top: 1px solid var(--border);
         padding: 8px;
-        font-size: 10px;
+        font-size: 0.83rem;
         text-align: center;
         z-index: 10;
         margin-top: 8px;
@@ -398,7 +411,8 @@
       input[type="number"] {
         -moz-appearance: textfield;
       }
-      input:focus, select:focus {
+      input:focus,
+      select:focus {
         border-color: var(--blue);
         outline: none;
         box-shadow: 0 0 4px rgba(122, 162, 247, 0.4);
@@ -414,7 +428,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(0, 0, 0, 0.5);
         z-index: 1000;
         justify-content: center;
         align-items: center;
@@ -455,7 +469,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.6);
+        background-color: rgba(0, 0, 0, 0.6);
         z-index: 2000;
         justify-content: center;
         align-items: center;
@@ -499,7 +513,12 @@
   </head>
   <body>
     <div class="header-container">
-      <div class="title">SİNA VİZYON<span id="versionBadge" style="font-size: 10px; opacity: 0.7; margin-left: 6px;"></span></div>
+      <div class="title">
+        SİNA VİZYON<span
+          id="versionBadge"
+          style="font-size: 10px; opacity: 0.7; margin-left: 6px"
+        ></span>
+      </div>
       <button id="btnSettings" title="Ayarlar">⚙️</button>
     </div>
 
@@ -509,25 +528,52 @@
         <option value="doctor">👨‍⚕️ Aile Hekimi</option>
         <option value="nurse">👩‍⚕️ Aile Sağlığı Çalışanı (ASÇ)</option>
       </select>
-      <hr style="margin: 8px 0; border-color: var(--border);">
+      <hr style="margin: 8px 0; border-color: var(--border)" />
       <label>GÖRÜNÜM TEMASI</label>
-        <select id="themeSelect">
-          <option value="light">Açık (Varsayılan)</option>
-          <option value="dark">Koyu (Tokyo Night)</option>
-        </select>
-      <hr style="margin: 8px 0; border-color: var(--border);">
-      <button id="btnDeleteData" class="small-btn">🗑️ Tüm Verilerimi Sil</button>
-      <button id="btnExportData" class="small-btn">📤 Verilerimi Dışa Aktar</button>
-      <button id="btnToggleKvkk" class="small-btn">🔒 KVKK Bilgilendirmelerini Gizle</button>
-      <button id="btnRevokeConsent" class="small-btn">🔒 Rızamı Geri Çek</button>
+      <select id="themeSelect">
+        <option value="light">Açık (Varsayılan)</option>
+        <option value="dark">Koyu (Tokyo Night)</option>
+      </select>
+      <hr style="margin: 8px 0; border-color: var(--border)" />
+      <button id="btnDeleteData" class="small-btn">
+        🗑️ Tüm Verilerimi Sil
+      </button>
+      <button id="btnExportData" class="small-btn">
+        📤 Verilerimi Dışa Aktar
+      </button>
+      <button id="btnToggleKvkk" class="small-btn">
+        🔒 KVKK Bilgilendirmelerini Gizle
+      </button>
+      <button id="btnRevokeConsent" class="small-btn">
+        🔒 Rızamı Geri Çek
+      </button>
       <button id="btnChangelog" class="small-btn">📋 Sürüm Geçmişi</button>
+      <label>YAZI BOYUTU</label>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="font-size: 10px">A</span>
+        <input
+          type="range"
+          id="fontSizeSlider"
+          min="11"
+          max="15"
+          step="0.25"
+          value="12"
+          style="flex: 1"
+        />
+        <span style="font-size: 18px">A</span>
+        <span id="fontSizeValue" style="min-width: 40px">12px</span>
+      </div>
+      <hr style="margin: 8px 0; border-color: var(--border)" />
       <div id="kvkkSettingsNote" class="kvkk-settings-note">
-        🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra otomatik silinir. İstediğiniz zaman silebilir veya dışa aktarabilirsiniz.
+        🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra
+        otomatik silinir. İstediğiniz zaman silebilir veya dışa
+        aktarabilirsiniz.
       </div>
     </div>
 
     <div id="consentWarning" class="hidden">
-      ⚠️ KVKK rızası verilmemiş. Lütfen ayarlardan rıza vermek için eklentiyi yeniden başlatın.
+      ⚠️ KVKK rızası verilmemiş. Lütfen ayarlardan rıza vermek için eklentiyi
+      yeniden başlatın.
     </div>
 
     <div id="totalScoreCard">
@@ -540,10 +586,10 @@
           <div class="kht-bar-fill" id="khtBarFill"></div>
         </div>
         <div class="kht-bar-marks">
-          <span style="left: 0%;">0%</span>
-          <span style="left: 40%;">40%</span>
-          <span style="left: 70%;">70%</span>
-          <span style="left: 100%;">100%</span>
+          <span style="left: 0%">0%</span>
+          <span style="left: 40%">40%</span>
+          <span style="left: 70%">70%</span>
+          <span style="left: 100%">100%</span>
         </div>
       </div>
       <div class="score-row">
@@ -563,7 +609,9 @@
     </div>
 
     <!-- GELİŞMİŞ AYARLAR BUTONU -->
-    <button id="toggleAdvancedBtn" class="toggle-advanced-btn">🔧 Gelişmiş Ayarlar</button>
+    <button id="toggleAdvancedBtn" class="toggle-advanced-btn">
+      🔧 Gelişmiş Ayarlar
+    </button>
 
     <!-- GELİŞMİŞ AYARLAR ALANI (başlangıçta gizli) -->
     <div id="advancedSettings" class="advanced-settings">
@@ -623,7 +671,7 @@
     </div>
 
     <div class="table-container">
-       <table>
+      <table>
         <thead>
           <tr>
             <th style="text-align: left">İŞLEM ADI</th>
@@ -634,9 +682,11 @@
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
-       </table>
+      </table>
       <div id="kvkkFooter" class="kvkk-footer">
-        🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra otomatik silinir. İstediğiniz zaman silebilir veya dışa aktarabilirsiniz.
+        🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra
+        otomatik silinir. İstediğiniz zaman silebilir veya dışa
+        aktarabilirsiniz.
       </div>
     </div>
 
@@ -651,11 +701,12 @@
     <div id="consentModal" class="consent-modal">
       <div class="consent-modal-content">
         <h3>🔒 KVKK Aydınlatma ve Rıza</h3>
-        <p style="text-align: left;">
-          Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini yerel olarak saklar.<br><br>
-          ✓ Verileriniz yalnızca sizin cihazınızda tutulur<br>
-          ✓ Hiçbir sunucuya gönderilmez<br>
-          ✓ İstediğiniz zaman silebilir veya dışa aktarabilirsiniz<br>
+        <p style="text-align: left">
+          Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini
+          yerel olarak saklar.<br /><br />
+          ✓ Verileriniz yalnızca sizin cihazınızda tutulur<br />
+          ✓ Hiçbir sunucuya gönderilmez<br />
+          ✓ İstediğiniz zaman silebilir veya dışa aktarabilirsiniz<br />
           ✓ Veriler 90 gün sonra otomatik silinir
         </p>
         <div class="consent-modal-buttons">
@@ -669,4 +720,3 @@
     <script src="sidepanel-toggle.js"></script>
   </body>
 </html>
-

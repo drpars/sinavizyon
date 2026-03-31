@@ -122,6 +122,31 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (versionBadge) versionBadge.textContent = "v1.5.5";
   }
 
+  // ========== YAZI BOYUTU (SLIDER - rem tabanlı) ==========
+  const fontSizeSlider = document.getElementById("fontSizeSlider");
+  const fontSizeValue = document.getElementById("fontSizeValue");
+
+  function applyFontSize(size) {
+    document.body.style.fontSize = `${size}px`;
+    if (fontSizeValue) fontSizeValue.textContent = `${size}px`;
+  }
+
+  // Storage'dan font boyutunu yükle
+  chrome.storage.local.get(["fontSize"], (res) => {
+    const savedSize = res.fontSize || 12;
+    if (fontSizeSlider) fontSizeSlider.value = savedSize;
+    applyFontSize(savedSize);
+  });
+
+  // Slider değiştiğinde
+  if (fontSizeSlider) {
+    fontSizeSlider.addEventListener("input", (e) => {
+      const size = parseFloat(e.target.value);
+      applyFontSize(size);
+      chrome.storage.local.set({ fontSize: size });
+    });
+  }
+
   // ========== SÜREÇ YÖNETİMİ ==========
   const surecSelect = document.getElementById("surecYonetimi");
   if (surecSelect) {
