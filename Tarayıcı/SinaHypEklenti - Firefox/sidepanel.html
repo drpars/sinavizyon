@@ -35,6 +35,7 @@
         --header-kanser: #e0af68;
       }
 
+      /* Ana body – taşma kontrolü */
       body {
         background-color: var(--bg);
         color: var(--fg);
@@ -44,7 +45,7 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        overflow: hidden;
+        overflow: hidden;      /* Ana taşma yok, tablo içinde kaydırma */
       }
 
       .header-container {
@@ -173,13 +174,18 @@
         font-size: 10px;
         opacity: 0.6;
       }
+
+      /* Üstteki 3'lü kart konteyneri */
       .score-row {
         display: flex;
         gap: 12px;
         margin-top: 8px;
       }
+
+      /* Her bir kart */
       .score-box {
-        flex: 1;
+        flex: 1;               /* Tüm kartlar eşit genişlikte */
+        min-width: 0;          /* İçerik taşmasını engeller */
         background: var(--bg);
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -187,22 +193,32 @@
         text-align: center;
         display: flex;
         flex-direction: column;
-        justify-content: space-between; /* Başlık üstte, değer altta */
-        min-height: 50px; /* Sabit yükseklik, istediğiniz değeri ayarlayabilirsiniz */
+        justify-content: space-between;
+        overflow: hidden;      /* Taşan içeriği gizle (gerekirse) */
       }
+
+      /* Kart içindeki etiket */
       .score-label {
-        font-size: 9px;
+        font-size: 0.75rem;    /* 9px/12px */
         opacity: 0.7;
         text-transform: uppercase;
-        margin-top: 4px; /* Üstte hafif boşluk */
+        margin-top: 4px;
+        white-space: normal;   /* Metnin alt satıra geçmesine izin ver */
+        word-break: break-word;
       }
+
+      /* Kart içindeki değer */
       .score-value {
-        font-size: 1.5rem;
+        font-size: 1.5rem;     /* 18px/12px */
         font-weight: bold;
-        margin-bottom: 4px; /* Altta hafif boşluk */
+        margin-bottom: 4px;
+        white-space: normal;
+        word-break: break-word;
       }
+
+      /* Başarı katsayısı özel boyutu */
       #totalKatsayi {
-        font-size: 1.83rem;
+        font-size: 1.83rem;    /* 22px/12px */
         font-weight: bold;
         margin: 2px 0;
       }
@@ -324,40 +340,76 @@
         text-align: center;
         min-height: 12px;
       }
+      /* Tablo konteyneri – yatay kaydırma izni */
       .table-container {
         margin-top: 12px;
+        overflow-x: auto;      /* Yatay kaydırma çubuğu (gerekirse) */
         overflow-y: auto;
         flex-grow: 1;
         scrollbar-width: none;
         -ms-overflow-style: none;
-        padding-bottom: 40px;
       }
+
       .table-container::-webkit-scrollbar {
         display: none;
       }
+
+      /* Tablo – sabit düzen */
       table {
         width: 100%;
         border-collapse: collapse;
-        /* font-size: 11px; */
+        table-layout: fixed;   /* Sütun genişlikleri sabit kalır */
       }
-      th {
-        position: sticky;
-        top: 0;
-        background: var(--bg-dark);
-        padding: 8px 4px;
-        border-bottom: 2px solid var(--border);
-        z-index: 10;
-      }
-      td {
-        padding: 8px 4px;
+
+      /* Sütun genişlikleri (yüzde) */
+      th:nth-child(1) { width: 40%; }  /* İşlem Adı */
+      th:nth-child(2) { width: 15%; }  /* GER. */
+      th:nth-child(3) { width: 15%; }  /* YAP. */
+      th:nth-child(4) { width: 15%; }  /* DEV. */
+      th:nth-child(5) { width: 15%; }  /* DURUM */
+
+      /* Tablo hücreleri – metin taşmasına karşı */
+      th, td {
+        padding: 0.67rem 0.33rem;      /* 8px/4px → rem */
         border-bottom: 1px solid var(--border);
         text-align: center;
+        word-break: break-word;        /* Uzun kelimeleri kır */
+        overflow-wrap: break-word;
       }
+
+      /* İşlem adı sütunu – sola hizalı */
+      th:first-child, td:first-child {
+        text-align: left;
+      }
+
+      /* Satır başlığı */
       .row-title {
         text-align: left;
         font-weight: bold;
         max-width: 120px;
+        overflow-wrap: break-word;
       }
+
+      <!-- th { -->
+      <!--   position: sticky; -->
+      <!--   top: 0; -->
+      <!--   background: var(--bg-dark); -->
+      <!--   padding: 0.67rem 0.33rem; -->
+      <!--   border-bottom: 2px solid var(--border); -->
+      <!--   z-index: 10; -->
+      <!-- } -->
+      <!-- td { -->
+      <!--   padding: 0.67rem 0.33rem; -->
+      <!--   border-bottom: 1px solid var(--border); -->
+      <!--   text-align: center; -->
+      <!--   line-height: 1.4; -->
+      <!-- } -->
+      <!-- .row-title { -->
+      <!--   text-align: left; -->
+      <!--   font-weight: bold; -->
+      <!--   max-width: 120px; -->
+      <!-- } -->
+
       body.light-mode tr.status-done {
         background-color: var(--soft-green);
       }
