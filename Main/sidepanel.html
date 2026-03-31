@@ -189,7 +189,7 @@
         background: var(--bg);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 8px;
+        padding: 0.5rem;
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -218,7 +218,7 @@
 
       /* Başarı katsayısı özel boyutu */
       #totalKatsayi {
-        font-size: 1.375rem;    /* 22px/12px */
+        font-size: 1.275rem;
         font-weight: bold;
         margin: 2px 0;
       }
@@ -359,6 +359,7 @@
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;   /* Sütun genişlikleri sabit kalır */
+        font*font-size: 0.6875rem;
       }
 
       /* Sütun genişlikleri (yüzde) */
@@ -366,11 +367,11 @@
       th:nth-child(2) { width: 15%; }  /* GER. */
       th:nth-child(3) { width: 15%; }  /* YAP. */
       th:nth-child(4) { width: 15%; }  /* DEV. */
-      th:nth-child(5) { width: 15%; }  /* DURUM */
+      th:nth-child(5) { width: 20%; }  /* DURUM */
 
       /* Tablo hücreleri – metin taşmasına karşı */
       th, td {
-        padding: 0.67rem 0.33rem;      /* 8px/4px → rem */
+        padding: 0.5rem 0.25rem;
         border-bottom: 1px solid var(--border);
         text-align: center;
         word-break: break-word;        /* Uzun kelimeleri kır */
@@ -587,7 +588,7 @@
       <div id="fontSettingsContainer" style="display: none;">
         <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
           <span style="font-size: 10px;">A</span>
-          <input type="range" id="fontSizeSlider" min="11" max="15" step="0.25" value="12" style="flex: 1;">
+          <input type="range" id="fontSizeSlider" min="12" max="20" step="0.25" value="16" style="flex: 1;">
           <span style="font-size: 18px;">A</span>
           <span id="fontSizeValue" style="min-width: 40px;">12px</span>
         </div>

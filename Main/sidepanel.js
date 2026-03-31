@@ -129,15 +129,19 @@ document.addEventListener("DOMContentLoaded", async function () {
   const fontSizeValue = document.getElementById("fontSizeValue");
 
   let fontSettingsActive = false;
+  
+  // YENİ YAPI: Eski sürümle (V1.5.5) birebir aynı görünüm için varsayılanı 16 yaptık
+  const DEFAULT_FONT_SIZE = 16;
 
   function applyFontSize(size) {
     if (fontSettingsActive) {
-      document.body.style.fontSize = `${size}px`;
+      // YENİ YAPI: REM birimlerinin çalışması için body değil, documentElement (html) güncellenmeli
+      document.documentElement.style.fontSize = `${size}px`;
       if (fontSizeValue) fontSizeValue.textContent = `${size}px`;
     } else {
-      // Kapalıyken varsayılana dön
-      document.body.style.fontSize = "12px";
-      if (fontSizeValue) fontSizeValue.textContent = "12px";
+      // Kapalıyken sistemi varsayılan 16px (orijinal görünüm) değerine kilitle
+      document.documentElement.style.fontSize = `${DEFAULT_FONT_SIZE}px`;
+      if (fontSizeValue) fontSizeValue.textContent = `${DEFAULT_FONT_SIZE}px`;
     }
   }
 
@@ -149,16 +153,17 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (fontSettingsActive) {
         fontContainer.style.display = "block";
         toggleFontBtn.textContent = "🔤 Kapat";
-        // Storage'daki değeri yükle
-        chrome.storage.local.get(["fontSize"], (res) => {
-          const savedSize = res.fontSize || 12;
+        
+        // Storage'daki değeri yükle (Önceki kayıt userFontSize olarak tutuluyordu)
+        chrome.storage.local.get(["userFontSize"], (res) => {
+          const savedSize = res.userFontSize || DEFAULT_FONT_SIZE;
           if (fontSizeSlider) fontSizeSlider.value = savedSize;
           applyFontSize(savedSize);
         });
       } else {
         fontContainer.style.display = "none";
         toggleFontBtn.textContent = "🔤 Aç";
-        applyFontSize(12); // varsayılana dön
+        applyFontSize(DEFAULT_FONT_SIZE); // V1.5.5 standart görünümüne dön
       }
     });
   }
@@ -169,16 +174,16 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (fontSettingsActive) {
         const size = parseFloat(e.target.value);
         applyFontSize(size);
-        chrome.storage.local.set({ fontSize: size });
+        chrome.storage.local.set({ userFontSize: size });
       }
     });
   }
 
-  // Sayfa açılışında font ayarı kapalı olsun
+  // Sayfa açılışında font ayarı kapalı olsun ve 16px varsayılan yüklensin
   if (fontContainer) fontContainer.style.display = "none";
   if (toggleFontBtn) toggleFontBtn.textContent = "🔤 Aç";
   fontSettingsActive = false;
-  applyFontSize(12); // varsayılan
+  applyFontSize(DEFAULT_FONT_SIZE);
 
   // ========== SÜREÇ YÖNETİMİ ==========
   const surecSelect = document.getElementById("surecYonetimi");
