@@ -123,9 +123,10 @@ export const changelogData = [
     version: "1.5.6",
     date: "2026-03-31",
     changes: [
-      "🐛 **Nüfus ve çoklu birim migration düzeltmesi:** 1.5.5'te eksik taşınan nüfus bilgileri ve birden fazla birim ID'ye ait veriler artık doğru şekilde taşınıyor.",
-      "🔤 **Yazı boyutu ayarı eklendi:** Ayarlar panelinden kaydırıcı (slider) ile yazı boyutunu 10px ile 16px arasında ayarlayabilirsiniz. Tercihiniz otomatik kaydedilir.",
-      "⚡ **Küçük performans iyileştirmeleri ve hata düzeltmeleri.**"
+      "🐛 **Güncelleme düzeltmesi:** Daha önce eksik kalan nüfus ve çoklu birim verileriniz artık tamamlanıyor.",
+      "🔤 **Yazı boyutu ayarı:** Artık yazı boyutunu kendiniz belirleyebilirsiniz.",
+      "📐 **Taşma sorunu çözüldü:** Büyük yazı boyutlarında tablo ve kartlar artık taşmıyor.",
+      "⚡ **Küçük hata düzeltmeleri.**"
     ]
   }
 ];

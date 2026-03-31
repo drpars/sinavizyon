@@ -122,30 +122,63 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (versionBadge) versionBadge.textContent = "v1.5.5";
   }
 
-  // ========== YAZI BOYUTU (SLIDER - rem tabanlı) ==========
+  // ========== FONT AYARI (AÇ/KAPA) ==========
+  const toggleFontBtn = document.getElementById("toggleFontSettingsBtn");
+  const fontContainer = document.getElementById("fontSettingsContainer");
   const fontSizeSlider = document.getElementById("fontSizeSlider");
   const fontSizeValue = document.getElementById("fontSizeValue");
 
+  let fontSettingsActive = false;
+
   function applyFontSize(size) {
-    document.body.style.fontSize = `${size}px`;
-    if (fontSizeValue) fontSizeValue.textContent = `${size}px`;
+    if (fontSettingsActive) {
+      document.body.style.fontSize = `${size}px`;
+      if (fontSizeValue) fontSizeValue.textContent = `${size}px`;
+    } else {
+      // Kapalıyken varsayılana dön
+      document.body.style.fontSize = "12px";
+      if (fontSizeValue) fontSizeValue.textContent = "12px";
+    }
   }
 
-  // Storage'dan font boyutunu yükle
-  chrome.storage.local.get(["fontSize"], (res) => {
-    const savedSize = res.fontSize || 12;
-    if (fontSizeSlider) fontSizeSlider.value = savedSize;
-    applyFontSize(savedSize);
-  });
-
-  // Slider değiştiğinde
-  if (fontSizeSlider) {
-    fontSizeSlider.addEventListener("input", (e) => {
-      const size = parseFloat(e.target.value);
-      applyFontSize(size);
-      chrome.storage.local.set({ fontSize: size });
+  // Buton tıklama
+  if (toggleFontBtn && fontContainer) {
+    toggleFontBtn.addEventListener("click", () => {
+      fontSettingsActive = !fontSettingsActive;
+      
+      if (fontSettingsActive) {
+        fontContainer.style.display = "block";
+        toggleFontBtn.textContent = "🔤 Kapat";
+        // Storage'daki değeri yükle
+        chrome.storage.local.get(["fontSize"], (res) => {
+          const savedSize = res.fontSize || 12;
+          if (fontSizeSlider) fontSizeSlider.value = savedSize;
+          applyFontSize(savedSize);
+        });
+      } else {
+        fontContainer.style.display = "none";
+        toggleFontBtn.textContent = "🔤 Aç";
+        applyFontSize(12); // varsayılana dön
+      }
     });
   }
+
+  // Slider değiştiğinde (sadece aktifken)
+  if (fontSizeSlider) {
+    fontSizeSlider.addEventListener("input", (e) => {
+      if (fontSettingsActive) {
+        const size = parseFloat(e.target.value);
+        applyFontSize(size);
+        chrome.storage.local.set({ fontSize: size });
+      }
+    });
+  }
+
+  // Sayfa açılışında font ayarı kapalı olsun
+  if (fontContainer) fontContainer.style.display = "none";
+  if (toggleFontBtn) toggleFontBtn.textContent = "🔤 Aç";
+  fontSettingsActive = false;
+  applyFontSize(12); // varsayılan
 
   // ========== SÜREÇ YÖNETİMİ ==========
   const surecSelect = document.getElementById("surecYonetimi");

@@ -390,26 +390,6 @@
         overflow-wrap: break-word;
       }
 
-      <!-- th { -->
-      <!--   position: sticky; -->
-      <!--   top: 0; -->
-      <!--   background: var(--bg-dark); -->
-      <!--   padding: 0.67rem 0.33rem; -->
-      <!--   border-bottom: 2px solid var(--border); -->
-      <!--   z-index: 10; -->
-      <!-- } -->
-      <!-- td { -->
-      <!--   padding: 0.67rem 0.33rem; -->
-      <!--   border-bottom: 1px solid var(--border); -->
-      <!--   text-align: center; -->
-      <!--   line-height: 1.4; -->
-      <!-- } -->
-      <!-- .row-title { -->
-      <!--   text-align: left; -->
-      <!--   font-weight: bold; -->
-      <!--   max-width: 120px; -->
-      <!-- } -->
-
       body.light-mode tr.status-done {
         background-color: var(--soft-green);
       }
@@ -600,22 +580,19 @@
         🔒 Rızamı Geri Çek
       </button>
       <button id="btnChangelog" class="small-btn">📋 Sürüm Geçmişi</button>
-      <label>YAZI BOYUTU</label>
-      <div style="display: flex; align-items: center; gap: 12px">
-        <span style="font-size: 10px">A</span>
-        <input
-          type="range"
-          id="fontSizeSlider"
-          min="11"
-          max="15"
-          step="0.25"
-          value="12"
-          style="flex: 1"
-        />
-        <span style="font-size: 18px">A</span>
-        <span id="fontSizeValue" style="min-width: 40px">12px</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+        <label>YAZI BOYUTU</label>
+        <button id="toggleFontSettingsBtn" class="small-btn" style="width: auto; padding: 2px 8px; margin: 0;">🔤 Aç</button>
       </div>
-      <hr style="margin: 8px 0; border-color: var(--border)" />
+      <div id="fontSettingsContainer" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+          <span style="font-size: 10px;">A</span>
+          <input type="range" id="fontSizeSlider" min="11" max="15" step="0.25" value="12" style="flex: 1;">
+          <span style="font-size: 18px;">A</span>
+          <span id="fontSizeValue" style="min-width: 40px;">12px</span>
+        </div>
+        <hr style="margin: 8px 0; border-color: var(--border);">
+      </div>
       <div id="kvkkSettingsNote" class="kvkk-settings-note">
         🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra
         otomatik silinir. İstediğiniz zaman silebilir veya dışa
