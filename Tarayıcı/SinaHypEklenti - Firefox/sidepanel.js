@@ -59,20 +59,28 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // ========== KULLANICI TİPİ ==========
   const userTypeSelect = document.getElementById("userTypeSelect");
-  
+
   function setUserType(type) {
     currentUserType = type;
     chrome.storage.local.set({ userType: type });
     currentBirimId = getCurrentBirimId();
     
+    const sinaBtn = document.getElementById("btnSina");
+    const hypBtn = document.getElementById("btnHyp");
+    
     if (type === "nurse") {
-      alert("ASÇ modülü henüz geliştirme aşamasındadır. SİNA butonu şimdilik çalışmayacaktır.");
-      document.getElementById("btnSina").disabled = true;
+      // ASÇ modu aktif
+      sinaBtn.textContent = "SİNA (ASÇ)";
+      hypBtn.textContent = "SİNA BİRİM (ASÇ)";
+      sinaBtn.disabled = false;  // ASÇ butonu artık aktif
     } else {
-      document.getElementById("btnSina").disabled = false;
+      // Doktor modu
+      sinaBtn.textContent = "SİNA";
+      hypBtn.textContent = "HYP";
+      sinaBtn.disabled = false;
     }
     
-    // Verileri yeniden yükle
+    // Verileri yeniden yükle (userType ile)
     loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState);
   }
 
@@ -237,11 +245,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   // ========== BUTONLAR ==========
+  // SİNA butonu (userType'a göre URL)
   document.getElementById("btnSina")?.addEventListener("click", () => {
-    if (currentUserType === "nurse") {
-      alert("ASÇ modülü henüz geliştirme aşamasındadır. Lütfen Aile Hekimi modunu kullanın.");
-      return;
-    }
     const ayStr = document.getElementById("ay")?.value || "";
     const yil = parseInt(document.getElementById("yil")?.value || "0");
     const ayNum = getMonthNumber(ayStr);
@@ -258,7 +263,14 @@ document.addEventListener("DOMContentLoaded", async function () {
       alert("Lütfen Birim ID girin!");
       return;
     }
-    const url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+    
+    // UserType'a göre URL seç
+    let url;
+    if (currentUserType === "nurse") {
+      url = `https://sina.saglik.gov.tr/showcases/SC-0320Z42B2FCOK70/SCI-0N184E437ACA419?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+    } else {
+      url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+    }
     chrome.tabs.create({ url });
   });
 

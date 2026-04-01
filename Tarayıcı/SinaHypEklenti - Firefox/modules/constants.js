@@ -30,6 +30,19 @@ export const hypToSinaMap = {
   "KRONİK BÖBREK HASTALIĞI İZLEM": "BOBREK",
 };
 
+// ASÇ katsayı tablosu (YENİ)
+export const katsayiMapNurse = new Map([
+  ["VİTAL BULGU ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.93, azamiKatsayi: 1.06 }],
+  ["YAŞLI SAĞLIĞI İZLEMİ ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.97, azamiKatsayi: 1.13 }],
+]);
+
+// ASÇ için işlem adı filtresi
+export const nurseFilterList = [
+  "YAŞLI SAĞLIĞI İZLEMİ ASÇ",
+  "VİTAL BULGU ASÇ",
+  "VİTAL BULGU ASÇ TEKİL"
+];
+
 // Saklama süresi (gün)
 export const RETENTION_DAYS = 90;
 

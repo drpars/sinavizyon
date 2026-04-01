@@ -1,4 +1,5 @@
 import { calculateKHTPerformance, katsayiHesapla } from './calculations.js';
+import { nurseFilterList } from './constants.js';
 
 export function escapeHtml(str) {
   if (!str) return "";
@@ -10,10 +11,19 @@ export function escapeHtml(str) {
   });
 }
 
-export function updateTable(data) {
+export function updateTable(data, userType = "doctor") {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return;
   tbody.innerHTML = "";
+
+  // ASÇ modunda sadece ASÇ işlemlerini filtrele
+  let filteredData = data;
+  if (userType === "nurse") {
+    filteredData = data.filter(item => {
+      const ad = item.ad.toUpperCase();
+      return nurseFilterList.some(filter => ad.includes(filter.toUpperCase()));
+    });
+  }
 
   let toplamCarpim = 1.0;
   const surecCarpan = parseFloat(document.getElementById("surecYonetimi")?.value) || 1.03;
@@ -25,7 +35,7 @@ export function updateTable(data) {
     "DİĞER / PASİF": [],
   };
 
-  data.forEach((item) => {
+  filteredData.forEach((item) => {
     const ad = item.ad.toUpperCase();
     const isPasif = ["İNME", "BÖBREK", "BOBREK", "KORONERARTER"].some((p) => ad.includes(p));
     if (isPasif) gruplar["DİĞER / PASİF"].push(item);
@@ -131,11 +141,11 @@ export function updateTable(data) {
   }
 
   // KHT bar'ı güncelle
-  updateKHTBar(data);
+  updateKHTBar(filteredData, userType);
 }
 
-export function updateKHTBar(data) {
-  const kht = calculateKHTPerformance(data);
+export function updateKHTBar(data, userType = "doctor") {
+  const kht = calculateKHTPerformance(data, userType);
   const percent = kht.percentage;
   const percentElem = document.getElementById('khtPercentage');
   const barFill = document.getElementById('khtBarFill');
