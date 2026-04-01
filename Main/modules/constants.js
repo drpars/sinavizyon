@@ -123,10 +123,13 @@ export const changelogData = [
     version: "1.5.6",
     date: "2026-03-31",
     changes: [
-      "🐛 **Güncelleme düzeltmesi:** Daha önce eksik kalan nüfus ve çoklu birim verileriniz artık tamamlanıyor.",
-      "🔤 **Yazı boyutu ayarı:** Artık yazı boyutunu kendiniz belirleyebilirsiniz.",
-      "📐 **Taşma sorunu çözüldü:** Büyük yazı boyutlarında tablo ve kartlar artık taşmıyor.",
-      "⚡ **Küçük hata düzeltmeleri.**"
+      "🎨 **Modern UI Revizyonu:** Tüm mizanpaj 'rem' birimine taşınarak esnek (responsive) hale getirildi. Artık farklı pencere boyutlarında tablo ve kartlar çok daha dengeli görünüyor.",
+      "🔤 **Gelişmiş Yazı Boyutu Kontrolü:** Ayarlar menüsüne şık bir slider ve görsel ikonlar eklendi. Yazı boyutunu değiştirdiğinizde tüm arayüz artık orantılı bir şekilde büyüyor.",
+      "📐 **Taşma Koruması:** Büyük yazı boyutlarında 'DURUM' sütunu ve katsayı kartlarının mizanpajı bozması engellendi; içerik artık kutulara tam uyum sağlıyor.",
+      "🚀 **V1.5.5 Görsel Uyumluluğu:** Varsayılan yazı boyutu 16px olarak optimize edilerek, eski sürümün ferah ve okunaklı yapısı korundu.",
+      "🐛 **Veri & Senkronizasyon:** Çoklu birim yönetimi ve nüfus verilerinin eksik gelmesine neden olan kritik senkronizasyon hataları giderildi.",
+      "✨ **Yeni Eklenti İkonu:** Yüksek çözünürlüklü, modern ve profesyonel yeni tasarım devreye alındı.",
+      "⚡ **Performans:** Tema geçişleri ve veri yükleme hızında iyileştirmeler yapıldı."
     ]
   }
 ];
