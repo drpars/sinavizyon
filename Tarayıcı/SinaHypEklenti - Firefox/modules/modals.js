@@ -33,7 +33,8 @@ export async function showAboutDialog() {
 
   // İçeriği HTML olarak oluştur
   contentDiv.innerHTML = `
-      <div style="margin-top: 30px;"></div>
+    <div style="border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--bg);">
+      <div style="margin-top: 0;"></div>
       <p style="margin: 0 0 4px 0; font-size: 1rem;"><strong>Geliştirici :</strong> drpars</p>
       <p style="margin: 0 0 20px 0; font-size: 1rem;"><strong>Teşekkürler :</strong> drumit</p>
       <div style="margin-top: 48px; text-align: right;">
@@ -45,6 +46,7 @@ export async function showAboutDialog() {
           <strong style="font-size: 0.7rem;">Gemini AI</strong>
         </div>
       </div>
+    </div>
   `;
 
   modal.style.display = "flex";
