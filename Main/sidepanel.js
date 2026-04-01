@@ -1,7 +1,7 @@
 import { hypToSinaMap } from './modules/constants.js';
 import { 
   getCurrentBirimId, storeDataWithTimestamp,
-  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, deleteAllData, exportData, revokeConsent 
+  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, deleteAllData, exportData, revokeConsent 
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';

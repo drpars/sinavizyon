@@ -63,10 +63,10 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
   });
 }
 
-// Veri yükleme (tablo ve zaman damgaları) – artık userType parametresi alır
+// Doktor modu için basit veri yükleme (merge yok)
 export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onDataLoaded, showAll = false) {
   if (!birimId) {
-    if (updateTableFn) updateTableFn([], userType, showAll);
+    if (updateTableFn) updateTableFn([], userType, showAll, birimId);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
     if (onDataLoaded) onDataLoaded(false);
@@ -77,26 +77,21 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
   chrome.storage.local.get([key], (res) => {
     const hasData = !!(res[key]?.data && res[key].data.length > 0);
     if (hasData) {
-      if (updateTableFn) updateTableFn(res[key].data, userType, showAll);
+      if (updateTableFn) updateTableFn(res[key].data, userType, showAll, birimId);
     } else {
-      if (updateTableFn) updateTableFn([], userType, showAll);
+      if (updateTableFn) updateTableFn([], userType, showAll, birimId);
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
   
-  // Zaman damgalarını yükle (HER ZAMAN güncelle, veri yoksa temizle)
+  // Zaman damgalarını yükle
   const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
   const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {
     const sinaTimeSpan = document.getElementById("sinaTime");
     const hypTimeSpan = document.getElementById("hypTime");
-    
-    if (sinaTimeSpan) {
-      sinaTimeSpan.textContent = res[sinaKey]?.data || "";
-    }
-    if (hypTimeSpan) {
-      hypTimeSpan.textContent = res[hypKey]?.data || "";
-    }
+    if (sinaTimeSpan) sinaTimeSpan.textContent = res[sinaKey]?.data || "";
+    if (hypTimeSpan) hypTimeSpan.textContent = res[hypKey]?.data || "";
   });
 }
 

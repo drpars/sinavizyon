@@ -30,7 +30,7 @@ export const hypToSinaMap = {
   "KRONİK BÖBREK HASTALIĞI İZLEM": "BOBREK",
 };
 
-// ASÇ katsayı tablosu (YENİ)
+// ASÇ katsayı tablosu
 export const katsayiMapNurse = new Map([
   ["VİTAL BULGU ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.93, azamiKatsayi: 1.06 }],
   ["YAŞLI SAĞLIĞI İZLEMİ ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.97, azamiKatsayi: 1.13 }],
@@ -46,104 +46,35 @@ export const nurseFilterList = [
 // Saklama süresi (gün)
 export const RETENTION_DAYS = 90;
 
-// Sürüm geçmişi verisi (en eski sürümden günümüze)
+// Sürüm geçmişi verisi (son 3 sürüm)
 export const changelogData = [
-  {
-    version: "1.4.6",
-    date: "2026-03-19",
-    changes: [
-      "🚀 İlk sürüm.",
-      "📊 SİNA ve HYP'den veri çekme ve tabloda gösterme.",
-      "🖱️ Manuel tıklama ile sekme açma, otomatik veri yakalama.",
-      "🎨 Koyu tema desteği (Tokyo Night)."
-    ]
-  },
-  {
-    version: "1.5.0",
-    date: "2026-03-22",
-    changes: [
-      "🔒 KVKK uyumlu hale getirildi: Açık rıza alınır, veriler 90 gün sonra otomatik silinir, istenirse veriler silinebilir veya dışa aktarılabilir.",
-      "🛡️ Güvenlik iyileştirmeleri yapıldı (XSS koruması, CSP uyumu).",
-      "⚡ Performans artırıldı, daha hızlı çalışır.",
-      "🎨 Açık tema (SİNA Klasik) eklendi.",
-      "⏱️ Veri çekme işlemlerinde zaman aşımı eklendi (30 saniye).",
-      "📋 Sürüm geçmişi butonu eklendi.",
-      "🔧 Gelişmiş ayarlar bölümü eklendi."
-    ]
-  },
-  {
-    version: "1.5.1",
-    date: "2026-03-24",
-    changes: [
-      "🎨 Varsayılan tema açık (SİNA Klasik) olarak değiştirildi.",
-      "🔧 Gelişmiş ayarlar butonu toggle (aç/kapa) mantığına kavuştu.",
-      "📌 KVKK bilgilendirme metni hem tablo altında (yapışkan) hem ayarlar panelinde gösteriliyor.",
-      "🎨 Arayüz iyileştirmeleri: Gelişmiş ayarlar bölümü başlangıçta gizli, ihtiyaç halinde açılıyor.",
-      "🛡️ CSP (Content Security Policy) uyumu sağlandı, inline script hatası giderildi.",
-      "🐛 Küçük hata düzeltmeleri ve performans iyileştirmeleri."
-    ]
-  },
-  {
-    version: "1.5.2",
-    date: "2026-03-25",
-    changes: [
-      "🔒 KVKK bilgilendirme notları artık ayarlar panelinden gizlenebilir / gösterilebilir (tercih hatırlanır).",
-      "📅 Tarih kısıtlamaları: HYP butonu sadece cari ay/yıl için çalışır, SİNA butonu geçmişe izin verir.",
-      "📊 KHT (Kronik Hastalık Tarama) yüzdesi ve renkli bar eklendi. Bar üzerinde %40 ve %70 hedef işaretleri, tiklerle gösterilir.",
-      "📊 KHT hesaplamasına 'devreden' değeri dahil edildi. Artık önceki aylardan devreden sayılar hedefe katkı sağlar.",
-      "🎨 Performans katsayısı rengi artık Tavan katsayısı ile karşılaştırılarak yeşil/kırmızı olur.",
-      "🏷️ Üçlü kutu düzeni: BAŞARI, TAVAN KATSAYI ve KHT kutuları eklendi. KHT durumu %70'e göre TAMAM/EKSİK olarak gösterilir.",
-      "📐 Kutu içi hizalama iyileştirildi: başlıklar üstte, değerler altta ve sabit yükseklikte."
-    ]
-  },
-  {
-    version: "1.5.3",
-    date: "2026-03-26",
-    changes: [
-      "📊 Tavan katsayısı 1 ile 1.5 arasında sınırlandırıldı.",
-      "📈 KHT ve başarı katsayısı hesaplamalarında devreden, yapılan hedefin %10'u veya üzerindeyse hesaba katılıyor.",
-      "🔧 Çoklu birim desteği: Veriler artık Birim ID ile birlikte saklanıyor ve dışa aktarılıyor.",
-      "🧹 Popup.html kaldırıldı, sidepanel.js ile tek tip arayüz.",
-      "🐛 Küçük hata düzeltmeleri ve performans iyileştirmeleri."
-    ]
-  },
-  {
-    version: "1.5.4",
-    date: "2026-03-28",
-    changes: [
-      "🧩 **Daha düzenli altyapı:** Eklenti artık daha hızlı ve kararlı çalışıyor.",
-      "🐛 **Hata düzeltmesi:** Birim ID alanı artık doğru görünüyor.",
-      "🔄 **Verileriniz korunuyor:** Güncelleme sırasında hiçbir veriniz kaybolmaz.",
-      "📊 **Tablo görünümü iyileştirildi:** Yüzdelikler artık daha anlaşılır şekilde gösteriliyor.",
-      "⚡ **Genel performans artışı:** Daha hızlı açılma ve veri çekme süreleri.",
-      "🎨 **Küçük görsel iyileştirmeler**"
-    ]
-  },
   {
     version: "1.5.5",
     date: "2026-03-30",
     changes: [
       "👥 **Kullanıcı türü seçimi eklendi:** Aile Hekimi / Aile Sağlığı Çalışanı (ASÇ).",
-      "🔧 **ASÇ modülü altyapısı hazırlandı:** ASÇ seçildiğinde SİNA butonu şimdilik çalışmaz, uyarı verir.",
       "📁 **Veriler ayrı saklanıyor:** Doktor ve hemşire verileri artık farklı storage anahtarlarında tutulur.",
-      "🔄 **Güncelleme desteği:** 1.5.4 ve öncesinden gelen veriler otomatik olarak doktor verisi olarak taşınır.",
-      "🎯 **HYP butonu artık SİNA verisi yokken devre dışı:** Kullanıcı deneyimi iyileştirildi.",
-      "⚡ **Küçük performans iyileştirmeleri ve hata düzeltmeleri.**",
-      "🐛 **HYP zaman göstergesi düzeltmesi:** Birim ID değiştiğinde eski birimin HYP zamanı artık gözükmüyor."
+      "🎯 **HYP butonu artık SİNA verisi yokken devre dışı:** Kullanıcı deneyimi iyileştirildi."
     ]
   },
   {
     version: "1.5.6",
     date: "2026-03-31",
     changes: [
-      "🎨 **Modern UI Revizyonu:** Tüm mizanpaj 'rem' birimine taşınarak esnek (responsive) hale getirildi. Artık farklı pencere boyutlarında tablo ve kartlar çok daha dengeli görünüyor.",
-      "🔤 **Gelişmiş Yazı Boyutu Kontrolü:** Ayarlar menüsüne şık bir slider ve görsel ikonlar eklendi. Yazı boyutunu değiştirdiğinizde tüm arayüz artık orantılı bir şekilde büyüyor.",
-      "📐 **Taşma Koruması:** Büyük yazı boyutlarında 'DURUM' sütunu ve katsayı kartlarının mizanpajı bozması engellendi; içerik artık kutulara tam uyum sağlıyor.",
-      "🚀 **V1.5.5 Görsel Uyumluluğu:** Varsayılan yazı boyutu 16px olarak optimize edilerek, eski sürümün ferah ve okunaklı yapısı korundu.",
-      "🐛 **Veri & Senkronizasyon:** Çoklu birim yönetimi ve nüfus verilerinin eksik gelmesine neden olan kritik senkronizasyon hataları giderildi.",
-      "✨ **Yeni Eklenti İkonu:** Yüksek çözünürlüklü, modern ve profesyonel yeni tasarım devreye alındı.",
-      "⚡ **Performans:** Tema geçişleri ve veri yükleme hızında iyileştirmeler yapıldı."
+      "🎨 **Modern UI Revizyonu:** Tüm arayüz esnek (responsive) hale getirildi.",
+      "🔤 **Yazı boyutu ayarı:** Ayarlar menüsünden yazı boyutunu 11-15px arasında ayarlayabilirsiniz.",
+      "📐 **Taşma koruması:** Büyük yazı boyutlarında tablo ve kartlar taşmaz."
+    ]
+  },
+  {
+    version: "1.6.0",
+    date: "2026-04-01",
+    changes: [
+      "👩‍⚕️ **ASÇ (Aile Sağlığı Çalışanı) desteği:** ASÇ kendi verilerini çekip analiz edebilir.",
+      "🔧 **Çift buton sistemi:** ASÇ modunda SİNA (ASÇ) ve SİNA BİRİM (ASÇ) butonları.",
+      "📊 **ASÇ özel katsayı tablosu:** Vital Bulgu ve Yaşlı Sağlığı İzlemi için özel katsayılar.",
+      "🎯 **ASÇ tavan katsayısı:** Doktor başarı katsayısına eşittir.",
+      "🔐 **Birim bazlı görünüm modu:** Her birim için son kullanılan tablo görünümü ayrı saklanır."
     ]
   }
 ];
-
