@@ -34,8 +34,8 @@ export async function showAboutDialog() {
   // İçeriği HTML olarak oluştur
   contentDiv.innerHTML = `
     <p style="margin: 0 0 18px 0;"><strong>SİNA VİZYON v${version}</strong></p>
-    <p style="margin: 0 0 4px 0;"><strong>Geliştirici:</strong> Muhammed İzzet SAĞLAM</p>
-    <p style="margin: 0 0 4px 0;"><strong>Teşekkürler:</strong> Şükrü Ümit EREN</p>
+    <p style="margin: 0 0 4px 0;"><strong>Geliştirici:</strong> drpars</p>
+    <p style="margin: 0 0 4px 0;"><strong>Teşekkürler:</strong> drumit</p>
     <div style="margin-top: 24px; text-align: right;">
       <img src="icons/deepseek-logo.png" style="height: 20px; vertical-align: middle;"> 
       <strong>DeepSeek AI</strong>
