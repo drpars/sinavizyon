@@ -1,7 +1,7 @@
 import { hypToSinaMap } from './modules/constants.js';
 import { 
   getCurrentBirimId, storeDataWithTimestamp,
-  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, cleanExpiredData, deleteAllData, exportData, revokeConsent 
+  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, deleteAllData, exportData, revokeConsent 
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
@@ -12,6 +12,9 @@ import { migrateFromOldStorage } from './modules/migration.js';
 // Global değişkenler
 let currentUserType = "doctor";
 let currentBirimId = "";
+let pendingShowAll = false;        // Tüm işlemleri göster (ASÇ modu için)
+let pendingStorageType = "nurse";  // Hangi storage'a kaydedileceği
+let currentShowAll = false;  // ASÇ modunda hangi görünüm modunda olduğumuz
 
 // Storage anahtarı oluşturma (userType ve birimId ile)
 function getStorageKeyWithType(baseKey) {
@@ -22,6 +25,27 @@ function getStorageKeyWithType(baseKey) {
 function updateHypButtonState(hasData) {
   const hypBtn = document.getElementById("btnHyp");
   if (hypBtn) hypBtn.disabled = !hasData;
+}
+
+// function getStorageKeyWithTypeForUser(userType, birimId) {
+//   return `savedResults_${userType}_${birimId}`;
+// }
+
+function combineData(data) {
+  const map = new Map();
+  data.forEach(item => {
+    const existing = map.get(item.ad);
+    if (existing) {
+      // Aynı işlem varsa: gereken ve devreden doktordan, yapilan ASÇ'den
+      // Basitçe: doktor verisi (gereken, devreden) + ASÇ verisi (yapilan)
+      existing.gereken = item.gereken || existing.gereken;
+      existing.devreden = item.devreden || existing.devreden;
+      existing.yapilan = item.yapilan || existing.yapilan;
+    } else {
+      map.set(item.ad, { ...item });
+    }
+  });
+  return Array.from(map.values());
 }
 
 // Sayfa yüklendiğinde
@@ -69,19 +93,26 @@ document.addEventListener("DOMContentLoaded", async function () {
     const hypBtn = document.getElementById("btnHyp");
     
     if (type === "nurse") {
-      // ASÇ modu aktif
       sinaBtn.textContent = "SİNA (ASÇ)";
       hypBtn.textContent = "SİNA BİRİM (ASÇ)";
-      sinaBtn.disabled = false;  // ASÇ butonu artık aktif
+      sinaBtn.disabled = false;
+      
+      // Birim ID varsa o birime özel nurseShowAll değerini yükle
+      if (currentBirimId) {
+        chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (res) => {
+          currentShowAll = res[`nurseShowAll_${currentBirimId}`] === true;
+          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll);
+        });
+      } else {
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
+      }
     } else {
-      // Doktor modu
       sinaBtn.textContent = "SİNA";
       hypBtn.textContent = "HYP";
       sinaBtn.disabled = false;
+      currentShowAll = false;
+      loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
     }
-    
-    // Verileri yeniden yükle (userType ile)
-    loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState);
   }
 
   // Storage'dan kullanıcı tipini yükle
@@ -193,10 +224,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (res.surec?.data) surecSelect.value = res.surec.data;
       else surecSelect.value = "1.03";
     });
-    surecSelect.addEventListener("change", (e) => {
-      storeDataWithTimestamp("surec", e.target.value, currentUserType, currentBirimId);
-      loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId);
-    });
+      surecSelect.addEventListener("change", (e) => {
+        storeDataWithTimestamp("surec", e.target.value, currentUserType, currentBirimId);
+        // Mevcut görünüm modunu koru (currentShowAll)
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
+      });
   }
 
   // ========== BİRİM ID ==========
@@ -207,7 +239,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         birimIdInput.value = res.birimId;
         currentBirimId = res.birimId;
         loadNufusForBirim(res.birimId, tavanHesapla);
-        loadDataForCurrentBirim(updateTable, currentUserType, res.birimId, updateHypButtonState);
+        // Birim ID yüklendikten sonra userType'a göre verileri yükle
+        chrome.storage.local.get(["userType"], (userRes) => {
+          const savedType = userRes.userType || "doctor";
+          if (userTypeSelect) userTypeSelect.value = savedType;
+          setUserType(savedType);
+        });
+      } else {
+        // Birim ID yoksa sadece userType'ı ayarla
+        chrome.storage.local.get(["userType"], (userRes) => {
+          const savedType = userRes.userType || "doctor";
+          if (userTypeSelect) userTypeSelect.value = savedType;
+          setUserType(savedType);
+        });
       }
     });
     birimIdInput.addEventListener("change", (e) => {
@@ -215,14 +259,24 @@ document.addEventListener("DOMContentLoaded", async function () {
       currentBirimId = newBirimId;
       chrome.storage.local.set({ birimId: newBirimId });
       
-      // Hemen HYP zamanını temizle (eski birimin zamanı kalmasın)
       const hypTimeSpan = document.getElementById("hypTime");
       if (hypTimeSpan) hypTimeSpan.textContent = "";
       const sinaTimeSpan = document.getElementById("sinaTime");
       if (sinaTimeSpan) sinaTimeSpan.textContent = "";
       
       loadNufusForBirim(newBirimId, tavanHesapla);
-      loadDataForCurrentBirim(updateTable, currentUserType, newBirimId, updateHypButtonState);
+      
+      // ASÇ modunda ise birime özel nurseShowAll değerini yükle
+      if (currentUserType === "nurse") {
+        chrome.storage.local.get([`nurseShowAll_${newBirimId}`], (res) => {
+          const showAll = res[`nurseShowAll_${newBirimId}`] === true;
+          currentShowAll = showAll;
+          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, showAll);
+        });
+      } else {
+        currentShowAll = false;
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, false);
+      }
     });
   }
 
@@ -264,12 +318,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
     
-    // UserType'a göre URL seç
     let url;
     if (currentUserType === "nurse") {
       url = `https://sina.saglik.gov.tr/showcases/SC-0320Z42B2FCOK70/SCI-0N184E437ACA419?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+      currentShowAll = false;
+      chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: false });
+      pendingStorageType = "nurse";
     } else {
       url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+      // Doktor için pendingStorageType gerekmez (zaten doctor)
     }
     chrome.tabs.create({ url });
   });
@@ -282,12 +339,28 @@ document.addEventListener("DOMContentLoaded", async function () {
       alert("Lütfen Ay ve Yıl seçin!");
       return;
     }
-    if (!isDateValid(yil, ayNum, false)) {
-      const current = getCurrentYearMonth();
-      alert(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`);
-      return;
+    
+    let url;
+    if (currentUserType === "nurse") {
+      if (!isDateValid(yil, ayNum, true)) {
+        const current = getCurrentYearMonth();
+        alert(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi dönem için çalışır.`);
+        return;
+      }
+      url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+      currentShowAll = true;
+      chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
+      pendingStorageType = "doctor";
+    } else {
+      // Doktor: normal HYP sayfası (cari ay kısıtlaması)
+      if (!isDateValid(yil, ayNum, false)) {
+        const current = getCurrentYearMonth();
+        alert(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`);
+        return;
+      }
+      url = "https://hyp.saglik.gov.tr/dashboard#kopyala";
     }
-    chrome.tabs.create({ url: "https://hyp.saglik.gov.tr/dashboard#kopyala" });
+    chrome.tabs.create({ url });
   });
 
   document.getElementById("btnDeleteData")?.addEventListener("click", deleteAllData);
@@ -371,7 +444,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (msg.action === "dataParsed") {
       if (!currentBirimId) return;
-      const key = getStorageKeyWithType("savedResults");
+      
+      let targetUserType = currentUserType;
+      if (currentUserType === "nurse" && pendingStorageType) {
+        targetUserType = pendingStorageType;
+      }
+      
+      const key = `savedResults_${targetUserType}_${currentBirimId}`;
       chrome.storage.local.get([key], (res) => {
         let existingData = res[key]?.data || [];
         const hypYapilanMap = new Map();
@@ -383,17 +462,36 @@ document.addEventListener("DOMContentLoaded", async function () {
           }
           return sinaItem;
         });
-        storeDataWithTimestamp("savedResults", merged, currentUserType, currentBirimId);
-        storeDataWithTimestamp("sinaLastTime", simdi, currentUserType, currentBirimId);
+        
+        storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId);
+        storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
+        
         const sinaTimeSpan = document.getElementById("sinaTime");
         if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
-        updateTable(merged);
         
-        // HYP butonunu etkinleştir (veri başarıyla kaydedildikten sonra)
+        // ASÇ modunda ve currentShowAll true ise tüm verileri birleştir
+        if (currentUserType === "nurse" && currentShowAll) {
+          const nurseKey = `savedResults_nurse_${currentBirimId}`;
+          const doctorKey = `savedResults_doctor_${currentBirimId}`;
+          chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
+            const nurseData = allRes[nurseKey]?.data || [];
+            const doctorData = allRes[doctorKey]?.data || [];
+            const combinedData = [...nurseData, ...doctorData];
+            const mergedData = combineData(combinedData);
+            updateTable(mergedData, currentUserType, true);
+          });
+        } else {
+          updateTable(merged, currentUserType, currentShowAll);
+        }
+        
         const hypBtn = document.getElementById("btnHyp");
         if (hypBtn) hypBtn.disabled = false;
+        
+        pendingShowAll = false;
+        pendingStorageType = "nurse";
       });
     } else if (msg.action === "hypDataParsed") {
+      // ... HYP verisi geldi (değişiklik yok)
       if (!currentBirimId) return;
       const key = getStorageKeyWithType("savedResults");
       chrome.storage.local.get([key], (res) => {
@@ -417,7 +515,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         storeDataWithTimestamp("hypLastTime", simdi, currentUserType, currentBirimId);
         const hypTimeSpan = document.getElementById("hypTime");
         if (hypTimeSpan) hypTimeSpan.textContent = simdi;
-        updateTable(guncelVeri);
+        // HYP verisi geldiğinde showAll flag'i false (sadece mevcut filtreleme)
+        updateTable(guncelVeri, currentUserType, false);
       });
     }
   });

@@ -64,9 +64,9 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
 }
 
 // Veri yükleme (tablo ve zaman damgaları) – artık userType parametresi alır
-export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onDataLoaded) {
+export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onDataLoaded, showAll = false) {
   if (!birimId) {
-    if (updateTableFn) updateTableFn([]);
+    if (updateTableFn) updateTableFn([], userType, showAll);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
     if (onDataLoaded) onDataLoaded(false);
@@ -77,9 +77,9 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
   chrome.storage.local.get([key], (res) => {
     const hasData = !!(res[key]?.data && res[key].data.length > 0);
     if (hasData) {
-      if (updateTableFn) updateTableFn(res[key].data);
+      if (updateTableFn) updateTableFn(res[key].data, userType, showAll);
     } else {
-      if (updateTableFn) updateTableFn([]);
+      if (updateTableFn) updateTableFn([], userType, showAll);
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
@@ -97,6 +97,53 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
     if (hypTimeSpan) {
       hypTimeSpan.textContent = res[hypKey]?.data || "";
     }
+  });
+}
+
+// ASÇ modunda showAll true ise hem nurse hem doctor verilerini birleştir
+export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimId, onDataLoaded, showAll = false) {
+  if (!birimId) {
+    if (updateTableFn) updateTableFn([], userType, showAll);
+    document.getElementById("sinaTime").textContent = "";
+    document.getElementById("hypTime").textContent = "";
+    if (onDataLoaded) onDataLoaded(false);
+    return;
+  }
+  
+  // ASÇ modunda ve showAll true ise, her iki storage'ı da oku
+  if (userType === "nurse" && showAll) {
+    const nurseKey = getStorageKey("savedResults", birimId, "nurse");
+    const doctorKey = getStorageKey("savedResults", birimId, "doctor");
+    chrome.storage.local.get([nurseKey, doctorKey], (res) => {
+      const nurseData = res[nurseKey]?.data || [];
+      const doctorData = res[doctorKey]?.data || [];
+      const combinedData = [...nurseData, ...doctorData];
+      const hasData = combinedData.length > 0;
+      if (updateTableFn) updateTableFn(combinedData, userType, showAll);
+      if (onDataLoaded) onDataLoaded(hasData);
+    });
+  } else {
+    // Normal durum: sadece ilgili storage'ı oku
+    const key = getStorageKey("savedResults", birimId, userType);
+    chrome.storage.local.get([key], (res) => {
+      const hasData = !!(res[key]?.data && res[key].data.length > 0);
+      if (hasData) {
+        if (updateTableFn) updateTableFn(res[key].data, userType, showAll);
+      } else {
+        if (updateTableFn) updateTableFn([], userType, showAll);
+      }
+      if (onDataLoaded) onDataLoaded(hasData);
+    });
+  }
+  
+  // Zaman damgalarını yükle (sadece nurse için, doktor için ayrıca göstermiyoruz)
+  const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
+  const hypKey = getStorageKey("hypLastTime", birimId, userType);
+  chrome.storage.local.get([sinaKey, hypKey], (res) => {
+    const sinaTimeSpan = document.getElementById("sinaTime");
+    const hypTimeSpan = document.getElementById("hypTime");
+    if (sinaTimeSpan) sinaTimeSpan.textContent = res[sinaKey]?.data || "";
+    if (hypTimeSpan) hypTimeSpan.textContent = res[hypKey]?.data || "";
   });
 }
 
