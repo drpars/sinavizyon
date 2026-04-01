@@ -2,6 +2,55 @@ import { changelogData } from './constants.js';
 
 // ========== GENEL DİYALOG FONKSİYONLARI ==========
 
+// Hakkında bilgi göster (HTML içerikli, sağa hizalı imza)
+export async function showAboutDialog() {
+  const manifest = chrome.runtime.getManifest();
+  const version = manifest.version;
+
+  // Modal elementi oluştur (eğer yoksa)
+  let modal = document.getElementById("aboutDialog");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "aboutDialog";
+    modal.className = "consent-modal";
+    modal.innerHTML = `
+      <div class="consent-modal-content" style="max-width: 400px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="icons/about.png" style="width: 20px; height: 20px;">
+          <h3 style="margin: 0;"></h3>
+        </div>
+        <div id="aboutContent" style="text-align: left; margin-top: 12px;"></div>
+        <div class="consent-modal-buttons">
+          <button id="aboutOkBtn" style="background-color: var(--blue); color: white;">Tamam</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const contentDiv = document.getElementById("aboutContent");
+  const okBtn = document.getElementById("aboutOkBtn");
+
+  // İçeriği HTML olarak oluştur
+  contentDiv.innerHTML = `
+    <p style="margin: 0 0 18px 0;"><strong>SİNA VİZYON v${version}</strong></p>
+    <p style="margin: 0 0 4px 0;"><strong>Geliştirici:</strong> Muhammed İzzet SAĞLAM</p>
+    <p style="margin: 0 0 4px 0;"><strong>Teşekkürler:</strong> Şükrü Ümit EREN</p>
+    <div style="margin-top: 24px; text-align: right;">
+      <img src="icons/deepseek-logo.png" style="height: 20px; vertical-align: middle;"> 
+      <strong>DeepSeek AI</strong>
+    </div>
+  `;
+
+  modal.style.display = "flex";
+
+  const onOk = () => {
+    modal.style.display = "none";
+    okBtn.removeEventListener("click", onOk);
+  };
+  okBtn.addEventListener("click", onOk);
+}
+
 /**
  * Kullanıcıya onay sorusu sorar
  * @param {string} prompt - Sorulacak metin

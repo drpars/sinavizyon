@@ -5,7 +5,7 @@ import {
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
-import { requestConsent, showChangelog, closeModal, confirmDialog } from './modules/modals.js';
+import { requestConsent, showChangelog, closeModal, confirmDialog, showAboutDialog } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
@@ -309,6 +309,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     const modal = document.getElementById("changelogModal");
     if (event.target === modal) closeModal();
   });
+
+  // ========== HAKKINDA BUTONU ==========
+  const btnAbout = document.getElementById("btnAbout");
+  if (btnAbout) {
+    btnAbout.addEventListener("click", () => {
+      showAboutDialog();
+    });
+  }
 
   // ========== KVKK FOOTER GİZLE (SADECE GİZLE) ==========
   const kvkkFooter = document.getElementById("kvkkFooter");

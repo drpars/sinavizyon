@@ -1,4 +1,4 @@
-import { calculateKHTPerformance, katsayiHesapla, getEffectiveYapilan } from './calculations.js';
+import { calculateKHTPerformance, katsayiHesapla } from './calculations.js';
 
 export function escapeHtml(str) {
   if (!str) return "";
