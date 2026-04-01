@@ -478,10 +478,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             const doctorData = allRes[doctorKey]?.data || [];
             const combinedData = [...nurseData, ...doctorData];
             const mergedData = combineData(combinedData);
-            updateTable(mergedData, currentUserType, true);
+            updateTable(mergedData, currentUserType, true, currentBirimId);
           });
         } else {
-          updateTable(merged, currentUserType, currentShowAll);
+          updateTable(merged, currentUserType, currentShowAll, currentBirimId);
         }
         
         const hypBtn = document.getElementById("btnHyp");
@@ -516,7 +516,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const hypTimeSpan = document.getElementById("hypTime");
         if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         // HYP verisi geldiğinde showAll flag'i false (sadece mevcut filtreleme)
-        updateTable(guncelVeri, currentUserType, false);
+        updateTable(guncelVeri, currentUserType, false, currentBirimId);
       });
     }
   });

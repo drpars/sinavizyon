@@ -119,7 +119,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       const doctorData = res[doctorKey]?.data || [];
       const combinedData = [...nurseData, ...doctorData];
       const hasData = combinedData.length > 0;
-      if (updateTableFn) updateTableFn(combinedData, userType, showAll);
+      if (updateTableFn) updateTableFn(combinedData, userType, showAll, birimId);
       if (onDataLoaded) onDataLoaded(hasData);
     });
   } else {

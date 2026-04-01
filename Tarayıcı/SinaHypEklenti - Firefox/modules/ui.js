@@ -62,7 +62,7 @@ function createTableRow(item, grupAdi = "") {
   return tr;
 }
 
-export function updateTable(data, userType = "doctor", showAll = false) {
+export function updateTable(data, userType = "doctor", showAll = false, birimId = "") {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return;
   tbody.innerHTML = "";
@@ -182,7 +182,6 @@ export function updateTable(data, userType = "doctor", showAll = false) {
     updateKHTBar(khtData, userType);
     
     // ========== ASÇ BAŞARI KATSAYISI HESAPLAMA ==========
-    // ASÇ için sadece ASÇ işlemlerinin katsayıları çarpılır (TEKİL hariç)
     let toplamCarpim = 1.0;
     asçItems.forEach((item) => {
       const ger = parseFloat(item.gereken) || 0;
@@ -190,15 +189,53 @@ export function updateTable(data, userType = "doctor", showAll = false) {
       const dev = parseFloat(item.devreden) || 0;
       toplamCarpim *= katsayiHesapla(item.ad, ger, yap, dev, userType);
     });
-    
-    // ASÇ için süreç yönetimi kesinlikle KULLANILMAZ
-    const finalSonuc = toplamCarpim;
+    const asçBasari = toplamCarpim;
     const katsayiElement = document.getElementById("totalKatsayi");
-    const tavanElement = document.getElementById("tavanKatsayi");
-    if (katsayiElement && tavanElement) {
-      katsayiElement.textContent = finalSonuc.toFixed(5);
-      const tavanDeger = parseFloat(tavanElement.textContent) || 0;
-      if (finalSonuc >= tavanDeger) {
+    katsayiElement.textContent = asçBasari.toFixed(5);
+    
+    // ========== ASÇ TAVAN KATSAYISI = DOKTOR BAŞARI KATSAYISI ==========
+    if (birimId) {
+      const doctorKey = `savedResults_doctor_${birimId}`;
+      chrome.storage.local.get([doctorKey], (res) => {
+        const doctorData = res[doctorKey]?.data || [];
+        
+        if (doctorData.length > 0) {
+          let doctorToplam = 1.0;
+          const surecCarpan = parseFloat(document.getElementById("surecYonetimi")?.value) || 1.03;
+          
+          doctorData.forEach(item => {
+            const ger = parseFloat(item.gereken) || 0;
+            const yap = parseFloat(item.yapilan) || 0;
+            const dev = parseFloat(item.devreden) || 0;
+            doctorToplam *= katsayiHesapla(item.ad, ger, yap, dev, "doctor");
+          });
+          
+          const doctorBasari = doctorToplam * surecCarpan;
+          const tavanElement = document.getElementById("tavanKatsayi");
+          tavanElement.textContent = doctorBasari.toFixed(5);
+          
+          // Renk karşılaştırması
+          if (asçBasari >= doctorBasari) {
+            katsayiElement.style.color = "var(--green)";
+          } else {
+            katsayiElement.style.color = "var(--red)";
+          }
+        } else {
+          const tavanElement = document.getElementById("tavanKatsayi");
+          tavanElement.textContent = "1.00000";
+          // Renk karşılaştırması: doktor verisi yoksa tavan 1.0
+          if (asçBasari >= 1.0) {
+            katsayiElement.style.color = "var(--green)";
+          } else {
+            katsayiElement.style.color = "var(--red)";
+          }
+        }
+      });
+    } else {
+      // Birim ID yoksa tavan 1.0
+      const tavanElement = document.getElementById("tavanKatsayi");
+      tavanElement.textContent = "1.00000";
+      if (asçBasari >= 1.0) {
         katsayiElement.style.color = "var(--green)";
       } else {
         katsayiElement.style.color = "var(--red)";
