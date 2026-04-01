@@ -33,13 +33,18 @@ export async function showAboutDialog() {
 
   // İçeriği HTML olarak oluştur
   contentDiv.innerHTML = `
-    <p style="margin: 0 0 18px 0;"><strong>SİNA VİZYON v${version}</strong></p>
-    <p style="margin: 0 0 4px 0;"><strong>Geliştirici:</strong> drpars</p>
-    <p style="margin: 0 0 4px 0;"><strong>Teşekkürler:</strong> drumit</p>
-    <div style="margin-top: 24px; text-align: right;">
-      <img src="icons/deepseek-logo.png" style="height: 20px; vertical-align: middle;"> 
-      <strong>DeepSeek AI</strong>
-    </div>
+      <div style="margin-top: 30px;"></div>
+      <p style="margin: 0 0 4px 0; font-size: 1rem;"><strong>Geliştirici :</strong> drpars</p>
+      <p style="margin: 0 0 20px 0; font-size: 1rem;"><strong>Teşekkürler :</strong> drumit</p>
+      <div style="margin-top: 48px; text-align: right;">
+        <div style="font-size: 0.55rem; opacity: 0.6; margin-bottom: 4px; margin-right: 50px;">Yapay zeka destekleri</div>
+        <div>
+          <img src="icons/deepseek-logo.png" style="height: 20px; vertical-align: middle;"> 
+          <strong style="margin-right: 12px; font-size: 0.7rem;">DeepSeek AI</strong>
+          <img src="icons/gemini-logo.png" style="height: 20px; vertical-align: middle;"> 
+          <strong style="font-size: 0.7rem;">Gemini AI</strong>
+        </div>
+      </div>
   `;
 
   modal.style.display = "flex";
