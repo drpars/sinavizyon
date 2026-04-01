@@ -1,11 +1,11 @@
 import { hypToSinaMap } from './modules/constants.js';
 import { 
-  getCurrentBirimId, getStorageKey, storeDataWithTimestamp,
+  getCurrentBirimId, storeDataWithTimestamp,
   saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, cleanExpiredData, deleteAllData, exportData, revokeConsent 
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
-import { requestConsent, showChangelog, closeModal } from './modules/modals.js';
+import { requestConsent, showChangelog, closeModal, confirmDialog } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
@@ -309,6 +309,35 @@ document.addEventListener("DOMContentLoaded", async function () {
     const modal = document.getElementById("changelogModal");
     if (event.target === modal) closeModal();
   });
+
+  // ========== KVKK FOOTER GİZLE (SADECE GİZLE) ==========
+  const kvkkFooter = document.getElementById("kvkkFooter");
+  const toggleFooterBtn = document.getElementById("toggleKvkkFooterBtn");
+
+  if (kvkkFooter && toggleFooterBtn) {
+    // Storage'dan durumu yükle
+    chrome.storage.local.get(["kvkkFooterHidden"], (res) => {
+      const isHidden = res.kvkkFooterHidden === true;
+      if (isHidden) {
+        kvkkFooter.style.display = "none";
+      } else {
+        kvkkFooter.style.display = "flex";
+      }
+    });
+
+    toggleFooterBtn.addEventListener("click", async () => {
+      // Gizlemek istiyor, onay sor
+      const confirmed = await confirmDialog(
+        "KVKK bilgilendirme metni gizlenecektir. Tekrar göstermek için ayarlar panelindeki (⚙️) 'KVKK Bilgilendirmelerini Göster' butonunu kullanabilirsiniz.\n\nDevam etmek istiyor musunuz?",
+        "Bilgilendirme Metnini Gizle"
+      );
+      if (!confirmed) return;
+      
+      kvkkFooter.style.display = "none";
+      chrome.storage.local.set({ kvkkFooterHidden: true });
+      applyKvkkVisibility(true);  // Ayarlar panelindeki butonu güncelle
+    });
+  }
 
   // ========== MESAJ DİNLEYİCİ ==========
   chrome.runtime.onMessage.addListener((msg) => {
