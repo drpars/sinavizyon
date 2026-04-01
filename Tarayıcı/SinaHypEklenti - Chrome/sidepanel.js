@@ -122,39 +122,33 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (versionBadge) versionBadge.textContent = "v1.5.5";
   }
 
-  // ========== FONT AYARI (AÇ/KAPA) ==========
-  const toggleFontBtn = document.getElementById("toggleFontSettingsBtn");
+  // ========== FONT AYARI (TOGGLE SWITCH) ==========
+  const fontToggle = document.getElementById("fontToggleCheckbox");
   const fontContainer = document.getElementById("fontSettingsContainer");
   const fontSizeSlider = document.getElementById("fontSizeSlider");
   const fontSizeValue = document.getElementById("fontSizeValue");
 
   let fontSettingsActive = false;
-  
-  // YENİ YAPI: Eski sürümle (V1.5.5) birebir aynı görünüm için varsayılanı 16 yaptık
   const DEFAULT_FONT_SIZE = 16;
 
   function applyFontSize(size) {
     if (fontSettingsActive) {
-      // YENİ YAPI: REM birimlerinin çalışması için body değil, documentElement (html) güncellenmeli
       document.documentElement.style.fontSize = `${size}px`;
       if (fontSizeValue) fontSizeValue.textContent = `${size}px`;
     } else {
-      // Kapalıyken sistemi varsayılan 16px (orijinal görünüm) değerine kilitle
       document.documentElement.style.fontSize = `${DEFAULT_FONT_SIZE}px`;
       if (fontSizeValue) fontSizeValue.textContent = `${DEFAULT_FONT_SIZE}px`;
     }
   }
 
-  // Buton tıklama
-  if (toggleFontBtn && fontContainer) {
-    toggleFontBtn.addEventListener("click", () => {
-      fontSettingsActive = !fontSettingsActive;
+  // Toggle değiştiğinde
+  if (fontToggle) {
+    fontToggle.addEventListener("change", (e) => {
+      fontSettingsActive = e.target.checked;
       
       if (fontSettingsActive) {
         fontContainer.style.display = "block";
-        toggleFontBtn.textContent = "🔤 Kapat";
-        
-        // Storage'daki değeri yükle (Önceki kayıt userFontSize olarak tutuluyordu)
+        // Storage'daki değeri yükle
         chrome.storage.local.get(["userFontSize"], (res) => {
           const savedSize = res.userFontSize || DEFAULT_FONT_SIZE;
           if (fontSizeSlider) fontSizeSlider.value = savedSize;
@@ -162,8 +156,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
       } else {
         fontContainer.style.display = "none";
-        toggleFontBtn.textContent = "🔤 Aç";
-        applyFontSize(DEFAULT_FONT_SIZE); // V1.5.5 standart görünümüne dön
+        applyFontSize(DEFAULT_FONT_SIZE);
       }
     });
   }
@@ -179,10 +172,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  // Sayfa açılışında font ayarı kapalı olsun ve 16px varsayılan yüklensin
-  if (fontContainer) fontContainer.style.display = "none";
-  if (toggleFontBtn) toggleFontBtn.textContent = "🔤 Aç";
+  // Sayfa açılışında toggle kapalı olsun
+  if (fontToggle) fontToggle.checked = false;
   fontSettingsActive = false;
+  if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
 
   // ========== SÜREÇ YÖNETİMİ ==========
