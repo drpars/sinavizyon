@@ -127,26 +127,23 @@ document.addEventListener("DOMContentLoaded", async function () {
     setUserType(e.target.value);
   });
 
-  // ========== TEMA ==========
-  const themeSelect = document.getElementById("themeSelect");
-  chrome.storage.local.get(["themePreference"], (res) => {
-    const savedTheme = res.themePreference || "light";
-    if (themeSelect) themeSelect.value = savedTheme;
-    applyTheme(savedTheme);
-  });
-  if (themeSelect) {
-    themeSelect.addEventListener("change", (e) => {
-      const theme = e.target.value;
-      applyTheme(theme);
-      chrome.storage.local.set({ themePreference: theme });
-      if (currentBirimId) {
+  themeSelect.addEventListener("change", (e) => {
+    const theme = e.target.value;
+    applyTheme(theme);
+    chrome.storage.local.set({ themePreference: theme });
+    
+    // ASÇ modunda ise doğru yükleme fonksiyonunu kullan
+    if (currentBirimId) {
+      if (currentUserType === "nurse") {
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
+      } else {
         const key = getStorageKeyWithType("savedResults");
         chrome.storage.local.get([key], (res) => {
-          if (res[key]?.data) updateTable(res[key].data);
+          if (res[key]?.data) updateTable(res[key].data, currentUserType, false, currentBirimId);
         });
       }
-    });
-  }
+    }
+  });
   
   // ========== SÜRÜM NUMARASI ==========
   try {
