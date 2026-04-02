@@ -1,11 +1,11 @@
 import { hypToSinaMap } from './modules/constants.js';
 import { 
   getCurrentBirimId, storeDataWithTimestamp,
-  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, deleteAllData, exportData, revokeConsent 
+  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, exportData, revokeConsent 
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
-import { requestConsent, showChangelog, closeModal, confirmDialog, showAboutDialog } from './modules/modals.js';
+import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
@@ -46,6 +46,62 @@ function combineData(data) {
     }
   });
   return Array.from(map.values());
+}
+
+// ========== TÜM VERİLERİ SİL ==========
+function deleteAllData() {
+  confirmDialog(
+    "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+    "Veri Silme Onayı"
+  ).then((confirmed) => {
+    if (!confirmed) return;
+    
+    // Silinecek anahtar kalıpları
+    const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_", "nurseShowAll_"];
+    
+    chrome.storage.local.get(null, (items) => {
+      const keysToRemove = Object.keys(items).filter(key => {
+        return prefixes.some(prefix => key.startsWith(prefix));
+      });
+      
+      if (keysToRemove.length > 0) {
+        chrome.storage.local.remove(keysToRemove, () => {
+          // UI'ı sıfırla
+          updateTable([]);
+          document.getElementById("sinaTime").textContent = "";
+          document.getElementById("hypTime").textContent = "";
+          document.getElementById("nufus").value = "";
+          document.getElementById("birimId").value = "";
+          
+          // GLOBAL DEĞİŞKENLERİ SIFIRLA
+          currentBirimId = "";
+          currentShowAll = false;
+          currentUserType = "doctor";
+          
+          // Kullanıcı tipi dropdown'ını güncelle
+          const userTypeSelect = document.getElementById("userTypeSelect");
+          if (userTypeSelect) userTypeSelect.value = "doctor";
+          
+          // Buton metinlerini doktor moduna döndür
+          const sinaBtn = document.getElementById("btnSina");
+          const hypBtn = document.getElementById("btnHyp");
+          if (sinaBtn) sinaBtn.textContent = "SİNA";
+          if (hypBtn) hypBtn.textContent = "HYP";
+          if (hypBtn) hypBtn.disabled = true;
+          
+          // HYP zaman göstergesini temizle
+          const hypTimeSpan = document.getElementById("hypTime");
+          if (hypTimeSpan) hypTimeSpan.textContent = "";
+          const sinaTimeSpan = document.getElementById("sinaTime");
+          if (sinaTimeSpan) sinaTimeSpan.textContent = "";
+          
+          messageDialog("Tüm birimlere ait veriler başarıyla silindi.", "İşlem Tamam");
+        });
+      } else {
+        messageDialog("Silinecek veri bulunamadı.", "Bilgi");
+      }
+    });
+  });
 }
 
 // Sayfa yüklendiğinde
