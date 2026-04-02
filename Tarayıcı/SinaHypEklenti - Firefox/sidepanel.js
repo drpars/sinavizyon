@@ -150,28 +150,63 @@ document.addEventListener("DOMContentLoaded", async function () {
     chrome.storage.local.set({ userType: type });
     currentBirimId = getCurrentBirimId();
     
+    // TAVAN KATSAYISI kartını göster/gizle
+    const tavanKart = document.getElementById("tavanKatsayi")?.closest(".score-box");
+
+    // SÜREÇ YÖNETİMİ alanını göster/gizle
+    const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
+
     const sinaBtn = document.getElementById("btnSina");
     const hypBtn = document.getElementById("btnHyp");
     
     if (type === "nurse") {
-      sinaBtn.textContent = "SİNA (ASÇ)";
-      hypBtn.textContent = "SİNA BİRİM (ASÇ)";
+      // ASÇ modunda TAVAN KATSAYISI kartını gizle
+      if (tavanKart) tavanKart.style.display = "none";
+      // ASÇ modunda SÜREÇ YÖNETİMİ alanını gizle
+      if (surecRow) surecRow.style.display = "none";
+
+      sinaBtn.textContent = "SİNA";
+      hypBtn.textContent = "SİNA BİRİM";
       sinaBtn.disabled = false;
       
-      // Birim ID varsa o birime özel nurseShowAll değerini yükle
       if (currentBirimId) {
-        chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (res) => {
-          currentShowAll = res[`nurseShowAll_${currentBirimId}`] === true;
+        chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], async (res) => {
+          let showAll = res[`nurseShowAll_${currentBirimId}`] === true;
+          
+          if (res[`nurseShowAll_${currentBirimId}`] === undefined) {
+            const doctorKey = `savedResults_doctor_${currentBirimId}`;
+            const doctorRes = await new Promise(resolve => chrome.storage.local.get([doctorKey], resolve));
+            const hasDoctorData = doctorRes[doctorKey]?.data && doctorRes[doctorKey].data.length > 0;
+            
+            if (hasDoctorData) {
+              showAll = true;
+              chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
+            }
+          }
+          
+          currentShowAll = showAll;
           loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll);
         });
       } else {
         loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
       }
     } else {
+      // ========== DOKTOR MODU ==========
+      // Doktor modunda TAVAN KATSAYISI kartını göster
+      if (tavanKart) tavanKart.style.display = "flex";
+      // Doktor modunda SÜREÇ YÖNETİMİ alanını göster
+      if (surecRow) surecRow.style.display = "flex";
+
       sinaBtn.textContent = "SİNA";
       hypBtn.textContent = "HYP";
       sinaBtn.disabled = false;
       currentShowAll = false;
+      
+      // Nüfusu yükle ve TAVAN KATSAYISI güncelle
+      if (currentBirimId) {
+        loadNufusForBirim(currentBirimId, tavanHesapla);
+      }
+      
       loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
     }
   }
@@ -314,6 +349,16 @@ document.addEventListener("DOMContentLoaded", async function () {
           const savedType = userRes.userType || "doctor";
           if (userTypeSelect) userTypeSelect.value = savedType;
           setUserType(savedType);
+
+          // ========== SÜREÇ YÖNETİMİ ALANI GÖSTER/GİZLE ==========
+          const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
+          if (surecRow) {
+            if (savedType === "nurse") {
+              surecRow.style.display = "none";
+            } else {
+              surecRow.style.display = "flex";
+            }
+          }
         });
       } else {
         // Birim ID yoksa sadece userType'ı ayarla
@@ -391,12 +436,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     let url;
     if (currentUserType === "nurse") {
       url = `https://sina.saglik.gov.tr/showcases/SC-0320Z42B2FCOK70/SCI-0N184E437ACA419?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
-      currentShowAll = false;
-      chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: false });
+      // SADECE pendingStorageType ayarla, showAll DEĞİŞTİRME!
+      // currentShowAll = false;  // BU SATIRI KALDIR
+      // chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: false }); // BU SATIRI KALDIR
       pendingStorageType = "nurse";
     } else {
       url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
-      // Doktor için pendingStorageType gerekmez (zaten doctor)
     }
     chrome.tabs.create({ url });
   });
@@ -539,18 +584,31 @@ document.addEventListener("DOMContentLoaded", async function () {
         const sinaTimeSpan = document.getElementById("sinaTime");
         if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
         
-        // ASÇ modunda ve currentShowAll true ise tüm verileri birleştir
-        if (currentUserType === "nurse" && currentShowAll) {
-          const nurseKey = `savedResults_nurse_${currentBirimId}`;
-          const doctorKey = `savedResults_doctor_${currentBirimId}`;
-          chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
-            const nurseData = allRes[nurseKey]?.data || [];
-            const doctorData = allRes[doctorKey]?.data || [];
-            const combinedData = [...nurseData, ...doctorData];
-            const mergedData = combineData(combinedData);
-            updateTable(mergedData, currentUserType, true, currentBirimId);
+        // ========== DÜZELTİLMİŞ ASÇ MODU ==========
+        if (currentUserType === "nurse") {
+          // Storage'dan güncel showAll değerini al
+          chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (showAllRes) => {
+            const showAll = showAllRes[`nurseShowAll_${currentBirimId}`] === true;
+            currentShowAll = showAll;
+            
+            if (showAll) {
+              // Tüm verileri birleştir (ASÇ + Doktor)
+              const nurseKey = `savedResults_nurse_${currentBirimId}`;
+              const doctorKey = `savedResults_doctor_${currentBirimId}`;
+              chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
+                const nurseData = allRes[nurseKey]?.data || [];
+                const doctorData = allRes[doctorKey]?.data || [];
+                const combinedData = [...nurseData, ...doctorData];
+                const mergedData = combineData(combinedData);
+                updateTable(mergedData, currentUserType, true, currentBirimId);
+              });
+            } else {
+              // Sadece ASÇ verilerini göster
+              updateTable(merged, currentUserType, false, currentBirimId);
+            }
           });
         } else {
+          // Doktor modu
           updateTable(merged, currentUserType, currentShowAll, currentBirimId);
         }
         

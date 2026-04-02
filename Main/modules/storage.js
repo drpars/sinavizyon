@@ -105,33 +105,68 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
     return;
   }
   
-  // ASÇ modunda ve showAll true ise, her iki storage'ı da oku
-  if (userType === "nurse" && showAll) {
+  // ASÇ modunda
+  if (userType === "nurse") {
     const nurseKey = getStorageKey("savedResults", birimId, "nurse");
     const doctorKey = getStorageKey("savedResults", birimId, "doctor");
-    chrome.storage.local.get([nurseKey, doctorKey], (res) => {
+    
+    chrome.storage.local.get([nurseKey, doctorKey, `nurseShowAll_${birimId}`], (res) => {
       const nurseData = res[nurseKey]?.data || [];
       const doctorData = res[doctorKey]?.data || [];
-      const combinedData = [...nurseData, ...doctorData];
-      const hasData = combinedData.length > 0;
-      if (updateTableFn) updateTableFn(combinedData, userType, showAll, birimId);
-      if (onDataLoaded) onDataLoaded(hasData);
-    });
-  } else {
-    // Normal durum: sadece ilgili storage'ı oku
-    const key = getStorageKey("savedResults", birimId, userType);
-    chrome.storage.local.get([key], (res) => {
-      const hasData = !!(res[key]?.data && res[key].data.length > 0);
-      if (hasData) {
-        if (updateTableFn) updateTableFn(res[key].data, userType, showAll);
-      } else {
-        if (updateTableFn) updateTableFn([], userType, showAll);
+      const storedShowAll = res[`nurseShowAll_${birimId}`];
+      
+      let effectiveShowAll = showAll;
+      if (storedShowAll === undefined && doctorData.length > 0) {
+        effectiveShowAll = true;
+        chrome.storage.local.set({ [`nurseShowAll_${birimId}`]: true });
       }
+      
+      const hasData = (nurseData.length + doctorData.length) > 0;
+      
+      if (effectiveShowAll) {
+        const combinedData = [...nurseData, ...doctorData];
+        if (updateTableFn) updateTableFn(combinedData, userType, effectiveShowAll, birimId);
+      } else {
+        if (updateTableFn) updateTableFn(nurseData, userType, effectiveShowAll, birimId);
+      }
+      
       if (onDataLoaded) onDataLoaded(hasData);
     });
+    
+    // ========== ZAMAN DAMGALARI (ASÇ MODU - DÜZELTİLDİ) ==========
+    // SİNA (ASÇ) butonu altı → nurse sinaLastTime
+    const nurseSinaKey = getStorageKey("sinaLastTime", birimId, "nurse");
+    
+    // SİNA BİRİM (ASÇ) butonu altı → DOKTOR sinaLastTime (HYP değil!)
+    const doctorSinaKey = getStorageKey("sinaLastTime", birimId, "doctor");
+    
+    chrome.storage.local.get([nurseSinaKey, doctorSinaKey], (res) => {
+      const sinaTimeSpan = document.getElementById("sinaTime");
+      const hypTimeSpan = document.getElementById("hypTime");
+      
+      // SİNA (ASÇ) butonu altı
+      if (sinaTimeSpan) sinaTimeSpan.textContent = res[nurseSinaKey]?.data || "";
+      
+      // SİNA BİRİM (ASÇ) butonu altı - DOKTOR SİNA zamanı
+      if (hypTimeSpan) hypTimeSpan.textContent = res[doctorSinaKey]?.data || "";
+    });
+    
+    return;
   }
   
-  // Zaman damgalarını yükle (sadece nurse için, doktor için ayrıca göstermiyoruz)
+  // Doktor modu (normal durum)
+  const key = getStorageKey("savedResults", birimId, userType);
+  chrome.storage.local.get([key], (res) => {
+    const hasData = !!(res[key]?.data && res[key].data.length > 0);
+    if (hasData) {
+      if (updateTableFn) updateTableFn(res[key].data, userType, showAll);
+    } else {
+      if (updateTableFn) updateTableFn([], userType, showAll);
+    }
+    if (onDataLoaded) onDataLoaded(hasData);
+  });
+  
+  // Zaman damgaları (doktor modu)
   const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
   const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {

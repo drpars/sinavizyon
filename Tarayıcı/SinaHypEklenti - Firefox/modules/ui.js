@@ -214,8 +214,13 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
           const tavanElement = document.getElementById("tavanKatsayi");
           tavanElement.textContent = doctorBasari.toFixed(5);
           
-          // Renk karşılaştırması
-          if (asçBasari >= doctorBasari) {
+          // ========== RENK KARŞILAŞTIRMASI (YENİ KURAL) ==========
+          // Koşul 1: ASÇ BAŞARI KATSAYISI >= 1.0
+          // Koşul 2: ASÇ BAŞARI KATSAYISI >= (TAVAN KATSAYISI * 0.75)
+          const kosul1 = asçBasari >= 1.0;
+          const kosul2 = asçBasari >= (doctorBasari * 0.75);
+          
+          if (kosul1 && kosul2) {
             katsayiElement.style.color = "var(--green)";
           } else {
             katsayiElement.style.color = "var(--red)";
@@ -223,8 +228,15 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
         } else {
           const tavanElement = document.getElementById("tavanKatsayi");
           tavanElement.textContent = "1.00000";
-          // Renk karşılaştırması: doktor verisi yoksa tavan 1.0
-          if (asçBasari >= 1.0) {
+          
+          // ========== RENK KARŞILAŞTIRMASI (DOKTOR VERİSİ YOKKEN) ==========
+          // Tavan = 1.0 kabul ediliyor
+          // Koşul 1: ASÇ BAŞARI KATSAYISI >= 1.0
+          // Koşul 2: ASÇ BAŞARI KATSAYISI >= (1.0 * 0.75) = 0.75
+          const kosul1 = asçBasari >= 1.0;
+          const kosul2 = asçBasari >= 0.75;
+          
+          if (kosul1 && kosul2) {
             katsayiElement.style.color = "var(--green)";
           } else {
             katsayiElement.style.color = "var(--red)";
@@ -235,13 +247,17 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
       // Birim ID yoksa tavan 1.0
       const tavanElement = document.getElementById("tavanKatsayi");
       tavanElement.textContent = "1.00000";
-      if (asçBasari >= 1.0) {
+      
+      // ========== RENK KARŞILAŞTIRMASI (BİRİM ID YOKKEN) ==========
+      const kosul1 = asçBasari >= 1.0;
+      const kosul2 = asçBasari >= 0.75;
+      
+      if (kosul1 && kosul2) {
         katsayiElement.style.color = "var(--green)";
       } else {
         katsayiElement.style.color = "var(--red)";
       }
     }
-    
     return;
   }
   

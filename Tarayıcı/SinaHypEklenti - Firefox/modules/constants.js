@@ -68,13 +68,14 @@ export const changelogData = [
   },
   {
     version: "1.6.0",
-    date: "2026-04-01",
+    date: "2026-04-03",
     changes: [
       "👩‍⚕️ **ASÇ (Aile Sağlığı Çalışanı) desteği:** ASÇ kendi verilerini çekip analiz edebilir.",
-      "🔧 **Çift buton sistemi:** ASÇ modunda SİNA (ASÇ) ve SİNA BİRİM (ASÇ) butonları.",
+      "🔧 **Çift buton sistemi:** ASÇ modunda SİNA ve SİNA BİRİM butonları.",
       "📊 **ASÇ özel katsayı tablosu:** Vital Bulgu ve Yaşlı Sağlığı İzlemi için özel katsayılar.",
       "🎯 **ASÇ tavan katsayısı:** Doktor başarı katsayısına eşittir.",
-      "🔐 **Birim bazlı görünüm modu:** Her birim için son kullanılan tablo görünümü ayrı saklanır."
+      "🔐 **Birim bazlı görünüm modu:** Her birim için son kullanılan tablo görünümü ayrı saklanır.",
+      "🐛 **Çoklu hata düzeltmeleri:** Veri silme, tema kalıcılığı, ASÇ görünüm modu, zaman göstergeleri ve renklendirme iyileştirildi."
     ]
   }
 ];
