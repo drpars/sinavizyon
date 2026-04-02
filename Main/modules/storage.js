@@ -172,35 +172,6 @@ export function cleanExpiredData(updateTableFn) {
   });
 }
 
-// Tüm verileri sil (tüm userType ve birimler)
-export function deleteAllData() {
-  if (confirm("TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?")) {
-    const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_"];
-    chrome.storage.local.get(null, (items) => {
-      const keysToRemove = Object.keys(items).filter(key => {
-        return prefixes.some(prefix => key.startsWith(prefix));
-      });
-      if (keysToRemove.length > 0) {
-        chrome.storage.local.remove(keysToRemove, () => {
-          updateTable([]);
-          document.getElementById("sinaTime").textContent = "";
-          document.getElementById("hypTime").textContent = "";
-          document.getElementById("nufus").value = "";
-          document.getElementById("birimId").value = "";
-          
-          // HYP butonunu devre dışı bırak
-          const hypBtn = document.getElementById("btnHyp");
-          if (hypBtn) hypBtn.disabled = true;
-          
-          alert("Tüm birimlere ait veriler silindi.");
-        });
-      } else {
-        alert("Silinecek veri bulunamadı.");
-      }
-    });
-  }
-}
-
 // Veri dışa aktar (userType ile)
 export function exportData() {
   const birimId = getCurrentBirimId();

@@ -1,11 +1,11 @@
 import { hypToSinaMap } from './modules/constants.js';
 import { 
   getCurrentBirimId, storeDataWithTimestamp,
-  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, deleteAllData, exportData, revokeConsent 
+  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, exportData, revokeConsent 
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
-import { requestConsent, showChangelog, closeModal, confirmDialog, showAboutDialog } from './modules/modals.js';
+import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
@@ -46,6 +46,67 @@ function combineData(data) {
     }
   });
   return Array.from(map.values());
+}
+
+// ========== TÜM VERİLERİ SİL ==========
+function deleteAllData() {
+  confirmDialog(
+    "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+    "Veri Silme Onayı"
+  ).then((confirmed) => {
+    if (!confirmed) return;
+    
+    // Silinecek anahtar kalıpları
+    const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_", "nurseShowAll_"];
+    
+    chrome.storage.local.get(null, (items) => {
+      const keysToRemove = Object.keys(items).filter(key => {
+        return prefixes.some(prefix => key.startsWith(prefix));
+      });
+      
+      // **EKLE**: birimId anahtarını da sil
+      if (items.birimId !== undefined) {
+        keysToRemove.push("birimId");
+      }
+      
+      if (keysToRemove.length > 0) {
+        chrome.storage.local.remove(keysToRemove, () => {
+          // UI'ı sıfırla
+          updateTable([]);
+          document.getElementById("sinaTime").textContent = "";
+          document.getElementById("hypTime").textContent = "";
+          document.getElementById("nufus").value = "";
+          document.getElementById("birimId").value = "";
+          
+          // GLOBAL DEĞİŞKENLERİ SIFIRLA
+          currentBirimId = "";
+          currentShowAll = false;
+          currentUserType = "doctor";
+          
+          // Kullanıcı tipi dropdown'ını güncelle
+          const userTypeSelect = document.getElementById("userTypeSelect");
+          if (userTypeSelect) userTypeSelect.value = "doctor";
+          
+          // Buton metinlerini doktor moduna döndür
+          const sinaBtn = document.getElementById("btnSina");
+          const hypBtn = document.getElementById("btnHyp");
+          if (sinaBtn) sinaBtn.textContent = "SİNA";
+          if (hypBtn) hypBtn.textContent = "HYP";
+          if (hypBtn) hypBtn.disabled = true;
+          
+          // Zaman göstergelerini temizle
+          const hypTimeSpan = document.getElementById("hypTime");
+          if (hypTimeSpan) hypTimeSpan.textContent = "";
+          const sinaTimeSpan = document.getElementById("sinaTime");
+          if (sinaTimeSpan) sinaTimeSpan.textContent = "";
+          
+          messageDialog("Tüm birimlere ait veriler başarıyla silindi.", "İşlem Tamam");
+        });
+      } else {
+        messageDialog("Silinecek veri bulunamadı.", "Bilgi");
+      }
+    });
+  });
 }
 
 // Sayfa yüklendiğinde
@@ -127,27 +188,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     setUserType(e.target.value);
   });
 
-  // ========== TEMA ==========
-  const themeSelect = document.getElementById("themeSelect");
-  chrome.storage.local.get(["themePreference"], (res) => {
-    const savedTheme = res.themePreference || "light";
-    if (themeSelect) themeSelect.value = savedTheme;
-    applyTheme(savedTheme);
-  });
-  if (themeSelect) {
-    themeSelect.addEventListener("change", (e) => {
-      const theme = e.target.value;
-      applyTheme(theme);
-      chrome.storage.local.set({ themePreference: theme });
-      if (currentBirimId) {
-        const key = getStorageKeyWithType("savedResults");
-        chrome.storage.local.get([key], (res) => {
-          if (res[key]?.data) updateTable(res[key].data);
-        });
-      }
-    });
-  }
-  
   // ========== SÜRÜM NUMARASI ==========
   try {
     const manifest = chrome.runtime.getManifest();
@@ -216,6 +256,36 @@ document.addEventListener("DOMContentLoaded", async function () {
   fontSettingsActive = false;
   if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
+
+  // ========== TEMA YÜKLEME ==========
+  const themeSelect = document.getElementById("themeSelect");
+  if (themeSelect) {
+    // Storage'dan kayıtlı temayı yükle ve uygula
+    chrome.storage.local.get(["themePreference"], (res) => {
+      const savedTheme = res.themePreference || "light";
+      themeSelect.value = savedTheme;
+      applyTheme(savedTheme);
+    });
+    
+    // Tema değiştiğinde kaydet ve uygula
+    themeSelect.addEventListener("change", (e) => {
+      const theme = e.target.value;
+      applyTheme(theme);
+      chrome.storage.local.set({ themePreference: theme });
+      
+      // ASÇ modunda ise doğru yükleme fonksiyonunu kullan
+      if (currentBirimId) {
+        if (currentUserType === "nurse") {
+          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
+        } else {
+          const key = `savedResults_${currentUserType}_${currentBirimId}`;
+          chrome.storage.local.get([key], (res) => {
+            if (res[key]?.data) updateTable(res[key].data, currentUserType, false, currentBirimId);
+          });
+        }
+      }
+    });
+  }
 
   // ========== SÜREÇ YÖNETİMİ ==========
   const surecSelect = document.getElementById("surecYonetimi");

@@ -64,6 +64,11 @@ function deleteAllData() {
         return prefixes.some(prefix => key.startsWith(prefix));
       });
       
+      // **EKLE**: birimId anahtarını da sil
+      if (items.birimId !== undefined) {
+        keysToRemove.push("birimId");
+      }
+      
       if (keysToRemove.length > 0) {
         chrome.storage.local.remove(keysToRemove, () => {
           // UI'ı sıfırla
@@ -89,7 +94,7 @@ function deleteAllData() {
           if (hypBtn) hypBtn.textContent = "HYP";
           if (hypBtn) hypBtn.disabled = true;
           
-          // HYP zaman göstergesini temizle
+          // Zaman göstergelerini temizle
           const hypTimeSpan = document.getElementById("hypTime");
           if (hypTimeSpan) hypTimeSpan.textContent = "";
           const sinaTimeSpan = document.getElementById("sinaTime");
@@ -183,24 +188,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     setUserType(e.target.value);
   });
 
-  themeSelect.addEventListener("change", (e) => {
-    const theme = e.target.value;
-    applyTheme(theme);
-    chrome.storage.local.set({ themePreference: theme });
-    
-    // ASÇ modunda ise doğru yükleme fonksiyonunu kullan
-    if (currentBirimId) {
-      if (currentUserType === "nurse") {
-        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
-      } else {
-        const key = getStorageKeyWithType("savedResults");
-        chrome.storage.local.get([key], (res) => {
-          if (res[key]?.data) updateTable(res[key].data, currentUserType, false, currentBirimId);
-        });
-      }
-    }
-  });
-  
   // ========== SÜRÜM NUMARASI ==========
   try {
     const manifest = chrome.runtime.getManifest();
@@ -269,6 +256,36 @@ document.addEventListener("DOMContentLoaded", async function () {
   fontSettingsActive = false;
   if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
+
+  // ========== TEMA YÜKLEME ==========
+  const themeSelect = document.getElementById("themeSelect");
+  if (themeSelect) {
+    // Storage'dan kayıtlı temayı yükle ve uygula
+    chrome.storage.local.get(["themePreference"], (res) => {
+      const savedTheme = res.themePreference || "light";
+      themeSelect.value = savedTheme;
+      applyTheme(savedTheme);
+    });
+    
+    // Tema değiştiğinde kaydet ve uygula
+    themeSelect.addEventListener("change", (e) => {
+      const theme = e.target.value;
+      applyTheme(theme);
+      chrome.storage.local.set({ themePreference: theme });
+      
+      // ASÇ modunda ise doğru yükleme fonksiyonunu kullan
+      if (currentBirimId) {
+        if (currentUserType === "nurse") {
+          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
+        } else {
+          const key = `savedResults_${currentUserType}_${currentBirimId}`;
+          chrome.storage.local.get([key], (res) => {
+            if (res[key]?.data) updateTable(res[key].data, currentUserType, false, currentBirimId);
+          });
+        }
+      }
+    });
+  }
 
   // ========== SÜREÇ YÖNETİMİ ==========
   const surecSelect = document.getElementById("surecYonetimi");
