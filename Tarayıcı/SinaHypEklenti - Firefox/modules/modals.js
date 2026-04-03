@@ -4,8 +4,6 @@ import { changelogData } from './constants.js';
 
 // Hakkında bilgi göster (HTML içerikli, sağa hizalı imza)
 export async function showAboutDialog() {
-  const manifest = chrome.runtime.getManifest();
-  const version = manifest.version;
 
   // Modal elementi oluştur (eğer yoksa)
   let modal = document.getElementById("aboutDialog");
@@ -35,7 +33,7 @@ export async function showAboutDialog() {
   contentDiv.innerHTML = `
     <div style="border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--bg);">
       <div style="margin-top: 0;"></div>
-      <p style="margin: 0 0 4px 0; font-size: 1rem;"><strong>Geliştirici :</strong> drpars</p>
+      <p style="margin: 0 0 4px 0; font-size: 1rem;"><strong>Geliştirici :</strong> drizzet</p>
       <p style="margin: 0 0 20px 0; font-size: 1rem;"><strong>Teşekkürler :</strong> drumit</p>
       <div style="margin-top: 48px; text-align: right;">
         <div style="font-size: 0.55rem; opacity: 0.6; margin-bottom: 4px; margin-right: 50px;">Yapay zeka destekleri</div>
