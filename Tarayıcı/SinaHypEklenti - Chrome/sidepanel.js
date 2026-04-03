@@ -64,10 +64,13 @@ function deleteAllData() {
         return prefixes.some(prefix => key.startsWith(prefix));
       });
       
-      // **EKLE**: birimId anahtarını da sil
+      // birimId anahtarını da sil
       if (items.birimId !== undefined) {
         keysToRemove.push("birimId");
       }
+      
+      // Mevcut kullanıcı tipini silme işleminden ÖNCE al
+      const currentUserTypeBeforeDelete = items.userType || "doctor";
       
       if (keysToRemove.length > 0) {
         chrome.storage.local.remove(keysToRemove, () => {
@@ -81,18 +84,16 @@ function deleteAllData() {
           // GLOBAL DEĞİŞKENLERİ SIFIRLA
           currentBirimId = "";
           currentShowAll = false;
-          currentUserType = "doctor";
+          
+          // Kullanıcı tipini eski haline döndür (silme öncesi neyse)
+          currentUserType = currentUserTypeBeforeDelete;
           
           // Kullanıcı tipi dropdown'ını güncelle
           const userTypeSelect = document.getElementById("userTypeSelect");
-          if (userTypeSelect) userTypeSelect.value = "doctor";
+          if (userTypeSelect) userTypeSelect.value = currentUserTypeBeforeDelete;
           
-          // Buton metinlerini doktor moduna döndür
-          const sinaBtn = document.getElementById("btnSina");
-          const hypBtn = document.getElementById("btnHyp");
-          if (sinaBtn) sinaBtn.textContent = "SİNA";
-          if (hypBtn) hypBtn.textContent = "HYP";
-          if (hypBtn) hypBtn.disabled = true;
+          // UI'ı tamamen güncelle (buton metinleri, gizli/görünür öğeler)
+          setUserType(currentUserTypeBeforeDelete);
           
           // Zaman göstergelerini temizle
           const hypTimeSpan = document.getElementById("hypTime");
@@ -144,6 +145,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // ========== KULLANICI TİPİ ==========
   const userTypeSelect = document.getElementById("userTypeSelect");
+  if (userTypeSelect) userTypeSelect.value = "doctor";
 
   function setUserType(type) {
     currentUserType = type;
@@ -156,14 +158,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     // SÜREÇ YÖNETİMİ alanını göster/gizle
     const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
 
+    // NÜFUS alanını göster/gizle (ASÇ için gereksiz)
+    const nufusRow = document.getElementById("nufus")?.closest(".row");
+
     const sinaBtn = document.getElementById("btnSina");
     const hypBtn = document.getElementById("btnHyp");
     
     if (type === "nurse") {
-      // ASÇ modunda TAVAN KATSAYISI kartını gizle
+      // ASÇ modunda gizlenecekler
       if (tavanKart) tavanKart.style.display = "none";
-      // ASÇ modunda SÜREÇ YÖNETİMİ alanını gizle
       if (surecRow) surecRow.style.display = "none";
+      if (nufusRow) nufusRow.style.display = "none";  // NÜFUS gizle
 
       sinaBtn.textContent = "SİNA";
       hypBtn.textContent = "SİNA BİRİM";
@@ -192,10 +197,10 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     } else {
       // ========== DOKTOR MODU ==========
-      // Doktor modunda TAVAN KATSAYISI kartını göster
+      // Doktor modunda gösterilecekler
       if (tavanKart) tavanKart.style.display = "flex";
-      // Doktor modunda SÜREÇ YÖNETİMİ alanını göster
       if (surecRow) surecRow.style.display = "flex";
+      if (nufusRow) nufusRow.style.display = "flex";  // NÜFUS göster
 
       sinaBtn.textContent = "SİNA";
       hypBtn.textContent = "HYP";
@@ -299,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     // Wheel-outside tercihi kontrol et
     chrome.storage.local.get(["closeOnWheelOutside"], (res) => {
-      const closeOnWheel = res.closeOnWheelOutside === true;
+      const closeOnWheel = res.closeOnWheelOutside !== false; // varsayılan true (AÇIK)
       
       if (closeOnWheel) {
         // Ayarlar paneli
@@ -321,6 +326,39 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   });
 
+  // ========== CLICK-OUTSIDE İLE PANEL KAPATMA (TERCİHE BAĞLI) ==========
+  document.addEventListener('click', function(event) {
+    // Ayarlar paneli
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBtn = document.getElementById('btnSettings');
+    
+    // Gelişmiş ayarlar
+    const advancedDiv = document.getElementById('advancedSettings');
+    const toggleBtn = document.getElementById('toggleAdvancedBtn');
+    
+    // Click-outside tercihi kontrol et
+    chrome.storage.local.get(["closeOnClickOutside"], (res) => {
+      const closeOnClick = res.closeOnClickOutside !== false;
+      
+      if (closeOnClick) {
+        // Ayarlar paneli
+        if (settingsPanel && settingsPanel.style.display === 'block') {
+          if (!settingsPanel.contains(event.target) && event.target !== settingsBtn) {
+            settingsPanel.style.display = 'none';
+          }
+        }
+        
+        // Gelişmiş ayarlar
+        if (advancedDiv && advancedDiv.classList.contains('show')) {
+          if (!advancedDiv.contains(event.target) && event.target !== toggleBtn) {
+            advancedDiv.classList.remove('show');
+            if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
+          }
+        }
+      }
+    });
+  });
+
   // ========== PANEL KAPATMA DAVRANIŞI TOGGLE'LARI ==========
   const closeOnClickToggle = document.getElementById("closeOnClickOutsideToggle");
   const closeOnWheelToggle = document.getElementById("closeOnWheelOutsideToggle");
@@ -331,7 +369,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       closeOnClickToggle.checked = res.closeOnClickOutside !== false; // varsayılan true
     }
     if (closeOnWheelToggle) {
-      closeOnWheelToggle.checked = res.closeOnWheelOutside === true; // varsayılan false
+      closeOnWheelToggle.checked = res.closeOnWheelOutside !== false; // varsayılan true (AÇIK)
     }
   });
 
@@ -412,6 +450,15 @@ document.addEventListener("DOMContentLoaded", async function () {
               surecRow.style.display = "none";
             } else {
               surecRow.style.display = "flex";
+            }
+          }
+          // ========== NÜFUS ALANI GÖSTER/GİZLE ==========
+          const nufusRow = document.getElementById("nufus")?.closest(".row");
+          if (nufusRow) {
+            if (savedType === "nurse") {
+              nufusRow.style.display = "none";
+            } else {
+              nufusRow.style.display = "flex";
             }
           }
         });
@@ -702,39 +749,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         updateTable(guncelVeri, currentUserType, false, currentBirimId);
       });
     }
-  });
-
-  // ========== CLICK-OUTSIDE İLE PANEL KAPATMA (TERCİHE BAĞLI) ==========
-  document.addEventListener('click', function(event) {
-    // Ayarlar paneli
-    const settingsPanel = document.getElementById('settingsPanel');
-    const settingsBtn = document.getElementById('btnSettings');
-    
-    // Gelişmiş ayarlar
-    const advancedDiv = document.getElementById('advancedSettings');
-    const toggleBtn = document.getElementById('toggleAdvancedBtn');
-    
-    // Click-outside tercihi kontrol et
-    chrome.storage.local.get(["closeOnClickOutside"], (res) => {
-      const closeOnClick = res.closeOnClickOutside !== false;
-      
-      if (closeOnClick) {
-        // Ayarlar paneli
-        if (settingsPanel && settingsPanel.style.display === 'block') {
-          if (!settingsPanel.contains(event.target) && event.target !== settingsBtn) {
-            settingsPanel.style.display = 'none';
-          }
-        }
-        
-        // Gelişmiş ayarlar
-        if (advancedDiv && advancedDiv.classList.contains('show')) {
-          if (!advancedDiv.contains(event.target) && event.target !== toggleBtn) {
-            advancedDiv.classList.remove('show');
-            if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
-          }
-        }
-      }
-    });
   });
 });
 
