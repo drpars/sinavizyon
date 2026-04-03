@@ -1,5 +1,5 @@
 import { RETENTION_DAYS } from './constants.js';
-import { updateTable } from './ui.js';
+import { updateTable, setUIEnabled } from './ui.js';
 
 // Mevcut birimId'yi al
 export function getCurrentBirimId() {
