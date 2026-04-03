@@ -10,12 +10,13 @@
     "https://hyp.saglik.gov.tr/*"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "service_worker": "background.js"
   },
   "action": {
     "default_title": "SİNA & HYP Yönetim",
     "default_icon": {
       "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
@@ -25,12 +26,15 @@
     "default_title": "SİNA VİZYON",
     "default_icon": {
       "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
-    }
+    },
+    "open_at_install": false
   },
   "icons": {
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
@@ -41,21 +45,14 @@
         "https://hyp.saglik.gov.tr/*"
       ],
       "js": ["content.js"],
-      "run_at": "document_end"
+      "run_at": "document_end",
+      "all_frames": false
     }
   ],
   "browser_specific_settings": {
     "gecko": {
       "id": "sina-hyp-yonetim@drpars.com",
-      "strict_min_version": "142.0",
-      "data_collection_permissions": {
-        "required": [
-          "websiteContent",
-          "healthInfo",
-          "websiteActivity"
-        ]
-      }
+      "strict_min_version": "109.0"
     }
   }
 }
-
