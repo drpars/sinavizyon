@@ -9,35 +9,24 @@ import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
-// Global değişkenler
+// ========== GLOBAL DEĞİŞKENLER ==========
 let currentUserType = "doctor";
 let currentBirimId = "";
-let pendingShowAll = false;        // Tüm işlemleri göster (ASÇ modu için)
-let pendingStorageType = "nurse";  // Hangi storage'a kaydedileceği
-let currentShowAll = false;  // ASÇ modunda hangi görünüm modunda olduğumuz
+let pendingShowAll = false;
+let pendingStorageType = "nurse";
+let currentShowAll = false;
 
-// Storage anahtarı oluşturma (userType ve birimId ile)
-function getStorageKeyWithType(baseKey) {
-  return `${baseKey}_${currentUserType}_${currentBirimId}`;
-}
-
-// HYP buton durumunu güncelleyen yardımcı fonksiyon
+// ========== GLOBAL FONKSİYONLAR ==========
 function updateHypButtonState(hasData) {
   const hypBtn = document.getElementById("btnHyp");
   if (hypBtn) hypBtn.disabled = !hasData;
 }
-
-// function getStorageKeyWithTypeForUser(userType, birimId) {
-//   return `savedResults_${userType}_${birimId}`;
-// }
 
 function combineData(data) {
   const map = new Map();
   data.forEach(item => {
     const existing = map.get(item.ad);
     if (existing) {
-      // Aynı işlem varsa: gereken ve devreden doktordan, yapilan ASÇ'den
-      // Basitçe: doktor verisi (gereken, devreden) + ASÇ verisi (yapilan)
       existing.gereken = item.gereken || existing.gereken;
       existing.devreden = item.devreden || existing.devreden;
       existing.yapilan = item.yapilan || existing.yapilan;
@@ -48,59 +37,85 @@ function combineData(data) {
   return Array.from(map.values());
 }
 
-// ========== TÜM VERİLERİ SİL ==========
+// ========== SET USERTYPE (GLOBAL) ==========
+function setUserType(type) {
+  currentUserType = type;
+  chrome.storage.local.set({ userType: type });
+  currentBirimId = getCurrentBirimId();
+
+  const tavanKart = document.getElementById("tavanKatsayi")?.closest(".score-box");
+  const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
+  const nufusRow = document.getElementById("nufus")?.closest(".row");
+  const sinaBtn = document.getElementById("btnSina");
+  const hypBtn = document.getElementById("btnHyp");
+
+  if (type === "nurse") {
+    if (tavanKart) tavanKart.style.display = "none";
+    if (surecRow) surecRow.style.display = "none";
+    if (nufusRow) nufusRow.style.display = "none";
+    if (sinaBtn) sinaBtn.textContent = "SİNA";
+    if (hypBtn) hypBtn.textContent = "SİNA BİRİM";
+    if (sinaBtn) sinaBtn.disabled = false;
+
+    if (currentBirimId) {
+      chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], async (res) => {
+        let showAll = res[`nurseShowAll_${currentBirimId}`] === true;
+        if (res[`nurseShowAll_${currentBirimId}`] === undefined) {
+          const doctorKey = `savedResults_doctor_${currentBirimId}`;
+          const doctorRes = await new Promise(resolve => chrome.storage.local.get([doctorKey], resolve));
+          const hasDoctorData = doctorRes[doctorKey]?.data && doctorRes[doctorKey].data.length > 0;
+          if (hasDoctorData) {
+            showAll = true;
+            chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
+          }
+        }
+        currentShowAll = showAll;
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll);
+      });
+    } else {
+      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
+    }
+  } else {
+    if (tavanKart) tavanKart.style.display = "flex";
+    if (surecRow) surecRow.style.display = "flex";
+    if (nufusRow) nufusRow.style.display = "flex";
+    if (sinaBtn) sinaBtn.textContent = "SİNA";
+    if (hypBtn) hypBtn.textContent = "HYP";
+    if (sinaBtn) sinaBtn.disabled = false;
+    currentShowAll = false;
+
+    if (currentBirimId) {
+      loadNufusForBirim(currentBirimId, tavanHesapla);
+    }
+    loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
+  }
+}
+
+// ========== TÜM VERİLERİ SİL (GLOBAL) ==========
 function deleteAllData() {
   confirmDialog(
     "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
     "Veri Silme Onayı"
   ).then((confirmed) => {
     if (!confirmed) return;
-    
-    // Silinecek anahtar kalıpları
     const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_", "nurseShowAll_"];
-    
     chrome.storage.local.get(null, (items) => {
-      const keysToRemove = Object.keys(items).filter(key => {
-        return prefixes.some(prefix => key.startsWith(prefix));
-      });
-      
-      // birimId anahtarını da sil
-      if (items.birimId !== undefined) {
-        keysToRemove.push("birimId");
-      }
-      
-      // Mevcut kullanıcı tipini silme işleminden ÖNCE al
+      const keysToRemove = Object.keys(items).filter(key => prefixes.some(p => key.startsWith(p)));
+      if (items.birimId !== undefined) keysToRemove.push("birimId");
       const currentUserTypeBeforeDelete = items.userType || "doctor";
-      
       if (keysToRemove.length > 0) {
         chrome.storage.local.remove(keysToRemove, () => {
-          // UI'ı sıfırla
           updateTable([]);
           document.getElementById("sinaTime").textContent = "";
           document.getElementById("hypTime").textContent = "";
           document.getElementById("nufus").value = "";
           document.getElementById("birimId").value = "";
-          
-          // GLOBAL DEĞİŞKENLERİ SIFIRLA
           currentBirimId = "";
           currentShowAll = false;
-          
-          // Kullanıcı tipini eski haline döndür (silme öncesi neyse)
           currentUserType = currentUserTypeBeforeDelete;
-          
-          // Kullanıcı tipi dropdown'ını güncelle
           const userTypeSelect = document.getElementById("userTypeSelect");
           if (userTypeSelect) userTypeSelect.value = currentUserTypeBeforeDelete;
-          
-          // UI'ı tamamen güncelle (buton metinleri, gizli/görünür öğeler)
           setUserType(currentUserTypeBeforeDelete);
-          
-          // Zaman göstergelerini temizle
-          const hypTimeSpan = document.getElementById("hypTime");
-          if (hypTimeSpan) hypTimeSpan.textContent = "";
-          const sinaTimeSpan = document.getElementById("sinaTime");
-          if (sinaTimeSpan) sinaTimeSpan.textContent = "";
-          
           messageDialog("Tüm birimlere ait veriler başarıyla silindi.", "İşlem Tamam");
         });
       } else {
@@ -123,107 +138,28 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Rıza kontrolü
   const consentRes = await new Promise(resolve => chrome.storage.local.get(["kvkkConsent"], resolve));
   let hasConsent = consentRes.kvkkConsent === true;
-
-  if (!hasConsent) {
-    hasConsent = await requestConsent();
-  }
-
+  if (!hasConsent) hasConsent = await requestConsent();
   if (!hasConsent) {
     setUIEnabled(false);
     document.getElementById("consentWarning")?.classList.remove("hidden");
     return;
   }
-
   setUIEnabled(true);
   document.getElementById("consentWarning")?.classList.add("hidden");
 
-  // Saklama süresi temizliği
   cleanExpiredData(updateTable);
-
-  // Migration (eski storage'dan yeni yapıya geçiş)
   migrateFromOldStorage();
 
   // ========== KULLANICI TİPİ ==========
   const userTypeSelect = document.getElementById("userTypeSelect");
   if (userTypeSelect) userTypeSelect.value = "doctor";
 
-  function setUserType(type) {
-    currentUserType = type;
-    chrome.storage.local.set({ userType: type });
-    currentBirimId = getCurrentBirimId();
-    
-    // TAVAN KATSAYISI kartını göster/gizle
-    const tavanKart = document.getElementById("tavanKatsayi")?.closest(".score-box");
-
-    // SÜREÇ YÖNETİMİ alanını göster/gizle
-    const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
-
-    // NÜFUS alanını göster/gizle (ASÇ için gereksiz)
-    const nufusRow = document.getElementById("nufus")?.closest(".row");
-
-    const sinaBtn = document.getElementById("btnSina");
-    const hypBtn = document.getElementById("btnHyp");
-    
-    if (type === "nurse") {
-      // ASÇ modunda gizlenecekler
-      if (tavanKart) tavanKart.style.display = "none";
-      if (surecRow) surecRow.style.display = "none";
-      if (nufusRow) nufusRow.style.display = "none";  // NÜFUS gizle
-
-      sinaBtn.textContent = "SİNA";
-      hypBtn.textContent = "SİNA BİRİM";
-      sinaBtn.disabled = false;
-      
-      if (currentBirimId) {
-        chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], async (res) => {
-          let showAll = res[`nurseShowAll_${currentBirimId}`] === true;
-          
-          if (res[`nurseShowAll_${currentBirimId}`] === undefined) {
-            const doctorKey = `savedResults_doctor_${currentBirimId}`;
-            const doctorRes = await new Promise(resolve => chrome.storage.local.get([doctorKey], resolve));
-            const hasDoctorData = doctorRes[doctorKey]?.data && doctorRes[doctorKey].data.length > 0;
-            
-            if (hasDoctorData) {
-              showAll = true;
-              chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
-            }
-          }
-          
-          currentShowAll = showAll;
-          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll);
-        });
-      } else {
-        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
-      }
-    } else {
-      // ========== DOKTOR MODU ==========
-      // Doktor modunda gösterilecekler
-      if (tavanKart) tavanKart.style.display = "flex";
-      if (surecRow) surecRow.style.display = "flex";
-      if (nufusRow) nufusRow.style.display = "flex";  // NÜFUS göster
-
-      sinaBtn.textContent = "SİNA";
-      hypBtn.textContent = "HYP";
-      sinaBtn.disabled = false;
-      currentShowAll = false;
-      
-      // Nüfusu yükle ve TAVAN KATSAYISI güncelle
-      if (currentBirimId) {
-        loadNufusForBirim(currentBirimId, tavanHesapla);
-      }
-      
-      loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
-    }
-  }
-
-  // Storage'dan kullanıcı tipini yükle
   chrome.storage.local.get(["userType"], (res) => {
     const savedType = res.userType || "doctor";
     if (userTypeSelect) userTypeSelect.value = savedType;
     setUserType(savedType);
   });
 
-  // Dropdown değişince
   userTypeSelect.addEventListener("change", (e) => {
     setUserType(e.target.value);
   });
@@ -232,24 +168,19 @@ document.addEventListener("DOMContentLoaded", async function () {
   try {
     const manifest = chrome.runtime.getManifest();
     const versionBadge = document.getElementById("versionBadge");
-    if (versionBadge && manifest && manifest.version) {
-      versionBadge.textContent = `v${manifest.version}`;
-    }
+    if (versionBadge && manifest?.version) versionBadge.textContent = `v${manifest.version}`;
   } catch (e) {
-    console.warn("Sürüm numarası okunamadı:", e);
     const versionBadge = document.getElementById("versionBadge");
     if (versionBadge) versionBadge.textContent = "v1.5.5";
   }
 
-  // ========== FONT AYARI (TOGGLE SWITCH) ==========
+  // ========== FONT AYARI ==========
   const fontToggle = document.getElementById("fontToggleCheckbox");
   const fontContainer = document.getElementById("fontSettingsContainer");
   const fontSizeSlider = document.getElementById("fontSizeSlider");
   const fontSizeValue = document.getElementById("fontSizeValue");
-
   let fontSettingsActive = false;
   const DEFAULT_FONT_SIZE = 16;
-
   function applyFontSize(size) {
     if (fontSettingsActive) {
       document.documentElement.style.fontSize = `${size}px`;
@@ -259,15 +190,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (fontSizeValue) fontSizeValue.textContent = `${DEFAULT_FONT_SIZE}px`;
     }
   }
-
-  // Toggle değiştiğinde
   if (fontToggle) {
     fontToggle.addEventListener("change", (e) => {
       fontSettingsActive = e.target.checked;
-      
       if (fontSettingsActive) {
         fontContainer.style.display = "block";
-        // Storage'daki değeri yükle
         chrome.storage.local.get(["userFontSize"], (res) => {
           const savedSize = res.userFontSize || DEFAULT_FONT_SIZE;
           if (fontSizeSlider) fontSizeSlider.value = savedSize;
@@ -279,8 +206,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     });
   }
-
-  // Slider değiştiğinde (sadece aktifken)
   if (fontSizeSlider) {
     fontSizeSlider.addEventListener("input", (e) => {
       if (fontSettingsActive) {
@@ -290,118 +215,59 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     });
   }
-
-  // Sayfa açılışında toggle kapalı olsun
   if (fontToggle) fontToggle.checked = false;
   fontSettingsActive = false;
   if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
 
-  // ========== WHEEL-OUTSIDE İLE PANEL KAPATMA (TERCİHE BAĞLI) ==========
-  document.addEventListener('wheel', function(event) {
+  // ========== PANEL KAPATMA (WHEEL / CLICK) ==========
+  document.addEventListener('wheel', (event) => {
     const settingsPanel = document.getElementById('settingsPanel');
     const advancedDiv = document.getElementById('advancedSettings');
-    
-    // Wheel-outside tercihi kontrol et
     chrome.storage.local.get(["closeOnWheelOutside"], (res) => {
-      const closeOnWheel = res.closeOnWheelOutside !== false; // varsayılan true (AÇIK)
-      
+      const closeOnWheel = res.closeOnWheelOutside !== false;
       if (closeOnWheel) {
-        // Ayarlar paneli
-        if (settingsPanel && settingsPanel.style.display === 'block') {
-          if (!settingsPanel.contains(event.target)) {
-            settingsPanel.style.display = 'none';
-          }
-        }
-        
-        // Gelişmiş ayarlar
-        if (advancedDiv && advancedDiv.classList.contains('show')) {
-          if (!advancedDiv.contains(event.target)) {
-            advancedDiv.classList.remove('show');
-            const toggleBtn = document.getElementById('toggleAdvancedBtn');
-            if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
-          }
+        if (settingsPanel?.style.display === 'block' && !settingsPanel.contains(event.target))
+          settingsPanel.style.display = 'none';
+        if (advancedDiv?.classList.contains('show') && !advancedDiv.contains(event.target)) {
+          advancedDiv.classList.remove('show');
+          const toggleBtn = document.getElementById('toggleAdvancedBtn');
+          if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
         }
       }
     });
   });
 
-  // ========== CLICK-OUTSIDE İLE PANEL KAPATMA (TERCİHE BAĞLI) ==========
-  document.addEventListener('click', function(event) {
-    // Ayarlar paneli
+  document.addEventListener('click', (event) => {
     const settingsPanel = document.getElementById('settingsPanel');
     const settingsBtn = document.getElementById('btnSettings');
-    
-    // Gelişmiş ayarlar
     const advancedDiv = document.getElementById('advancedSettings');
     const toggleBtn = document.getElementById('toggleAdvancedBtn');
-    
-    // Click-outside tercihi kontrol et
     chrome.storage.local.get(["closeOnClickOutside"], (res) => {
       const closeOnClick = res.closeOnClickOutside !== false;
-      
       if (closeOnClick) {
-        // Ayarlar paneli
-        if (settingsPanel && settingsPanel.style.display === 'block') {
-          if (!settingsPanel.contains(event.target) && event.target !== settingsBtn) {
-            settingsPanel.style.display = 'none';
-          }
-        }
-        
-        // Gelişmiş ayarlar
-        if (advancedDiv && advancedDiv.classList.contains('show')) {
-          if (!advancedDiv.contains(event.target) && event.target !== toggleBtn) {
-            advancedDiv.classList.remove('show');
-            if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
-          }
+        if (settingsPanel?.style.display === 'block' && !settingsPanel.contains(event.target) && event.target !== settingsBtn)
+          settingsPanel.style.display = 'none';
+        if (advancedDiv?.classList.contains('show') && !advancedDiv.contains(event.target) && event.target !== toggleBtn) {
+          advancedDiv.classList.remove('show');
+          if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
         }
       }
     });
   });
 
-  // ========== PANEL KAPATMA DAVRANIŞI TOGGLE'LARI ==========
-  const closeOnClickToggle = document.getElementById("closeOnClickOutsideToggle");
-  const closeOnWheelToggle = document.getElementById("closeOnWheelOutsideToggle");
-
-  // Storage'dan tercihleri yükle
-  chrome.storage.local.get(["closeOnClickOutside", "closeOnWheelOutside"], (res) => {
-    if (closeOnClickToggle) {
-      closeOnClickToggle.checked = res.closeOnClickOutside !== false; // varsayılan true
-    }
-    if (closeOnWheelToggle) {
-      closeOnWheelToggle.checked = res.closeOnWheelOutside !== false; // varsayılan true (AÇIK)
-    }
-  });
-
-  // Değişiklikleri kaydet
-  if (closeOnClickToggle) {
-    closeOnClickToggle.addEventListener("change", (e) => {
-      chrome.storage.local.set({ closeOnClickOutside: e.target.checked });
-    });
-  }
-  if (closeOnWheelToggle) {
-    closeOnWheelToggle.addEventListener("change", (e) => {
-      chrome.storage.local.set({ closeOnWheelOutside: e.target.checked });
-    });
-  }
-
-  // ========== TEMA YÜKLEME ==========
+  // ========== TEMA ==========
   const themeSelect = document.getElementById("themeSelect");
   if (themeSelect) {
-    // Storage'dan kayıtlı temayı yükle ve uygula
     chrome.storage.local.get(["themePreference"], (res) => {
       const savedTheme = res.themePreference || "light";
       themeSelect.value = savedTheme;
       applyTheme(savedTheme);
     });
-    
-    // Tema değiştiğinde kaydet ve uygula
     themeSelect.addEventListener("change", (e) => {
       const theme = e.target.value;
       applyTheme(theme);
       chrome.storage.local.set({ themePreference: theme });
-      
-      // ASÇ modunda ise doğru yükleme fonksiyonunu kullan
       if (currentBirimId) {
         if (currentUserType === "nurse") {
           loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
@@ -419,14 +285,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   const surecSelect = document.getElementById("surecYonetimi");
   if (surecSelect) {
     chrome.storage.local.get(["surec"], (res) => {
-      if (res.surec?.data) surecSelect.value = res.surec.data;
-      else surecSelect.value = "1.03";
+      surecSelect.value = res.surec?.data || "1.03";
     });
-      surecSelect.addEventListener("change", (e) => {
-        storeDataWithTimestamp("surec", e.target.value, currentUserType, currentBirimId);
-        // Mevcut görünüm modunu koru (currentShowAll)
-        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
-      });
+    surecSelect.addEventListener("change", (e) => {
+      storeDataWithTimestamp("surec", e.target.value, currentUserType, currentBirimId);
+      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, undefined, currentShowAll);
+    });
   }
 
   // ========== BİRİM ID ==========
@@ -437,33 +301,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         birimIdInput.value = res.birimId;
         currentBirimId = res.birimId;
         loadNufusForBirim(res.birimId, tavanHesapla);
-        // Birim ID yüklendikten sonra userType'a göre verileri yükle
         chrome.storage.local.get(["userType"], (userRes) => {
           const savedType = userRes.userType || "doctor";
           if (userTypeSelect) userTypeSelect.value = savedType;
-          setUserType(savedType);
-
-          // ========== SÜREÇ YÖNETİMİ ALANI GÖSTER/GİZLE ==========
+          // setUserType(savedType);  // GEREKSİZ, ZATEN YUKARIDA YAPILDI
           const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
-          if (surecRow) {
-            if (savedType === "nurse") {
-              surecRow.style.display = "none";
-            } else {
-              surecRow.style.display = "flex";
-            }
-          }
-          // ========== NÜFUS ALANI GÖSTER/GİZLE ==========
+          if (surecRow) surecRow.style.display = savedType === "nurse" ? "none" : "flex";
           const nufusRow = document.getElementById("nufus")?.closest(".row");
-          if (nufusRow) {
-            if (savedType === "nurse") {
-              nufusRow.style.display = "none";
-            } else {
-              nufusRow.style.display = "flex";
-            }
-          }
+          if (nufusRow) nufusRow.style.display = savedType === "nurse" ? "none" : "flex";
         });
       } else {
-        // Birim ID yoksa sadece userType'ı ayarla
         chrome.storage.local.get(["userType"], (userRes) => {
           const savedType = userRes.userType || "doctor";
           if (userTypeSelect) userTypeSelect.value = savedType;
@@ -471,24 +318,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
       }
     });
+
     birimIdInput.addEventListener("change", (e) => {
       const newBirimId = e.target.value.trim();
       currentBirimId = newBirimId;
       chrome.storage.local.set({ birimId: newBirimId });
-      
-      const hypTimeSpan = document.getElementById("hypTime");
-      if (hypTimeSpan) hypTimeSpan.textContent = "";
-      const sinaTimeSpan = document.getElementById("sinaTime");
-      if (sinaTimeSpan) sinaTimeSpan.textContent = "";
-      
+      document.getElementById("hypTime").textContent = "";
+      document.getElementById("sinaTime").textContent = "";
       loadNufusForBirim(newBirimId, tavanHesapla);
-      
-      // ASÇ modunda ise birime özel nurseShowAll değerini yükle
       if (currentUserType === "nurse") {
         chrome.storage.local.get([`nurseShowAll_${newBirimId}`], (res) => {
-          const showAll = res[`nurseShowAll_${newBirimId}`] === true;
-          currentShowAll = showAll;
-          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, showAll);
+          currentShowAll = res[`nurseShowAll_${newBirimId}`] === true;
+          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, currentShowAll);
         });
       } else {
         currentShowAll = false;
@@ -505,42 +346,27 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (currentBirimId) saveNufusForBirim(currentBirimId, val);
       tavanHesapla(val);
     });
-    nufusInput.addEventListener("input", (e) => {
-      tavanHesapla(e.target.value);
-    });
+    nufusInput.addEventListener("input", (e) => tavanHesapla(e.target.value));
   }
 
   // ========== KVKK GÖRÜNÜRLÜK ==========
-  chrome.storage.local.get(["kvkkHidden"], (res) => {
-    applyKvkkVisibility(res.kvkkHidden === true);
-  });
+  chrome.storage.local.get(["kvkkHidden"], (res) => applyKvkkVisibility(res.kvkkHidden === true));
 
   // ========== BUTONLAR ==========
-  // SİNA butonu (userType'a göre URL)
   document.getElementById("btnSina")?.addEventListener("click", () => {
     const ayStr = document.getElementById("ay")?.value || "";
     const yil = parseInt(document.getElementById("yil")?.value || "0");
     const ayNum = getMonthNumber(ayStr);
-    if (!ayStr || !yil) {
-      alert("Lütfen Ay ve Yıl seçin!");
-      return;
-    }
+    if (!ayStr || !yil) return alert("Lütfen Ay ve Yıl seçin!");
     if (!isDateValid(yil, ayNum, true)) {
       const current = getCurrentYearMonth();
-      alert(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi dönem için çalışır.`);
+      alert(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`);
       return;
     }
-    if (!currentBirimId) {
-      alert("Lütfen Birim ID girin!");
-      return;
-    }
-    
+    if (!currentBirimId) return alert("Lütfen Birim ID girin!");
     let url;
     if (currentUserType === "nurse") {
       url = `https://sina.saglik.gov.tr/showcases/SC-0320Z42B2FCOK70/SCI-0N184E437ACA419?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
-      // SADECE pendingStorageType ayarla, showAll DEĞİŞTİRME!
-      // currentShowAll = false;  // BU SATIRI KALDIR
-      // chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: false }); // BU SATIRI KALDIR
       pendingStorageType = "nurse";
     } else {
       url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
@@ -552,16 +378,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const ayStr = document.getElementById("ay")?.value || "";
     const yil = parseInt(document.getElementById("yil")?.value || "0");
     const ayNum = getMonthNumber(ayStr);
-    if (!ayStr || !yil) {
-      alert("Lütfen Ay ve Yıl seçin!");
-      return;
-    }
-    
+    if (!ayStr || !yil) return alert("Lütfen Ay ve Yıl seçin!");
     let url;
     if (currentUserType === "nurse") {
       if (!isDateValid(yil, ayNum, true)) {
         const current = getCurrentYearMonth();
-        alert(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi dönem için çalışır.`);
+        alert(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`);
         return;
       }
       url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
@@ -569,7 +391,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
       pendingStorageType = "doctor";
     } else {
-      // Doktor: normal HYP sayfası (cari ay kısıtlaması)
       if (!isDateValid(yil, ayNum, false)) {
         const current = getCurrentYearMonth();
         alert(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`);
@@ -581,14 +402,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   document.getElementById("btnDeleteData")?.addEventListener("click", deleteAllData);
-  document.getElementById("btnExportData")?.addEventListener("click", () => {
-    exportData(currentUserType, currentBirimId);
-  });
+  document.getElementById("btnExportData")?.addEventListener("click", () => exportData(currentUserType, currentBirimId));
   document.getElementById("btnRevokeConsent")?.addEventListener("click", revokeConsent);
-  
-  const btnChangelog = document.getElementById("btnChangelog");
-  if (btnChangelog) btnChangelog.addEventListener("click", showChangelog);
-
+  document.getElementById("btnChangelog")?.addEventListener("click", showChangelog);
   document.getElementById("btnToggleKvkk")?.addEventListener("click", () => {
     chrome.storage.local.get(["kvkkHidden"], (res) => {
       const newHide = !(res.kvkkHidden === true);
@@ -612,61 +428,32 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (event.target === modal) closeModal();
   });
 
-  // ========== HAKKINDA BUTONU ==========
-  const btnAbout = document.getElementById("btnAbout");
-  if (btnAbout) {
-    btnAbout.addEventListener("click", () => {
-      showAboutDialog();
-    });
-  }
+  document.getElementById("btnAbout")?.addEventListener("click", showAboutDialog);
 
-  // ========== KVKK FOOTER GİZLE (SADECE GİZLE) ==========
+  // KVKK FOOTER
   const kvkkFooter = document.getElementById("kvkkFooter");
   const toggleFooterBtn = document.getElementById("toggleKvkkFooterBtn");
-
   if (kvkkFooter && toggleFooterBtn) {
-    // Storage'dan durumu yükle
     chrome.storage.local.get(["kvkkFooterHidden"], (res) => {
-      const isHidden = res.kvkkFooterHidden === true;
-      if (isHidden) {
-        kvkkFooter.style.display = "none";
-      } else {
-        kvkkFooter.style.display = "flex";
-      }
+      kvkkFooter.style.display = res.kvkkFooterHidden === true ? "none" : "flex";
     });
-
     toggleFooterBtn.addEventListener("click", async () => {
-      // Gizlemek istiyor, onay sor
-      const confirmed = await confirmDialog(
-        "KVKK bilgilendirme metni gizlenecektir. Tekrar göstermek için ayarlar panelindeki (⚙️) 'KVKK Bilgilendirmelerini Göster' butonunu kullanabilirsiniz.\n\nDevam etmek istiyor musunuz?",
-        "Bilgilendirme Metnini Gizle"
-      );
+      const confirmed = await confirmDialog("KVKK bilgilendirme metni gizlenecektir. Tekrar göstermek için ayarlar panelindeki (⚙️) 'KVKK Bilgilendirmelerini Göster' butonunu kullanabilirsiniz.\n\nDevam etmek istiyor musunuz?", "Bilgilendirme Metnini Gizle");
       if (!confirmed) return;
-      
       kvkkFooter.style.display = "none";
       chrome.storage.local.set({ kvkkFooterHidden: true });
-      applyKvkkVisibility(true);  // Ayarlar panelindeki butonu güncelle
+      applyKvkkVisibility(true);
     });
   }
 
-  // ========== MESAJ DİNLEYİCİ ==========
+  // ========== MESAJ DİNLEYİCİ (DÜZELTİLMİŞ) ==========
   chrome.runtime.onMessage.addListener((msg) => {
-    const simdi = new Date().toLocaleString("tr-TR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const simdi = new Date().toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
     if (msg.action === "dataParsed") {
       if (!currentBirimId) return;
-      
       let targetUserType = currentUserType;
-      if (currentUserType === "nurse" && pendingStorageType) {
-        targetUserType = pendingStorageType;
-      }
-      
+      if (currentUserType === "nurse" && pendingStorageType) targetUserType = pendingStorageType;
       const key = `savedResults_${targetUserType}_${currentBirimId}`;
       chrome.storage.local.get([key], (res) => {
         let existingData = res[key]?.data || [];
@@ -674,83 +461,64 @@ document.addEventListener("DOMContentLoaded", async function () {
         existingData.forEach(item => hypYapilanMap.set(item.ad, item.yapilan));
         const merged = msg.results.map(sinaItem => {
           const hypYapilan = hypYapilanMap.get(sinaItem.ad);
-          if (hypYapilan !== undefined && hypYapilan !== sinaItem.yapilan) {
-            return { ...sinaItem, yapilan: hypYapilan };
-          }
+          if (hypYapilan !== undefined && hypYapilan !== sinaItem.yapilan) return { ...sinaItem, yapilan: hypYapilan };
           return sinaItem;
         });
-        
         storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId);
         storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
-        
         const sinaTimeSpan = document.getElementById("sinaTime");
         if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
-        
-        // ========== DÜZELTİLMİŞ ASÇ MODU ==========
+
+        // *** DÜZELTME: ASÇ modunda SİNA BİRİM (doctor verisi) çekildiyse hypTimeSpan güncellensin ***
+        if (currentUserType === "nurse" && targetUserType === "doctor") {
+          const hypTimeSpan = document.getElementById("hypTime");
+          if (hypTimeSpan) hypTimeSpan.textContent = simdi;
+        }
+
         if (currentUserType === "nurse") {
-          // Storage'dan güncel showAll değerini al
           chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (showAllRes) => {
             const showAll = showAllRes[`nurseShowAll_${currentBirimId}`] === true;
             currentShowAll = showAll;
-            
             if (showAll) {
-              // Tüm verileri birleştir (ASÇ + Doktor)
               const nurseKey = `savedResults_nurse_${currentBirimId}`;
               const doctorKey = `savedResults_doctor_${currentBirimId}`;
               chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
                 const nurseData = allRes[nurseKey]?.data || [];
                 const doctorData = allRes[doctorKey]?.data || [];
                 const combinedData = [...nurseData, ...doctorData];
-                const mergedData = combineData(combinedData);
-                updateTable(mergedData, currentUserType, true, currentBirimId);
+                updateTable(combineData(combinedData), currentUserType, true, currentBirimId);
               });
             } else {
-              // Sadece ASÇ verilerini göster
               updateTable(merged, currentUserType, false, currentBirimId);
             }
           });
         } else {
-          // Doktor modu
           updateTable(merged, currentUserType, currentShowAll, currentBirimId);
         }
-        
         const hypBtn = document.getElementById("btnHyp");
         if (hypBtn) hypBtn.disabled = false;
-        
         pendingShowAll = false;
         pendingStorageType = "nurse";
       });
     } else if (msg.action === "hypDataParsed") {
-      // ... HYP verisi geldi (değişiklik yok)
       if (!currentBirimId) return;
-      const key = getStorageKeyWithType("savedResults");
+      const key = `savedResults_${currentUserType}_${currentBirimId}`;
       chrome.storage.local.get([key], (res) => {
-        if (!res[key]?.data) {
-          alert("Önce SİNA verilerini çekmelisiniz.");
-          return;
-        }
+        if (!res[key]?.data) return alert("Önce SİNA verilerini çekmelisiniz.");
         let guncelVeri = [...res[key].data];
         msg.results.forEach((hypItem) => {
           const sinaKarsiligi = hypToSinaMap[hypItem.ad.toUpperCase()];
           if (sinaKarsiligi) {
-            const hedefIndex = guncelVeri.findIndex((s) =>
-              s.ad.toUpperCase().includes(sinaKarsiligi)
-            );
-            if (hedefIndex !== -1) {
-              guncelVeri[hedefIndex].yapilan = hypItem.yapilan;
-            }
+            const idx = guncelVeri.findIndex(s => s.ad.toUpperCase().includes(sinaKarsiligi));
+            if (idx !== -1) guncelVeri[idx].yapilan = hypItem.yapilan;
           }
         });
         storeDataWithTimestamp("savedResults", guncelVeri, currentUserType, currentBirimId);
         storeDataWithTimestamp("hypLastTime", simdi, currentUserType, currentBirimId);
         const hypTimeSpan = document.getElementById("hypTime");
         if (hypTimeSpan) hypTimeSpan.textContent = simdi;
-        // HYP verisi geldiğinde showAll flag'i false (sadece mevcut filtreleme)
-        // updateTable(guncelVeri, currentUserType, false, currentBirimId);
-        // mevcut updateTable yerine:
         loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, null, currentShowAll);
       });
     }
   });
 });
-
