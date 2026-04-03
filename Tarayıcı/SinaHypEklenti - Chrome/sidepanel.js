@@ -746,7 +746,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         const hypTimeSpan = document.getElementById("hypTime");
         if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         // HYP verisi geldiğinde showAll flag'i false (sadece mevcut filtreleme)
-        updateTable(guncelVeri, currentUserType, false, currentBirimId);
+        // updateTable(guncelVeri, currentUserType, false, currentBirimId);
+        // mevcut updateTable yerine:
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, null, currentShowAll);
       });
     }
   });
