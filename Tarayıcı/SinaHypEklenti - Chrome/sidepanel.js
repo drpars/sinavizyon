@@ -292,6 +292,61 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
 
+  // ========== WHEEL-OUTSIDE İLE PANEL KAPATMA (TERCİHE BAĞLI) ==========
+  document.addEventListener('wheel', function(event) {
+    const settingsPanel = document.getElementById('settingsPanel');
+    const advancedDiv = document.getElementById('advancedSettings');
+    
+    // Wheel-outside tercihi kontrol et
+    chrome.storage.local.get(["closeOnWheelOutside"], (res) => {
+      const closeOnWheel = res.closeOnWheelOutside === true;
+      
+      if (closeOnWheel) {
+        // Ayarlar paneli
+        if (settingsPanel && settingsPanel.style.display === 'block') {
+          if (!settingsPanel.contains(event.target)) {
+            settingsPanel.style.display = 'none';
+          }
+        }
+        
+        // Gelişmiş ayarlar
+        if (advancedDiv && advancedDiv.classList.contains('show')) {
+          if (!advancedDiv.contains(event.target)) {
+            advancedDiv.classList.remove('show');
+            const toggleBtn = document.getElementById('toggleAdvancedBtn');
+            if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
+          }
+        }
+      }
+    });
+  });
+
+  // ========== PANEL KAPATMA DAVRANIŞI TOGGLE'LARI ==========
+  const closeOnClickToggle = document.getElementById("closeOnClickOutsideToggle");
+  const closeOnWheelToggle = document.getElementById("closeOnWheelOutsideToggle");
+
+  // Storage'dan tercihleri yükle
+  chrome.storage.local.get(["closeOnClickOutside", "closeOnWheelOutside"], (res) => {
+    if (closeOnClickToggle) {
+      closeOnClickToggle.checked = res.closeOnClickOutside !== false; // varsayılan true
+    }
+    if (closeOnWheelToggle) {
+      closeOnWheelToggle.checked = res.closeOnWheelOutside === true; // varsayılan false
+    }
+  });
+
+  // Değişiklikleri kaydet
+  if (closeOnClickToggle) {
+    closeOnClickToggle.addEventListener("change", (e) => {
+      chrome.storage.local.set({ closeOnClickOutside: e.target.checked });
+    });
+  }
+  if (closeOnWheelToggle) {
+    closeOnWheelToggle.addEventListener("change", (e) => {
+      chrome.storage.local.set({ closeOnWheelOutside: e.target.checked });
+    });
+  }
+
   // ========== TEMA YÜKLEME ==========
   const themeSelect = document.getElementById("themeSelect");
   if (themeSelect) {
@@ -647,6 +702,39 @@ document.addEventListener("DOMContentLoaded", async function () {
         updateTable(guncelVeri, currentUserType, false, currentBirimId);
       });
     }
+  });
+
+  // ========== CLICK-OUTSIDE İLE PANEL KAPATMA (TERCİHE BAĞLI) ==========
+  document.addEventListener('click', function(event) {
+    // Ayarlar paneli
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBtn = document.getElementById('btnSettings');
+    
+    // Gelişmiş ayarlar
+    const advancedDiv = document.getElementById('advancedSettings');
+    const toggleBtn = document.getElementById('toggleAdvancedBtn');
+    
+    // Click-outside tercihi kontrol et
+    chrome.storage.local.get(["closeOnClickOutside"], (res) => {
+      const closeOnClick = res.closeOnClickOutside !== false;
+      
+      if (closeOnClick) {
+        // Ayarlar paneli
+        if (settingsPanel && settingsPanel.style.display === 'block') {
+          if (!settingsPanel.contains(event.target) && event.target !== settingsBtn) {
+            settingsPanel.style.display = 'none';
+          }
+        }
+        
+        // Gelişmiş ayarlar
+        if (advancedDiv && advancedDiv.classList.contains('show')) {
+          if (!advancedDiv.contains(event.target) && event.target !== toggleBtn) {
+            advancedDiv.classList.remove('show');
+            if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
+          }
+        }
+      }
+    });
   });
 });
 
