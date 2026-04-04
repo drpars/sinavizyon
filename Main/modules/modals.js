@@ -121,57 +121,83 @@ export async function showFirstTimeUserTypeModal() {
 }
 
 // Hakkında bilgi göster (HTML içerikli, sağa hizalı imza)
+// Hakkında bilgi göster (Güncellenmiş - Modern Tasarım)
 export async function showAboutDialog() {
-
-  // Modal elementi oluştur (eğer yoksa)
-  let modal = document.getElementById("aboutDialog");
-  if (!modal) {
-    modal = document.createElement("div");
+  return new Promise((resolve) => {
+    const modal = document.createElement("div");
     modal.id = "aboutDialog";
     modal.className = "consent-modal";
+    modal.style.animation = "fadeIn 0.2s ease";
     modal.innerHTML = `
-      <div class="consent-modal-content" style="max-width: 400px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="icons/about.png" style="width: 20px; height: 20px;">
-          <h3 style="margin: 0;"></h3>
+      <div class="consent-modal-content" style="max-width: 380px; text-align: center; padding: 24px;">
+        <div style="margin-bottom: 20px;">
+          <img src="icons/icon-org.svg" style="width: 72px; height: 72px;">
+          <h2 style="margin: 12px 0 4px 0; color: var(--blue); font-size: 1.4rem;">SİNA VİZYON</h2>
+          <p style="margin: 0; font-size: 0.7rem; opacity: 0.7;">SİNA & HYP Yönetim Eklentisi</p>
         </div>
-        <div id="aboutContent" style="text-align: left; margin-top: 12px;"></div>
-        <div class="consent-modal-buttons">
-          <button id="aboutOkBtn" style="background-color: var(--blue); color: white;">Tamam</button>
+        
+        <div style="background: var(--bg); border-radius: 16px; padding: 16px; margin-bottom: 20px; text-align: left;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="font-weight: bold;">📦 Sürüm</span>
+            <span id="aboutVersion">${chrome.runtime.getManifest().version}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="font-weight: bold;">👨‍💻 Geliştirici</span>
+            <span>drizzet</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="font-weight: bold;">🙏 Teşekkürler</span>
+            <span>drumit</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-weight: bold;">🎯 Hedef</span>
+            <span>ASÇ + DOKTOR</span>
+          </div>
         </div>
+        
+        <div style="margin-bottom: 20px;">
+          <p style="font-size: 0.65rem; opacity: 0.6; margin-bottom: 8px;">Yapay zeka destekleri</p>
+          <div style="display: flex; justify-content: center; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <img src="icons/deepseek-logo.png" style="height: 18px;">
+              <span style="font-size: 0.7rem; font-weight: bold;">DeepSeek AI</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <img src="icons/gemini-logo.png" style="height: 18px;">
+              <span style="font-size: 0.7rem; font-weight: bold;">Gemini AI</span>
+            </div>
+          </div>
+        </div>
+        
+        <button id="aboutOkBtn" style="background-color: var(--blue); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: opacity 0.2s;">
+          KAPAT
+        </button>
       </div>
     `;
+    
+    // Animasyon için keyframe ekle (eğer yoksa)
+    if (!document.querySelector("#aboutDialogStyle")) {
+      const style = document.createElement("style");
+      style.id = "aboutDialogStyle";
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
     document.body.appendChild(modal);
-  }
-
-  const contentDiv = document.getElementById("aboutContent");
-  const okBtn = document.getElementById("aboutOkBtn");
-
-  // İçeriği HTML olarak oluştur
-  contentDiv.innerHTML = `
-    <div style="border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--bg);">
-      <div style="margin-top: 0;"></div>
-      <p style="margin: 0 0 4px 0; font-size: 1rem;"><strong>Geliştirici :</strong> drizzet</p>
-      <p style="margin: 0 0 20px 0; font-size: 1rem;"><strong>Teşekkürler :</strong> drumit</p>
-      <div style="margin-top: 48px; text-align: right;">
-        <div style="font-size: 0.55rem; opacity: 0.6; margin-bottom: 4px; margin-right: 50px;">Yapay zeka destekleri</div>
-        <div>
-          <img src="icons/deepseek-logo.png" style="height: 20px; vertical-align: middle;"> 
-          <strong style="margin-right: 12px; font-size: 0.7rem;">DeepSeek AI</strong>
-          <img src="icons/gemini-logo.png" style="height: 20px; vertical-align: middle;"> 
-          <strong style="font-size: 0.7rem;">Gemini AI</strong>
-        </div>
-      </div>
-    </div>
-  `;
-
-  modal.style.display = "flex";
-
-  const onOk = () => {
-    modal.style.display = "none";
-    okBtn.removeEventListener("click", onOk);
-  };
-  okBtn.addEventListener("click", onOk);
+    modal.style.display = "flex";
+    
+    const okBtn = document.getElementById("aboutOkBtn");
+    const handleOk = () => {
+      modal.remove();
+      resolve();
+    };
+    okBtn.addEventListener("click", handleOk, { once: true });
+  });
 }
 
 /**
@@ -353,4 +379,46 @@ export function showChangelog() {
 export function closeModal() {
   const modal = document.getElementById("changelogModal");
   if (modal) modal.style.display = "none";
+}
+
+// ========== GÜNCELLEME SONRASI YENİLİKLER MODALI ==========
+export async function showWhatsNewModal(version) {
+  return new Promise((resolve) => {
+    const modal = document.createElement("div");
+    modal.className = "consent-modal";
+    modal.style.animation = "fadeIn 0.2s ease";
+    modal.innerHTML = `
+      <div class="consent-modal-content" style="max-width: 380px; text-align: center;">
+        <div style="margin-bottom: 16px;">
+          <img src="icons/icon-org.svg" style="width: 56px; height: 56px;">
+          <h3 style="margin: 8px 0 0 0; color: var(--blue);">🎉 YENİ SÜRÜM ${version}</h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.7rem; opacity: 0.7;">Hoş geldiniz!</p>
+        </div>
+        
+        <div style="text-align: left; margin-bottom: 20px; font-size: 0.8rem;">
+          <p><strong>👩‍⚕️ ASÇ (Aile Sağlığı Çalışanı) desteği</strong><br>Artık ASÇ kendi verilerini çekip analiz edebilir.</p>
+          <p><strong>🎨 Gelişmiş görünüm</strong><br>Tema kalıcılığı, yazı boyutu ayarı ve daha fazlası.</p>
+          <p><strong>🐛 Çoklu hata düzeltmeleri</strong><br>Daha kararlı ve hızlı deneyim.</p>
+        </div>
+        
+        <p style="font-size: 0.65rem; opacity: 0.6; margin-bottom: 20px;">
+          ℹ️ Ayarlar'dan (⚙️) her şeyi değiştirebilirsiniz.
+        </p>
+        
+        <button id="whatsNewConfirmBtn" style="background-color: var(--blue); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">
+          BAŞLAT
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.display = "flex";
+    
+    const confirmBtn = document.getElementById("whatsNewConfirmBtn");
+    const handleConfirm = () => {
+      modal.remove();
+      resolve();
+    };
+    confirmBtn.addEventListener("click", handleConfirm, { once: true });
+  });
 }

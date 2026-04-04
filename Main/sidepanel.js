@@ -5,7 +5,7 @@ import {
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
-import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog, showFirstTimeUserTypeModal } from './modules/modals.js';
+import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog, showFirstTimeUserTypeModal, showWhatsNewModal } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
 
@@ -164,6 +164,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   cleanExpiredData(updateTable);
 
   migrateFromOldStorage();
+
+  // ========== GÜNCELLEME SONRASI YENİLİKLER (SADECE 1.6.0 İÇİN BİR KERE) ==========
+  const lastVersionSeen = await new Promise(resolve => 
+    chrome.storage.local.get(["lastVersionSeen"], (res) => resolve(res.lastVersionSeen))
+  );
+
+  if (lastVersionSeen !== "1.6.0") {
+    await showWhatsNewModal("1.6.0");
+    await chrome.storage.local.set({ lastVersionSeen: "1.6.0" });
+  }
 
   // ========== KULLANICI TİPİ ==========
   const userTypeSelect = document.getElementById("userTypeSelect");
