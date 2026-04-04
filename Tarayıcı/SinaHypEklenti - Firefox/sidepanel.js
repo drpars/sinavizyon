@@ -468,17 +468,23 @@ document.addEventListener("DOMContentLoaded", async function () {
   chrome.storage.local.get(["kvkkHidden"], (res) => applyKvkkVisibility(res.kvkkHidden === true));
 
   // ========== BUTONLAR ==========
-  document.getElementById("btnSina")?.addEventListener("click", () => {
+  document.getElementById("btnSina")?.addEventListener("click", async () => {
     const ayStr = document.getElementById("ay")?.value || "";
     const yil = parseInt(document.getElementById("yil")?.value || "0");
     const ayNum = getMonthNumber(ayStr);
-    if (!ayStr || !yil) return alert("Lütfen Ay ve Yıl seçin!");
-    if (!isDateValid(yil, ayNum, true)) {
-      const current = getCurrentYearMonth();
-      alert(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`);
+    if (!ayStr || !yil) {
+      await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
       return;
     }
-    if (!currentBirimId) return alert("Lütfen Birim ID girin!");
+    if (!isDateValid(yil, ayNum, true)) {
+      const current = getCurrentYearMonth();
+      await messageDialog(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
+      return;
+    }
+    if (!currentBirimId) {
+      await messageDialog("Lütfen Birim ID girin!", "Uyarı");
+      return;
+    }
     let url;
     if (currentUserType === "nurse") {
       url = `https://sina.saglik.gov.tr/showcases/SC-0320Z42B2FCOK70/SCI-0N184E437ACA419?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
@@ -489,16 +495,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     chrome.tabs.create({ url });
   });
 
-  document.getElementById("btnHyp")?.addEventListener("click", () => {
+  document.getElementById("btnHyp")?.addEventListener("click", async () => {
     const ayStr = document.getElementById("ay")?.value || "";
     const yil = parseInt(document.getElementById("yil")?.value || "0");
     const ayNum = getMonthNumber(ayStr);
-    if (!ayStr || !yil) return alert("Lütfen Ay ve Yıl seçin!");
+    if (!ayStr || !yil) {
+      await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
+      return;
+    }
     let url;
     if (currentUserType === "nurse") {
       if (!isDateValid(yil, ayNum, true)) {
         const current = getCurrentYearMonth();
-        alert(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`);
+        await messageDialog(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
         return;
       }
       url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
@@ -508,7 +517,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     } else {
       if (!isDateValid(yil, ayNum, false)) {
         const current = getCurrentYearMonth();
-        alert(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`);
+        await messageDialog(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`, "Uyarı");
         return;
       }
       url = "https://hyp.saglik.gov.tr/dashboard#kopyala";
@@ -618,8 +627,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     } else if (msg.action === "hypDataParsed") {
       if (!currentBirimId) return;
       const key = `savedResults_${currentUserType}_${currentBirimId}`;
-      chrome.storage.local.get([key], (res) => {
-        if (!res[key]?.data) return alert("Önce SİNA verilerini çekmelisiniz.");
+      chrome.storage.local.get([key], (res), async () => {
+        if (!res[key]?.data) {
+          await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
+          return;
+        }
         let guncelVeri = [...res[key].data];
         msg.results.forEach((hypItem) => {
           const sinaKarsiligi = hypToSinaMap[hypItem.ad.toUpperCase()];

@@ -1,5 +1,6 @@
 import { RETENTION_DAYS } from './constants.js';
 import { updateTable, setUIEnabled } from './ui.js';
+import { confirmDialog, messageDialog } from './modals.js';
 
 // Mevcut birimId'yi al
 export function getCurrentBirimId() {
@@ -208,10 +209,10 @@ export function cleanExpiredData(updateTableFn) {
 }
 
 // Veri dışa aktar (userType ile)
-export function exportData() {
+export async function exportData() {
   const birimId = getCurrentBirimId();
   if (!birimId) {
-    alert("Önce Birim ID girin!");
+    await messageDialog("Önce Birim ID girin!", "Uyarı");
     return;
   }
   
@@ -244,22 +245,25 @@ export function exportData() {
 }
 
 // Rızayı geri çek
-export function revokeConsent() {
-  if (confirm("Rızanızı geri çekerseniz tüm verileriniz silinecek ve eklenti veri toplamayı durduracaktır. Devam etmek istiyor musunuz?")) {
-    chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "surec", "theme"], () => {
-      updateTable([]);
-      document.getElementById("sinaTime").textContent = "";
-      document.getElementById("hypTime").textContent = "";
-      document.getElementById("nufus").value = "";
-      document.getElementById("birimId").value = "";
-      
-      // HYP butonunu devre dışı bırak
-      const hypBtn = document.getElementById("btnHyp");
-      if (hypBtn) hypBtn.disabled = true;
-      
-      setUIEnabled(false);
-      alert("Rıza geri çekildi ve tüm veriler silindi.");
-    });
-  }
+export async function revokeConsent() {
+  const confirmed = await confirmDialog(
+    "Rızanızı geri çekerseniz tüm verileriniz silinecek ve eklenti veri toplamayı durduracaktır. Devam etmek istiyor musunuz?",
+    "Rıza Geri Çekme"
+  );
+  if (!confirmed) return;
+  
+  chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "surec", "theme"], () => {
+    updateTable([]);
+    document.getElementById("sinaTime").textContent = "";
+    document.getElementById("hypTime").textContent = "";
+    document.getElementById("nufus").value = "";
+    document.getElementById("birimId").value = "";
+    
+    const hypBtn = document.getElementById("btnHyp");
+    if (hypBtn) hypBtn.disabled = true;
+    
+    setUIEnabled(false);
+    messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");
+  });
 }
 
