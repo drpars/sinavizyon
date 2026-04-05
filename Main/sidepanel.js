@@ -1,3 +1,4 @@
+import { buildSinaUrl, HYP_URLS } from './modules/config.js';
 import { hypToSinaMap } from './modules/constants.js';
 import { 
   getCurrentBirimId, storeDataWithTimestamp,
@@ -400,10 +401,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     let url;
     if (currentUserType === "nurse") {
-      url = `https://sina.saglik.gov.tr/showcases/SC-0320Z42B2FCOK70/SCI-0N184E437ACA419?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+      url = buildSinaUrl("nurse", ayStr, currentBirimId, yil);
       pendingStorageType = "nurse";
     } else {
-      url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+      url = buildSinaUrl("doctor", ayStr, currentBirimId, yil);
     }
     chrome.tabs.create({ url });
   });
@@ -423,7 +424,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         await messageDialog(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
         return;
       }
-      url = `https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840=${ayStr}%26252860=${currentBirimId}%26252916=${yil}%26330586#kopyala`;
+      url = buildSinaUrl("doctor", ayStr, currentBirimId, yil);
       currentShowAll = true;
       chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
       pendingStorageType = "doctor";
@@ -433,7 +434,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         await messageDialog(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`, "Uyarı");
         return;
       }
-      url = "https://hyp.saglik.gov.tr/dashboard#kopyala";
+      url = HYP_URLS.DASHBOARD;
     }
     chrome.tabs.create({ url });
   });
@@ -562,3 +563,4 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 });
+

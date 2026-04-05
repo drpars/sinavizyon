@@ -81,5 +81,13 @@ export const changelogData = [
       "🎨 **Hakkında sayfası yenilendi:** Modern kart tasarımı ile yenilendi.",
       "🔔 **Tüm uyarılar iyileştirildi:** Alert/confirm dialog'ları artık özel modal ile gösteriliyor."
     ]
+  },
+  {
+    version: "1.6.1",
+    date: "2026-04-05",
+    changes: [
+      "🔧 **Konfigürasyon dosyası eklendi (config.js):** Tüm linkler ve API parametreleri tek bir dosyadan yönetilebilir.",
+      "🐛 **Doktor verilerinin kaybolması düzeltildi:** Eklenti kapatılıp açılınca verilerin kaybolması sorunu giderildi."
+    ]
   }
 ];
