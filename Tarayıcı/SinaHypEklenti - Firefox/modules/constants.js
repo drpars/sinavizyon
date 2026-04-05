@@ -87,7 +87,8 @@ export const changelogData = [
     date: "2026-04-05",
     changes: [
       "🔧 **Konfigürasyon dosyası eklendi (config.js):** Tüm linkler ve API parametreleri tek bir dosyadan yönetilebilir.",
-      "🐛 **Doktor verilerinin kaybolması düzeltildi:** Eklenti kapatılıp açılınca verilerin kaybolması sorunu giderildi."
+      "🐛 **Doktor verilerinin kaybolması düzeltildi:** Eklenti kapatılıp açılınca verilerin kaybolması sorunu giderildi.",
+      "🧩 **Modülerlik iyileştirmesi:** ui.js parçalandı (ui-helpers.js, ui-table.js)."
     ]
   }
 ];
