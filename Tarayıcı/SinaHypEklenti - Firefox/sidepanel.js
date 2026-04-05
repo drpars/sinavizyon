@@ -332,7 +332,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         chrome.storage.local.get(["userType"], (userRes) => {
           const savedType = userRes.userType || "doctor";
           if (userTypeSelect) userTypeSelect.value = savedType;
-          // setUserType(savedType);  // GEREKSİZ, ZATEN YUKARIDA YAPILDI
+          setUserType(savedType);
           const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
           if (surecRow) surecRow.style.display = savedType === "nurse" ? "none" : "flex";
           const nufusRow = document.getElementById("nufus")?.closest(".row");
