@@ -542,16 +542,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
           const cariAyAdi = aylar[cariAyIndex];
           
-          // ========== DEBUG (ARTIK DOĞRU YERDE) ==========
-          console.log("=== UYARI KONTROLÜ (sidepanel) ===");
-          console.log("merged.length:", merged.length);
-          console.log("secilenAyAdi:", secilenAyAdi);
-          console.log("cariAyAdi:", cariAyAdi);
-          console.log("cariYil:", cariYil);
-          console.log("gun:", gun);
-          console.log("koşul:", secilenAyAdi === cariAyAdi && secilenYil === cariYil && gun <= 10);
-          // ============================================
-
           if (secilenAyAdi === cariAyAdi && secilenYil === cariYil && gun <= 10) {
             let oncekiAyIndex = cariAyIndex - 1;
             let oncekiYil = cariYil;
@@ -601,9 +591,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       const yil = parseInt(document.getElementById("yil")?.value || "0");
       if (!currentBirimId) return;
       const key = `savedResults_${currentUserType}_${currentBirimId}`;
-      chrome.storage.local.get([key], (res) => {
+      chrome.storage.local.get([key], async (res) => {
         if (!res[key]?.data) {
-          messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
+          await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
           return;
         }
         let guncelVeri = [...res[key].data];
