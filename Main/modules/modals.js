@@ -151,7 +151,7 @@ export async function showAboutDialog() {
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="font-weight: bold;">🎯 Hedef</span>
-            <span>ASÇ + DOKTOR</span>
+            <span>AİLE HEKİMLİĞİ</span>
           </div>
         </div>
         
