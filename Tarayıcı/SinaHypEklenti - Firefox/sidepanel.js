@@ -50,6 +50,10 @@ function setUserType(type) {
   const sinaBtn = document.getElementById("btnSina");
   const hypBtn = document.getElementById("btnHyp");
 
+  const currentAy = document.getElementById("ay")?.value || "";
+  const currentYil = parseInt(document.getElementById("yil")?.value || "0");
+
+
   if (type === "nurse") {
     if (tavanKart) tavanKart.style.display = "none";
     if (surecRow) surecRow.style.display = "none";
@@ -71,10 +75,10 @@ function setUserType(type) {
           }
         }
         currentShowAll = showAll;
-        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll);
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll, currentAy, currentYil);
       });
     } else {
-      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
+      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false, currentAy, currentYil);
     }
   } else {
     if (tavanKart) tavanKart.style.display = "flex";
@@ -88,7 +92,7 @@ function setUserType(type) {
     if (currentBirimId) {
       loadNufusForBirim(currentBirimId, tavanHesapla);
     }
-    loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false);
+    loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false, currentAy, currentYil);
   }
 }
 
@@ -133,6 +137,22 @@ document.addEventListener("DOMContentLoaded", async function () {
   const suAn = new Date();
   const aySelect = document.getElementById("ay");
   const yilInput = document.getElementById("yil");
+
+  // Ay veya yıl değiştiğinde verileri yeniden yükle
+  function reloadDataByMonth() {
+    if (!currentBirimId) return;
+    const selectedAy = aySelect?.value || "";
+    const selectedYil = parseInt(yilInput?.value || "0");
+    if (currentUserType === "nurse") {
+      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll, selectedAy, selectedYil);
+    } else {
+      loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false, selectedAy, selectedYil);
+    }
+  }
+
+  if (aySelect) aySelect.addEventListener("change", reloadDataByMonth);
+  if (yilInput) yilInput.addEventListener("change", reloadDataByMonth);
+
   if (aySelect) aySelect.value = aylar[suAn.getMonth()];
   if (yilInput) yilInput.value = suAn.getFullYear();
 
@@ -489,6 +509,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     const simdi = new Date().toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
     if (msg.action === "dataParsed") {
+      const ayStr = document.getElementById("ay")?.value || "";
+      const yil = parseInt(document.getElementById("yil")?.value || "0");
+
       if (!currentBirimId) return;
       let targetUserType = currentUserType;
       if (currentUserType === "nurse" && pendingStorageType) targetUserType = pendingStorageType;
@@ -502,7 +525,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (hypYapilan !== undefined && hypYapilan !== sinaItem.yapilan) return { ...sinaItem, yapilan: hypYapilan };
           return sinaItem;
         });
-        storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId);
+        storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId, ayStr, yil);
         storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
         const sinaTimeSpan = document.getElementById("sinaTime");
         if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
@@ -539,11 +562,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         pendingStorageType = "nurse";
       });
     } else if (msg.action === "hypDataParsed") {
+      const ayStr = document.getElementById("ay")?.value || "";
+      const yil = parseInt(document.getElementById("yil")?.value || "0");
       if (!currentBirimId) return;
       const key = `savedResults_${currentUserType}_${currentBirimId}`;
-      chrome.storage.local.get([key], (res), async () => {
+      chrome.storage.local.get([key], (res) => {
         if (!res[key]?.data) {
-          await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
+          messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
           return;
         }
         let guncelVeri = [...res[key].data];
@@ -554,7 +579,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (idx !== -1) guncelVeri[idx].yapilan = hypItem.yapilan;
           }
         });
-        storeDataWithTimestamp("savedResults", guncelVeri, currentUserType, currentBirimId);
+        storeDataWithTimestamp("savedResults", guncelVeri, currentUserType, currentBirimId, ayStr, yil);
         storeDataWithTimestamp("hypLastTime", simdi, currentUserType, currentBirimId);
         const hypTimeSpan = document.getElementById("hypTime");
         if (hypTimeSpan) hypTimeSpan.textContent = simdi;

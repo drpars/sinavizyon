@@ -49,21 +49,21 @@ export const RETENTION_DAYS = 90;
 // Sürüm geçmişi verisi (son 3 sürüm)
 export const changelogData = [
   {
-    version: "1.5.5",
-    date: "2026-03-30",
+    version: "1.6.2",
+    date: "2026-04-06",
     changes: [
-      "👥 **Kullanıcı türü seçimi eklendi:** Aile Hekimi / Aile Sağlığı Çalışanı (ASÇ).",
-      "📁 **Veriler ayrı saklanıyor:** Doktor ve hemşire verileri artık farklı storage anahtarlarında tutulur.",
-      "🎯 **HYP butonu artık SİNA verisi yokken devre dışı:** Kullanıcı deneyimi iyileştirildi."
+      "📅 **Ay/Yıl bazlı veri saklama:** Veriler artık hangi ay ve yıla ait olduğu bilgisiyle kaydediliyor.",
+      "🔄 **Ay/Yıl değişince otomatik yenileme:** Kullanıcı ay veya yıl seçimini değiştirdiğinde, o döneme ait veriler otomatik olarak yükleniyor.",
+      "⚠️ **Veri yoksa bilgilendirme:** Cari ayın ilk 10 gününde veri çekilemezse, kullanıcıya bilgilendirme mesajı gösteriliyor ve önceki aya yönlendiriliyor."
     ]
   },
   {
-    version: "1.5.6",
-    date: "2026-03-31",
+    version: "1.6.1",
+    date: "2026-04-05",
     changes: [
-      "🎨 **Modern UI Revizyonu:** Tüm arayüz esnek (responsive) hale getirildi.",
-      "🔤 **Yazı boyutu ayarı:** Ayarlar menüsünden yazı boyutunu 11-15px arasında ayarlayabilirsiniz.",
-      "📐 **Taşma koruması:** Büyük yazı boyutlarında tablo ve kartlar taşmaz."
+      "🔧 **Konfigürasyon dosyası eklendi (config.js):** Tüm linkler ve API parametreleri tek bir dosyadan yönetilebilir.",
+      "🐛 **Doktor verilerinin kaybolması düzeltildi:** Eklenti kapatılıp açılınca verilerin kaybolması sorunu giderildi.",
+      "🧩 **Modülerlik iyileştirmesi:** ui.js parçalandı (ui-helpers.js, ui-table.js)."
     ]
   },
   {
@@ -83,12 +83,21 @@ export const changelogData = [
     ]
   },
   {
-    version: "1.6.1",
-    date: "2026-04-05",
+    version: "1.5.6",
+    date: "2026-03-31",
     changes: [
-      "🔧 **Konfigürasyon dosyası eklendi (config.js):** Tüm linkler ve API parametreleri tek bir dosyadan yönetilebilir.",
-      "🐛 **Doktor verilerinin kaybolması düzeltildi:** Eklenti kapatılıp açılınca verilerin kaybolması sorunu giderildi.",
-      "🧩 **Modülerlik iyileştirmesi:** ui.js parçalandı (ui-helpers.js, ui-table.js)."
+      "🎨 **Modern UI Revizyonu:** Tüm arayüz esnek (responsive) hale getirildi.",
+      "🔤 **Yazı boyutu ayarı:** Ayarlar menüsünden yazı boyutunu 11-15px arasında ayarlayabilirsiniz.",
+      "📐 **Taşma koruması:** Büyük yazı boyutlarında tablo ve kartlar taşmaz."
+    ]
+  },
+  {
+    version: "1.5.5",
+    date: "2026-03-30",
+    changes: [
+      "👥 **Kullanıcı türü seçimi eklendi:** Aile Hekimi / Aile Sağlığı Çalışanı (ASÇ).",
+      "📁 **Veriler ayrı saklanıyor:** Doktor ve hemşire verileri artık farklı storage anahtarlarında tutulur.",
+      "🎯 **HYP butonu artık SİNA verisi yokken devre dışı:** Kullanıcı deneyimi iyileştirildi."
     ]
   }
 ];
