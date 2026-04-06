@@ -49,12 +49,21 @@ export const RETENTION_DAYS = 90;
 // Sürüm geçmişi verisi (son 3 sürüm)
 export const changelogData = [
   {
+    version: "1.6.3",
+    date: "2026-04-06",
+    changes: [
+      "💬 **Bilgilendirme mesajı iyileştirildi:** Veri bulunamadığında gösterilen mesaj daha temiz ve okunabilir hale getirildi.",
+      "🔧 **messageDialog HTML desteği:** Mesaj pencerelerinde artık satır sonları düzgün görüntüleniyor."
+    ]
+  },
+  {
     version: "1.6.2",
     date: "2026-04-06",
     changes: [
       "📅 **Ay/Yıl bazlı veri saklama:** Veriler artık hangi ay ve yıla ait olduğu bilgisiyle kaydediliyor.",
       "🔄 **Ay/Yıl değişince otomatik yenileme:** Kullanıcı ay veya yıl seçimini değiştirdiğinde, o döneme ait veriler otomatik olarak yükleniyor.",
-      "⚠️ **Veri yoksa bilgilendirme:** Cari ayın ilk 10 gününde veri çekilemezse, kullanıcıya bilgilendirme mesajı gösteriliyor ve önceki aya yönlendiriliyor."
+      "⚠️ **Veri yoksa bilgilendirme:** Cari ayın ilk 10 gününde veri çekilemezse, kullanıcıya bilgilendirme mesajı gösteriliyor ve önceki aya yönlendiriliyor.",
+      "⚡ **MutationObserver ile hızlı veri çekme:** SİNA sayfasından veri çekme artık çok daha hızlı ve verimli."
     ]
   },
   {

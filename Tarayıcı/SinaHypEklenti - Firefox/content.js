@@ -106,7 +106,7 @@
     });
   }
 
-  // --- SİNA: Kayma düzeltmeli veri çekme (Doktor ve ASÇ için) ---
+  // --- SİNA: MutationObserver ile veri çekme (Doktor ve ASÇ için) ---
   if (isSina) {
     checkConsent().then((hasConsent) => {
       if (!hasConsent) {
@@ -114,15 +114,16 @@
         return;
       }
 
-      console.log("🚀 SİNA Veri İzleyici Aktif (Düzeltilmiş Mod)...");
+      console.log("🚀 SİNA Veri İzleyici Aktif (MutationObserver Modu)...");
 
-      let checkCount = 0;
-      const MAX_CHECKS = 40;
-      let lastRowCount = 0;
-      let stableCount = 0;
+      let sonDegisiklikZamani = Date.now();
+      let beklemeSuresi = null;
+      let observer = null;
+      let veriGonderildi = false;
 
-      const checkInterval = setInterval(() => {
-        checkCount++;
+      // Veri çekme fonksiyonu
+      function sinaExtractData() {
+        if (veriGonderildi) return;
         
         // ASÇ sayfasındaki flex tablo için özel seçici
         let rows = document.querySelectorAll('div[role="row"], [role="row"]');
@@ -134,10 +135,8 @@
         
         // Başlık satırlarını filtrele
         const dataRows = Array.from(rows).filter(row => {
-          // ASÇ flex tablo yapısı için: içinde text içeren bir div var mı?
           const cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"]');
           if (cells.length === 0) return false;
-          
           const firstCell = cells[0];
           const text = firstCell.textContent?.trim() || "";
           return text !== "" && 
@@ -150,69 +149,30 @@
                  !text.includes("Birim");
         });
         
-        const currentRowCount = dataRows.length;
-        console.log(`SİNA kontrol ${checkCount}/${MAX_CHECKS}: ${currentRowCount} satır bulundu`);
-        
-        if (currentRowCount === lastRowCount && currentRowCount > 0) {
-          stableCount++;
-          if (stableCount >= 2) {
-            console.log("✅ Tablo stabil, veriler çekiliyor...");
-            clearInterval(checkInterval);
-            sinaExtractData(dataRows);
-          }
-        } else {
-          stableCount = 0;
-          lastRowCount = currentRowCount;
-        }
-        
-        if (checkCount > MAX_CHECKS) {
-          clearInterval(checkInterval);
-          console.warn("SİNA: Zaman aşımı, veri bulunamadı.");
-        }
-      }, 1000);
-
-      function sinaExtractData(rows) {
         const results = [];
-        rows.forEach((row) => {
-          // ASÇ flex tablo yapısı için hücreleri al
+        dataRows.forEach((row) => {
           let cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"]');
-          
           if (cells.length === 0) {
             cells = row.querySelectorAll('td, th');
           }
-          
           if (cells.length < 4) return;
           
-          // Hücreleri diziye çevir
           const cellArray = Array.from(cells);
+          let ad = "", gereken = "", yapilan = "", devreden = "";
           
-          // İşlem adını bul (genellikle 1. veya 2. hücrede)
-          let ad = "";
-          let gereken = "";
-          let yapilan = "";
-          let devreden = "";
-          
-          // ASÇ tablosunda yapı: [Birim Adı, İşlem Adı, Gereken, Yapılan, Devreden, ...]
           if (cellArray.length >= 5) {
             ad = cellArray[1]?.textContent?.trim() || "";
             gereken = cellArray[2]?.textContent?.trim() || "";
             yapilan = cellArray[3]?.textContent?.trim() || "";
             devreden = cellArray[4]?.textContent?.trim() || "0";
           } else {
-            // Doktor tablosu yapısı
             ad = cellArray[0]?.textContent?.trim() || "";
             gereken = cellArray[1]?.textContent?.trim() || "";
             yapilan = cellArray[2]?.textContent?.trim() || "";
             devreden = cellArray[3]?.textContent?.trim() || "0";
           }
           
-          const rowData = {
-            ad: ad,
-            gereken: gereken,
-            yapilan: yapilan,
-            devreden: devreden,
-          };
-          
+          const rowData = { ad, gereken, yapilan, devreden };
           const hasNumber = !isNaN(parseInt(rowData.gereken));
           
           if (hasNumber && rowData.ad && !rowData.ad.includes("Çankırı")) {
@@ -220,24 +180,49 @@
           }
         });
 
+        veriGonderildi = true;
+        
         if (results.length > 0) {
           console.log("✅ SİNA verileri çekildi:", results.length, "işlem");
           console.log("📊 İşlemler:", results.map(r => r.ad));
-          chrome.runtime
-            .sendMessage({ action: "dataParsed", results: results })
+          chrome.runtime.sendMessage({ action: "dataParsed", results: results })
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
         } else {
-          console.warn("⚠️ SİNA verisi bulunamadı, satırlar:", rows.length);
-          if (rows.length > 0) {
-            const firstRow = rows[0];
-            const cells = firstRow.querySelectorAll('[role="cell"], .MuiTableCell-root');
-            console.log("🔍 İlk satırdaki hücre sayısı:", cells.length);
-            Array.from(cells).forEach((c, i) => {
-              console.log(`  Hücre ${i}:`, c.textContent?.trim());
-            });
-          }
+          console.log("⚠️ SİNA verisi bulunamadı, boş mesaj gönderiliyor...");
+          chrome.runtime.sendMessage({ action: "dataParsed", results: [] })
+            .catch((err) => console.error("Mesaj gönderilemedi:", err));
         }
+        
+        if (observer) observer.disconnect();
+        if (beklemeSuresi) clearTimeout(beklemeSuresi);
       }
+
+      // MutationObserver ile DOM değişikliklerini izle
+      observer = new MutationObserver(() => {
+        if (veriGonderildi) return;
+        
+        sonDegisiklikZamani = Date.now();
+        
+        if (beklemeSuresi) clearTimeout(beklemeSuresi);
+        
+        // 1.5 saniye boyunca yeni değişiklik olmazsa sayfa stabilize olmuştur
+        beklemeSuresi = setTimeout(() => {
+          if (!veriGonderildi) {
+            sinaExtractData();
+          }
+        }, 1500);
+      });
+
+      // Observer'ı başlat
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Yedek: 5 saniye sonra zorla veri çek (Observer çalışmazsa veya sayfa çok yavaşsa)
+      setTimeout(() => {
+        if (!veriGonderildi) {
+          console.log("⏰ Zaman aşımı (5 sn), zorla veri çekiliyor...");
+          sinaExtractData();
+        }
+      }, 5000);
     });
   }
 })();

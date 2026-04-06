@@ -272,7 +272,7 @@ export async function messageDialog(text, title = "Mesaj") {
       modal.innerHTML = `
         <div class="consent-modal-content" style="max-width: 350px;">
           <h3 id="messageDialogTitle">Mesaj</h3>
-          <p id="messageDialogText" style="text-align: left;"></p>
+          <div id="messageDialogText" style="text-align: left; white-space: pre-line;"></div>
           <div class="consent-modal-buttons">
             <button id="messageDialogOkBtn" style="background-color: var(--blue); color: white;">Tamam</button>
           </div>
@@ -286,7 +286,8 @@ export async function messageDialog(text, title = "Mesaj") {
     const okBtn = document.getElementById("messageDialogOkBtn");
 
     titleElem.textContent = title;
-    textElem.textContent = text;
+    // innerHTML kullanarak \n'leri <br>'e çevirelim
+    textElem.innerHTML = text.replace(/\n/g, '<br>');
 
     modal.style.display = "flex";
 

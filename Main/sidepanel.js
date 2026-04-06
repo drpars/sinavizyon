@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // ========== MESAJ DİNLEYİCİ (DÜZELTİLMİŞ) ==========
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener(async (msg) => {
     const simdi = new Date().toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
     if (msg.action === "dataParsed") {
@@ -516,7 +516,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       let targetUserType = currentUserType;
       if (currentUserType === "nurse" && pendingStorageType) targetUserType = pendingStorageType;
       const key = `savedResults_${targetUserType}_${currentBirimId}`;
-      chrome.storage.local.get([key], (res) => {
+      chrome.storage.local.get([key], async (res) => {
         let existingData = res[key]?.data || [];
         const hypYapilanMap = new Map();
         existingData.forEach(item => hypYapilanMap.set(item.ad, item.yapilan));
@@ -525,10 +525,45 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (hypYapilan !== undefined && hypYapilan !== sinaItem.yapilan) return { ...sinaItem, yapilan: hypYapilan };
           return sinaItem;
         });
+
         storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId, ayStr, yil);
         storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
         const sinaTimeSpan = document.getElementById("sinaTime");
         if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
+
+        // ========== VERİ YOKSA UYARI GÖSTER (SADECE CARİ AY VE GÜN ≤ 10 İSE) ==========
+        if (merged.length === 0) {
+          const suAn = new Date();
+          const cariAyIndex = suAn.getMonth();
+          const cariYil = suAn.getFullYear();
+          const gun = suAn.getDate();
+          const secilenAyAdi = ayStr;
+          const secilenYil = yil;
+          const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
+          const cariAyAdi = aylar[cariAyIndex];
+          
+          // ========== DEBUG (ARTIK DOĞRU YERDE) ==========
+          console.log("=== UYARI KONTROLÜ (sidepanel) ===");
+          console.log("merged.length:", merged.length);
+          console.log("secilenAyAdi:", secilenAyAdi);
+          console.log("cariAyAdi:", cariAyAdi);
+          console.log("cariYil:", cariYil);
+          console.log("gun:", gun);
+          console.log("koşul:", secilenAyAdi === cariAyAdi && secilenYil === cariYil && gun <= 10);
+          // ============================================
+
+          if (secilenAyAdi === cariAyAdi && secilenYil === cariYil && gun <= 10) {
+            let oncekiAyIndex = cariAyIndex - 1;
+            let oncekiYil = cariYil;
+            if (oncekiAyIndex < 0) {
+              oncekiAyIndex = 11;
+              oncekiYil--;
+            }
+            const oncekiAyAdi = aylar[oncekiAyIndex];
+            const uyariMesaji = `Seçtiğiniz dönem (${secilenAyAdi} ${secilenYil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.`;
+            await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
+          }
+        }
 
         // *** DÜZELTME: ASÇ modunda SİNA BİRİM (doctor verisi) çekildiyse hypTimeSpan güncellensin ***
         if (currentUserType === "nurse" && targetUserType === "doctor") {
