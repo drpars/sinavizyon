@@ -1,6 +1,7 @@
 // modules/ui.js
-import { buildDoctorTable, buildNurseTable, createTableRow } from './ui-table.js';
+import { buildDoctorTable, buildNurseTable } from './ui-table.js';
 import { updateKHTBar, applyTheme, applyKvkkVisibility, setUIEnabled } from './ui-helpers.js';
+import { katsayiHesapla } from './calculations.js';
 
 export { applyTheme, applyKvkkVisibility, setUIEnabled };
 
@@ -12,7 +13,7 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
   // ASÇ modu
   if (userType === "nurse") {
     if (!data || data.length === 0) return;
-    const { asçBasari, asçItems, doctorItems } = buildNurseTable(data, showAll, updateKHTBar);
+    const { asçBasari } = buildNurseTable(data, showAll, updateKHTBar);
     const katsayiElement = document.getElementById("totalKatsayi");
     katsayiElement.textContent = asçBasari.toFixed(5);
     
