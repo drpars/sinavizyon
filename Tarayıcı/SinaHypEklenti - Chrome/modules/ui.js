@@ -12,7 +12,16 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
 
   // ASÇ modu
   if (userType === "nurse") {
-    if (!data || data.length === 0) return;
+    // Veri boş olsa bile tabloyu temizle, katsayı ve KHT bar'ı sıfırla
+    if (!data || data.length === 0) {
+      const tbody = document.getElementById("tableBody");
+      if (tbody) tbody.innerHTML = "";
+      const katsayiElement = document.getElementById("totalKatsayi");
+      if (katsayiElement) katsayiElement.textContent = "1.00000";
+      updateKHTBar([], userType);
+      return;
+    }
+    
     const { asçBasari } = buildNurseTable(data, showAll, updateKHTBar);
     const katsayiElement = document.getElementById("totalKatsayi");
     katsayiElement.textContent = asçBasari.toFixed(5);
@@ -57,6 +66,16 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
   }
   
   // Doktor modu
+  // Veri boş olsa bile tabloyu temizle, katsayı ve KHT bar'ı sıfırla
+  if (!data || data.length === 0) {
+    const tbody = document.getElementById("tableBody");
+    if (tbody) tbody.innerHTML = "";
+    const katsayiElement = document.getElementById("totalKatsayi");
+    if (katsayiElement) katsayiElement.textContent = "1.03000";
+    updateKHTBar([], userType);
+    return;
+  }
+  
   const surecCarpan = parseFloat(document.getElementById("surecYonetimi")?.value) || 1.03;
   const finalSonuc = buildDoctorTable(data, surecCarpan, updateKHTBar);
   const katsayiElement = document.getElementById("totalKatsayi");

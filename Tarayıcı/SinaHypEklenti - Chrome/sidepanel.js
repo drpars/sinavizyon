@@ -6,6 +6,7 @@ import {
 } from './modules/storage.js';
 import { tavanHesapla } from './modules/calculations.js';
 import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
+import { updateKHTBar } from './modules/ui-helpers.js';
 import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog, showFirstTimeUserTypeModal, showWhatsNewModal } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
@@ -388,12 +389,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // ========== NÜFUS ==========
+  // ========== NÜFUS ==========
   const nufusInput = document.getElementById("nufus");
   if (nufusInput) {
     nufusInput.addEventListener("change", (e) => {
       const val = e.target.value;
       if (currentBirimId) saveNufusForBirim(currentBirimId, val);
       tavanHesapla(val);
+      // Nüfus değişince tabloyu yenile (katsayı ve renkler güncellensin)
+      reloadDataByMonth();
     });
     nufusInput.addEventListener("input", (e) => tavanHesapla(e.target.value));
   }
@@ -526,23 +530,44 @@ document.addEventListener("DOMContentLoaded", async function () {
           return sinaItem;
         });
 
-        storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId, ayStr, yil);
-        storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
-        const sinaTimeSpan = document.getElementById("sinaTime");
-        if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
+        // Sadece veri varsa kaydet ve zamanı güncelle
+        if (merged.length > 0) {
+          storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId, ayStr, yil);
+          storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
+          const sinaTimeSpan = document.getElementById("sinaTime");
+          if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
+        } else {
+          console.log("Veri boş, storage ve zaman güncellenmedi (mevcut veri korundu)");
+          // Zaman güncellenmeyecek, eski zaman kalacak
+        }
 
-        // ========== VERİ YOKSA UYARI GÖSTER (SADECE CARİ AY VE GÜN ≤ 10 İSE) ==========
+        // ========== VERİ YOKSA TABLOYU TEMİZLE VE UYARI GÖSTER ==========
         if (merged.length === 0) {
+          // ========== HER DURUMDA TABLOYU TEMİZLE ==========
+          const tbody = document.getElementById("tableBody");
+          if (tbody) tbody.innerHTML = "";
+          const katsayiElement = document.getElementById("totalKatsayi");
+          if (katsayiElement) katsayiElement.textContent = "1.00000";
+          const tavanElement = document.getElementById("tavanKatsayi");
+          if (tavanElement && currentUserType === "nurse") {
+            tavanElement.textContent = "1.00000";
+          }
+          updateKHTBar([], currentUserType);
+          
+          // ========== UYARI MESAJINI BELİRLE (KOŞULA GÖRE) ==========
+          let uyariMesaji = "";
           const suAn = new Date();
           const cariAyIndex = suAn.getMonth();
           const cariYil = suAn.getFullYear();
           const gun = suAn.getDate();
-          const secilenAyAdi = ayStr;
-          const secilenYil = yil;
           const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
           const cariAyAdi = aylar[cariAyIndex];
           
-          if (secilenAyAdi === cariAyAdi && secilenYil === cariYil && gun <= 10) {
+          // DEBUG: Koşul kontrolü
+          console.log("DEBUG: gun =", gun, "cariAyAdi =", cariAyAdi, "secilenAyAdi =", ayStr, "secilenYil =", yil, "cariYil =", cariYil, "kosul =", ayStr === cariAyAdi && yil === cariYil && gun <= 10);
+          
+          if (ayStr === cariAyAdi && yil === cariYil && gun <= 10) {
+            // Cari ay, ilk 10 gün: Detaylı uyarı
             let oncekiAyIndex = cariAyIndex - 1;
             let oncekiYil = cariYil;
             if (oncekiAyIndex < 0) {
@@ -550,9 +575,21 @@ document.addEventListener("DOMContentLoaded", async function () {
               oncekiYil--;
             }
             const oncekiAyAdi = aylar[oncekiAyIndex];
-            const uyariMesaji = `Seçtiğiniz dönem (${secilenAyAdi} ${secilenYil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.`;
-            await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
+            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.\n📌 Daha sonra tekrar deneyiniz.`;
+          } else if (ayStr === cariAyAdi && yil === cariYil && gun > 10) {
+            // Cari ay, 10 gün geçti ama veri yok
+            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler sisteme yansımamış olabilir.\n📌 Lütfen daha sonra tekrar deneyiniz.`;
+          } else {
+            // Geçmiş ay için veri yok
+            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bu döneme ait kayıtlı veri bulunmamaktadır.\n📌 Farklı bir dönem seçmeyi deneyebilirsiniz.`;
           }
+          
+          await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
+          
+          // ========== KRİTİK: STORAGE'DAKİ SHOWALL DEĞERİNİ DE SIFIRLA ==========
+          currentShowAll = false;
+          updateTable([], currentUserType, false, currentBirimId);
+          // =====================================================================
         }
 
         // *** DÜZELTME: ASÇ modunda SİNA BİRİM (doctor verisi) çekildiyse hypTimeSpan güncellensin ***
@@ -562,22 +599,28 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         if (currentUserType === "nurse") {
-          chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (showAllRes) => {
-            const showAll = showAllRes[`nurseShowAll_${currentBirimId}`] === true;
-            currentShowAll = showAll;
-            if (showAll) {
-              const nurseKey = `savedResults_nurse_${currentBirimId}`;
-              const doctorKey = `savedResults_doctor_${currentBirimId}`;
-              chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
-                const nurseData = allRes[nurseKey]?.data || [];
-                const doctorData = allRes[doctorKey]?.data || [];
-                const combinedData = [...nurseData, ...doctorData];
-                updateTable(combineData(combinedData), currentUserType, true, currentBirimId);
-              });
-            } else {
-              updateTable(merged, currentUserType, false, currentBirimId);
-            }
-          });
+          // Eğer veri yoksa, showAll'ı kesinlikle false yap (storage'ı yoksay)
+          if (merged.length === 0) {
+            currentShowAll = false;
+            updateTable([], currentUserType, false, currentBirimId);
+          } else {
+            chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (showAllRes) => {
+              const showAll = showAllRes[`nurseShowAll_${currentBirimId}`] === true;
+              currentShowAll = showAll;
+              if (showAll) {
+                const nurseKey = `savedResults_nurse_${currentBirimId}`;
+                const doctorKey = `savedResults_doctor_${currentBirimId}`;
+                chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
+                  const nurseData = allRes[nurseKey]?.data || [];
+                  const doctorData = allRes[doctorKey]?.data || [];
+                  const combinedData = [...nurseData, ...doctorData];
+                  updateTable(combineData(combinedData), currentUserType, true, currentBirimId);
+                });
+              } else {
+                updateTable(merged, currentUserType, false, currentBirimId);
+              }
+            });
+          }
         } else {
           updateTable(merged, currentUserType, currentShowAll, currentBirimId);
         }
@@ -604,10 +647,16 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (idx !== -1) guncelVeri[idx].yapilan = hypItem.yapilan;
           }
         });
-        storeDataWithTimestamp("savedResults", guncelVeri, currentUserType, currentBirimId, ayStr, yil);
-        storeDataWithTimestamp("hypLastTime", simdi, currentUserType, currentBirimId);
-        const hypTimeSpan = document.getElementById("hypTime");
-        if (hypTimeSpan) hypTimeSpan.textContent = simdi;
+
+        if (guncelVeri.length > 0) {
+          storeDataWithTimestamp("savedResults", guncelVeri, currentUserType, currentBirimId, ayStr, yil);
+          storeDataWithTimestamp("hypLastTime", simdi, currentUserType, currentBirimId);
+          const hypTimeSpan = document.getElementById("hypTime");
+          if (hypTimeSpan) hypTimeSpan.textContent = simdi;
+        } else {
+          console.log("HYP verisi boş, storage ve zaman güncellenmedi");
+        }
+        // Tabloyu güncelle
         loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, null, currentShowAll);
       });
     }
