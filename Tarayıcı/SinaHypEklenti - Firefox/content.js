@@ -106,7 +106,7 @@
     });
   }
 
-  // --- SİNA: MutationObserver ile veri çekme (Doktor ve ASÇ için) ---
+  // --- SİNA: Sıralı Hibrit Yaklaşım (Observer → Interval → Zaman Aşımı) ---
   if (isSina) {
     checkConsent().then((hasConsent) => {
       if (!hasConsent) {
@@ -114,12 +114,13 @@
         return;
       }
 
-      console.log("🚀 SİNA Veri İzleyici Aktif (MutationObserver Modu)...");
+      console.log("🚀 SİNA Veri İzleyici Aktif (Sıralı Hibrit Mod)...");
 
-      let sonDegisiklikZamani = Date.now();
-      let beklemeSuresi = null;
-      let observer = null;
       let veriGonderildi = false;
+      let observer = null;
+      let fallbackInterval = null;
+      let observerTimeout = null;
+      let finalTimeout = null;
 
       // Veri çekme fonksiyonu
       function sinaExtractData() {
@@ -133,9 +134,24 @@
           rows = document.querySelectorAll('table tbody tr, [role="row"], .MuiTableRow-root');
         }
         
+        // Son çare: Sayfadaki tüm tablo satırları
+        if (rows.length === 0) {
+          rows = document.querySelectorAll('table tr');
+        }
+        
+        // Sayfada "Aradığınız kriterlerde..." mesajı var mı?
+        const noDataMessage = document.body.innerText.includes("Aradığınız kriterlerde Gerçekleşme Tablosu için sonuç bulunamadı");
+        if (noDataMessage) {
+          console.log("📭 Sayfada 'sonuç bulunamadı' mesajı var, boş mesaj gönderiliyor...");
+          veriGonderildi = true;
+          chrome.runtime.sendMessage({ action: "dataParsed", results: [] })
+            .catch((err) => console.error("Mesaj gönderilemedi:", err));
+          return;
+        }
+        
         // Başlık satırlarını filtrele
         const dataRows = Array.from(rows).filter(row => {
-          const cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"]');
+          const cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"], td, th');
           if (cells.length === 0) return false;
           const firstCell = cells[0];
           const text = firstCell.textContent?.trim() || "";
@@ -151,10 +167,7 @@
         
         const results = [];
         dataRows.forEach((row) => {
-          let cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"]');
-          if (cells.length === 0) {
-            cells = row.querySelectorAll('td, th');
-          }
+          let cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"], td, th');
           if (cells.length < 4) return;
           
           const cellArray = Array.from(cells);
@@ -180,6 +193,7 @@
           }
         });
 
+        if (veriGonderildi) return;
         veriGonderildi = true;
         
         if (results.length > 0) {
@@ -193,36 +207,60 @@
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
         }
         
+        // Temizlik
         if (observer) observer.disconnect();
-        if (beklemeSuresi) clearTimeout(beklemeSuresi);
+        if (fallbackInterval) clearInterval(fallbackInterval);
+        if (observerTimeout) clearTimeout(observerTimeout);
+        if (finalTimeout) clearTimeout(finalTimeout);
       }
 
-      // MutationObserver ile DOM değişikliklerini izle
+      // ========== 1. MUTATION OBSERVER (3 saniye boyunca) ==========
       observer = new MutationObserver(() => {
         if (veriGonderildi) return;
-        
-        sonDegisiklikZamani = Date.now();
-        
-        if (beklemeSuresi) clearTimeout(beklemeSuresi);
-        
-        // 1.5 saniye boyunca yeni değişiklik olmazsa sayfa stabilize olmuştur
-        beklemeSuresi = setTimeout(() => {
+        setTimeout(() => {
           if (!veriGonderildi) {
-            sinaExtractData();
+            const rows = document.querySelectorAll('div[role="row"], [role="row"], table tbody tr');
+            if (rows.length > 0) {
+              console.log("👁️ Observer veri buldu, çekiliyor...");
+              sinaExtractData();
+            }
           }
-        }, 1500);
+        }, 100);
       });
 
-      // Observer'ı başlat
       observer.observe(document.body, { childList: true, subtree: true });
 
-      // Yedek: 5 saniye sonra zorla veri çek (Observer çalışmazsa veya sayfa çok yavaşsa)
-      setTimeout(() => {
+      // 3 saniye sonra Observer'ı durdur ve Interval'e geç
+      observerTimeout = setTimeout(() => {
         if (!veriGonderildi) {
-          console.log("⏰ Zaman aşımı (5 sn), zorla veri çekiliyor...");
+          console.log("⏳ Observer 3 sn içinde veri bulamadı, Interval moduna geçiliyor...");
+          if (observer) observer.disconnect();
+          
+          // ========== 2. FALLBACK INTERVAL ==========
+          fallbackInterval = setInterval(() => {
+            if (veriGonderildi) {
+              clearInterval(fallbackInterval);
+              return;
+            }
+            const rows = document.querySelectorAll('div[role="row"], [role="row"], table tbody tr');
+            if (rows.length > 0) {
+              console.log("🔄 Interval ile veri bulundu, çekiliyor...");
+              sinaExtractData();
+              clearInterval(fallbackInterval);
+            }
+          }, 1000);
+        }
+      }, 3000);
+
+      // ========== 3. ZAMAN AŞIMI (10 saniye sonra zorla) ==========
+      finalTimeout = setTimeout(() => {
+        if (!veriGonderildi) {
+          console.log("⏰ Zaman aşımı (10 sn), zorla veri çekiliyor...");
           sinaExtractData();
         }
-      }, 5000);
+        if (observer) observer.disconnect();
+        if (fallbackInterval) clearInterval(fallbackInterval);
+      }, 10000);
     });
   }
 })();

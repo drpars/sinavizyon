@@ -145,7 +145,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const selectedAy = aySelect?.value || "";
     const selectedYil = parseInt(yilInput?.value || "0");
     if (currentUserType === "nurse") {
-      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll, selectedAy, selectedYil);
+      // ASÇ modunda, ay değiştiğinde storage'dan showAll değerini tazele
+      chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], (res) => {
+        const showAll = res[`nurseShowAll_${currentBirimId}`] === true;
+        currentShowAll = showAll;
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll, selectedAy, selectedYil);
+      });
     } else {
       loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false, selectedAy, selectedYil);
     }
@@ -376,14 +381,16 @@ document.addEventListener("DOMContentLoaded", async function () {
       document.getElementById("hypTime").textContent = "";
       document.getElementById("sinaTime").textContent = "";
       loadNufusForBirim(newBirimId, tavanHesapla);
+      const currentAy = aySelect?.value || "";
+      const currentYil = parseInt(yilInput?.value || "0");
       if (currentUserType === "nurse") {
         chrome.storage.local.get([`nurseShowAll_${newBirimId}`], (res) => {
           currentShowAll = res[`nurseShowAll_${newBirimId}`] === true;
-          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, currentShowAll);
+          loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, currentShowAll, currentAy, currentYil);
         });
       } else {
         currentShowAll = false;
-        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, false);
+        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, newBirimId, updateHypButtonState, false, currentAy, currentYil);
       }
     });
   }
@@ -580,8 +587,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             // Cari ay, 10 gün geçti ama veri yok
             uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler sisteme yansımamış olabilir.\n📌 Lütfen daha sonra tekrar deneyiniz.`;
           } else {
-            // Geçmiş ay için veri yok
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bu döneme ait kayıtlı veri bulunmamaktadır.\n📌 Farklı bir dönem seçmeyi deneyebilirsiniz.`;
+          // Geçmiş ay için veri yoksa
+          uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bir süre sonra tekrar deneyebilirsiniz.`;
           }
           
           await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
