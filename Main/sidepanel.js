@@ -1,5 +1,9 @@
-// sidepanel.js - en üst satırlar
-// ========== DOM ELEMENTS (dom-elements.js) ==========
+// sidepanel.js - v1.6.7
+// ============================================================
+// SADECE BAŞLATMA VE ORCHESTRATION
+// ============================================================
+
+// ---------- CORE ----------
 import { 
   buttons, inputs, containers, infoElements, modals, khtMarks,
   getDomBirimId, getDomUserType, getDomAy, getDomYil,
@@ -7,54 +11,49 @@ import {
   setDomSinaTime, setDomHypTime, setDomTotalKatsayi, setDomTavanKatsayi,
   setDomKhtPercentage, setDomKhtBarWidth, setDomKhtDurum, clearDomTableBody,
   showDomSettingsPanel, toggleDomSettingsPanel, showDomAdvancedSettings, toggleDomAdvancedSettings
-} from './modules/dom-elements.js';
+} from './modules/core/dom.js';
 
-// ========== STATE YÖNETİMİ (state.js) ==========
 import { 
-  getCurrentUserType as getStateUserType,
-  getCurrentBirimId as getStateBirimId,
-  getCurrentShowAll as getStateShowAll,
-  getPendingStorageType as getStatePendingStorageType,
-  getPendingShowAll as getStatePendingShowAll,
-  getFontSettingsActive as getStateFontSettingsActive,
-  setCurrentUserType as setStateUserType,
-  setCurrentBirimId as setStateBirimId,
-  setCurrentShowAll as setStateShowAll,
-  setPendingStorageType as setStatePendingStorageType,
-  setPendingShowAll as setStatePendingShowAll,
-  setFontSettingsActive as setStateFontSettingsActive,
+  getCurrentUserType, getCurrentBirimId, getCurrentShowAll,
+  getPendingStorageType, getPendingShowAll, getFontSettingsActive,
+  setCurrentUserType, setCurrentBirimId, setCurrentShowAll,
+  setPendingStorageType, setPendingShowAll, setFontSettingsActive,
   updateState, loadStateFromStorage, saveCurrentUserTypeToStorage,
-  saveCurrentBirimIdToStorage, loadNurseShowAllForBirim, saveNurseShowAllForBirim
-} from './modules/state.js';
+  saveCurrentBirimIdToStorage
+} from './modules/core/state.js';
 
-// ========== UI UPDATERS ==========
 import { 
-  clearTable, clearTimeIndicators, resetKatsayiValues, resetUIAfterDataClear,
-  updateHypButtonStateUI, 
-  updateUIForUserType, applyKvkkVisibilityFromStorage
-} from './modules/ui-updaters.js';
+  loadNurseShowAllForBirim, saveNurseShowAllForBirim 
+} from './modules/features/nurse/index.js';
 
-// ========== EVENT HANDLER'LARI BAĞLA ==========
-import { bindAllEvents } from './modules/event-handlers.js';
-
-
-
-
-
-import { buildSinaUrl, HYP_URLS } from './modules/config.js';
-import { hypToSinaMap } from './modules/constants.js';
 import { 
-  getCurrentBirimId, storeDataWithTimestamp,
-  saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, cleanExpiredData, exportData, revokeConsent 
-} from './modules/storage.js';
-import { tavanHesapla } from './modules/calculations.js';
-import { updateTable, applyTheme, applyKvkkVisibility, setUIEnabled } from './modules/ui.js';
-import { updateKHTBar } from './modules/ui-helpers.js';
-import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog, showFirstTimeUserTypeModal, showWhatsNewModal } from './modules/modals.js';
-import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
-import { migrateFromOldStorage } from './modules/migration.js';
+  getCurrentBirimId as getStorageBirimId,
+  storeDataWithTimestamp, saveNufusForBirim, loadNufusForBirim,
+  loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge,
+  cleanExpiredData, exportData, revokeConsent
+} from './modules/core/storage.js';
 
-// ========== GLOBAL FONKSİYONLAR ==========
+import { bindAllEvents } from './modules/core/events.js';
+
+// ---------- UI ----------
+import { 
+  updateTable, applyTheme, applyKvkkVisibility, setUIEnabled,
+  updateHypButtonStateUI, updateUIForUserType,
+  applyKvkkVisibilityFromStorage, resetUIAfterDataClear
+} from './modules/ui/updaters/index.js';
+
+import { 
+  requestConsent, showFirstTimeUserTypeModal, showWhatsNewModal
+} from './modules/ui/components/index.js';
+
+// ---------- LIB ----------
+import { tavanHesapla } from './modules/lib/calculations.js';
+import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/lib/date-utils.js';
+import { migrateFromOldStorage } from './modules/lib/migration.js';
+import { hypToSinaMap } from './modules/lib/constants.js';
+import { buildSinaUrl, HYP_URLS } from './modules/lib/config.js';
+
+// ========== HELPER FUNCTIONS ==========
 function combineData(data) {
   const map = new Map();
   data.forEach(item => {
@@ -70,85 +69,74 @@ function combineData(data) {
   return Array.from(map.values());
 }
 
-// ========== SET USERTYPE (GLOBAL) ==========
 function setUserType(type) {
-  // State'i güncelle
-  setStateUserType(type);
+  setCurrentUserType(type);
   saveCurrentUserTypeToStorage();
   
   const birimId = getDomBirimId();
-  setStateBirimId(birimId);
+  setCurrentBirimId(birimId);
   
   const currentAy = getDomAy();
   const currentYil = getDomYil();
   
-  // UI güncellemelerini ui-updaters'a devret
   updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateUI);
 }
 
-// ========== TÜM VERİLERİ SİL (GLOBAL) ==========
 function deleteAllData() {
-  confirmDialog(
-    "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
-    "Veri Silme Onayı"
-  ).then((confirmed) => {
-    if (!confirmed) return;
-    const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_", "nurseShowAll_"];
-    chrome.storage.local.get(null, (items) => {
-      const keysToRemove = Object.keys(items).filter(key => prefixes.some(p => key.startsWith(p)));
-      if (items.birimId !== undefined) keysToRemove.push("birimId");
-      const userTypeBeforeDelete = items.userType || "doctor";
-      if (keysToRemove.length > 0) {
-        chrome.storage.local.remove(keysToRemove, () => {
-          // UI'ı temizle (ui-updaters kullan)
-          resetUIAfterDataClear();
-          setDomNufus("");
-          setDomBirimId("");
-          
-          // State'i sıfırla
-          setStateBirimId("");
-          setStateShowAll(false);
-          
-          // Kullanıcı tipini eski haline getir
-          const userTypeSelect = inputs.userType();
-          if (userTypeSelect) userTypeSelect.value = userTypeBeforeDelete;
-          setUserType(userTypeBeforeDelete);
-          
-          messageDialog("Tüm birimlere ait veriler başarıyla silindi.", "İşlem Tamam");
-        });
-      } else {
-        messageDialog("Silinecek veri bulunamadı.", "Bilgi");
-      }
+  import('./modules/ui/components/index.js').then(({ confirmDialog, messageDialog }) => {
+    confirmDialog(
+      "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+      "Veri Silme Onayı"
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_", "nurseShowAll_"];
+      chrome.storage.local.get(null, (items) => {
+        const keysToRemove = Object.keys(items).filter(key => prefixes.some(p => key.startsWith(p)));
+        if (items.birimId !== undefined) keysToRemove.push("birimId");
+        const userTypeBeforeDelete = items.userType || "doctor";
+        if (keysToRemove.length > 0) {
+          chrome.storage.local.remove(keysToRemove, () => {
+            resetUIAfterDataClear();
+            setDomNufus("");
+            setDomBirimId("");
+            setCurrentBirimId("");
+            setCurrentShowAll(false);
+            
+            const userTypeSelect = inputs.userType();
+            if (userTypeSelect) userTypeSelect.value = userTypeBeforeDelete;
+            setUserType(userTypeBeforeDelete);
+            
+            messageDialog("Tüm birimlere ait veriler başarıyla silindi.", "İşlem Tamam");
+          });
+        } else {
+          messageDialog("Silinecek veri bulunamadı.", "Bilgi");
+        }
+      });
     });
   });
 }
 
-// Sayfa yüklendiğinde
+// ========== SAYFA YÜKLENİNCE ==========
 document.addEventListener("DOMContentLoaded", async function () {
-  // Tarih ve ay seçimleri
   const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
   const suAn = new Date();
   const aySelect = document.getElementById("ay");
   const yilInput = document.getElementById("yil");
 
-  // ========== Ay veya yıl değiştiğinde verileri yeniden yükle ==========
   function reloadDataByMonth() {
-    const birimId = getStateBirimId();
+    const birimId = getCurrentBirimId();
     if (!birimId) return;
     
     const selectedAy = getDomAy();
     const selectedYil = getDomYil();
-    const userType = getStateUserType();
+    const userType = getCurrentUserType();
     
     if (userType === "nurse") {
-      // ASÇ modunda, ay değiştiğinde storage'dan showAll değerini tazele
       loadNurseShowAllForBirim(birimId).then((showAll) => {
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, updateHypButtonStateUI, showAll, selectedAy, selectedYil);
-        //                                                          ^^^^^^^^^^^^^^^^^^^^^^^ DÜZELTİLDİ
       });
     } else {
       loadDataForCurrentBirim(updateTable, userType, birimId, updateHypButtonStateUI, false, selectedAy, selectedYil);
-      //                                                      ^^^^^^^^^^^^^^^^^^^^^^^ DÜZELTİLDİ
     }
   }
 
@@ -167,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   setUIEnabled(true);
   document.getElementById("consentWarning")?.classList.add("hidden");
 
-  // ========== İLK KURULUM KONTROLÜ ==========
+  // İlk kurulum kontrolü
   const userTypeExists = await new Promise(resolve => 
     chrome.storage.local.get(["userType"], (res) => resolve(res.userType !== undefined))
   );
@@ -180,26 +168,21 @@ document.addEventListener("DOMContentLoaded", async function () {
     setUserType(selectedType);
   }
 
-  // Saklama süresi temizliği
   cleanExpiredData(updateTable);
-
   migrateFromOldStorage();
 
-  // ========== GÜNCELLEME SONRASI YENİLİKLER (SADECE 1.6.0 İÇİN BİR KERE) ==========
+  // Güncelleme sonrası yenilikler
   const lastVersionSeen = await new Promise(resolve => 
     chrome.storage.local.get(["lastVersionSeen"], (res) => resolve(res.lastVersionSeen))
   );
-
-  if (lastVersionSeen !== "1.6.0") {
-    await showWhatsNewModal("1.6.0");
-    await chrome.storage.local.set({ lastVersionSeen: "1.6.0" });
+  if (lastVersionSeen !== "1.6.7") {
+    await showWhatsNewModal("1.6.7");
+    await chrome.storage.local.set({ lastVersionSeen: "1.6.7" });
   }
 
-  // ========== KULLANICI TİPİ ==========
+  // Kullanıcı tipi
   const userTypeSelect = document.getElementById("userTypeSelect");
   if (userTypeSelect) userTypeSelect.value = "doctor";
-
-  // Storage'dan kullanıcı tipini yükle (ilk kurulumda zaten ayarlandı)
   if (userTypeExists) {
     chrome.storage.local.get(["userType"], (res) => {
       const savedType = res.userType || "doctor";
@@ -208,23 +191,24 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  // ========== SÜRÜM NUMARASI ==========
+  // Sürüm numarası
   try {
     const manifest = chrome.runtime.getManifest();
     const versionBadge = document.getElementById("versionBadge");
     if (versionBadge && manifest?.version) versionBadge.textContent = `v${manifest.version}`;
   } catch (e) {
     const versionBadge = document.getElementById("versionBadge");
-    if (versionBadge) versionBadge.textContent = "v1.5.5";
+    if (versionBadge) versionBadge.textContent = "v1.6.7";
   }
 
-  // ========== FONT AYARI ==========
+  // Font ayarı
   const fontToggle = document.getElementById("fontToggleCheckbox");
   const fontContainer = document.getElementById("fontSettingsContainer");
   const fontSizeSlider = document.getElementById("fontSizeSlider");
   const fontSizeValue = document.getElementById("fontSizeValue");
   let fontSettingsActive = false;
   const DEFAULT_FONT_SIZE = 16;
+  
   function applyFontSize(size) {
     if (fontSettingsActive) {
       document.documentElement.style.fontSize = `${size}px`;
@@ -234,6 +218,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (fontSizeValue) fontSizeValue.textContent = `${DEFAULT_FONT_SIZE}px`;
     }
   }
+  
   if (fontToggle) {
     fontToggle.addEventListener("change", (e) => {
       fontSettingsActive = e.target.checked;
@@ -264,13 +249,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
 
-  // ========== BİRİM ID ==========
+  // Birim ID
   const birimIdInput = document.getElementById("birimId");
   if (birimIdInput) {
     chrome.storage.local.get(["birimId"], (res) => {
       if (res.birimId) {
         birimIdInput.value = res.birimId;
-        setStateBirimId(res.birimId);
+        setCurrentBirimId(res.birimId);
         loadNufusForBirim(res.birimId, tavanHesapla);
         chrome.storage.local.get(["userType"], (userRes) => {
           const savedType = userRes.userType || "doctor";
@@ -291,10 +276,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  // ========== KVKK GÖRÜNÜRLÜK ==========
+  // KVKK görünürlük
   applyKvkkVisibilityFromStorage();
 
-  // ========== TEMA YÜKLEME ==========
+  // Tema yükleme
   const themeSelect = inputs.theme();
   if (themeSelect) {
     chrome.storage.local.get(["themePreference"], (res) => {
@@ -304,38 +289,32 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  // ========== TÜM EVENT HANDLER'LARI TEK SEFERDE BAĞLA ==========
+  // Tüm event handler'ları bağla
   bindAllEvents(
-    setUserType,                 // Kullanıcı tipi değişince çağrılacak fonksiyon
-    deleteAllData,               // Veri silme butonu için
-    revokeConsent,               // Rıza iptali için
-    getDomAy,                    // Seçili ayı okumak için
-    getDomYil,                   // Seçili yılı okumak için
-    getDomBirimId,               // Birim ID'yi okumak için
-    reloadDataByMonth,           // Ay/Yıl değişince verileri yeniden yüklemek için
-    loadNufusForBirim,           // Nüfus yüklemek için
-    tavanHesapla,                // Tavan katsayısı hesaplamak için
-    updateHypButtonStateUI,      // HYP buton durumunu güncellemek için
-    aySelect,                    // Ay select DOM elementi
-    yilInput                     // Yıl input DOM elementi
+    setUserType, deleteAllData, revokeConsent,
+    getDomAy, getDomYil, getDomBirimId,
+    reloadDataByMonth, loadNufusForBirim, tavanHesapla,
+    updateHypButtonStateUI, aySelect, yilInput
   );
 
-  // ========== MESAJ DİNLEYİCİ (DÜZELTİLMİŞ) ==========
+  // Mesaj dinleyici
   chrome.runtime.onMessage.addListener(async (msg) => {
     const simdi = new Date().toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const { confirmDialog, messageDialog } = await import('./modules/ui/components/index.js');
 
     if (msg.action === "dataParsed") {
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
-      const birimId = getStateBirimId();
-      const userType = getStateUserType();
-      let currentShowAllValue = getStateShowAll();
+      const birimId = getCurrentBirimId();
+      const userType = getCurrentUserType();
+      let currentShowAllValue = getCurrentShowAll();
 
       if (!birimId) return;
       let targetUserType = userType;
-      let pendingStorage = getStatePendingStorageType();
+      let pendingStorage = getPendingStorageType();
       if (userType === "nurse" && pendingStorage) targetUserType = pendingStorage;
       const key = `savedResults_${targetUserType}_${birimId}`;
+      
       chrome.storage.local.get([key], async (res) => {
         let existingData = res[key]?.data || [];
         const hypYapilanMap = new Map();
@@ -346,21 +325,17 @@ document.addEventListener("DOMContentLoaded", async function () {
           return sinaItem;
         });
 
-        // Sadece veri varsa kaydet ve zamanı güncelle
         if (merged.length > 0) {
           storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
           storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
           
-          // ========== SİNA ZAMANINI GÜNCELLE (SADECE ASÇ VERİSİ İÇİN) ==========
           if (targetUserType === "nurse") {
             const sinaTimeSpan = document.getElementById("sinaTime");
             if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
           }
         }
 
-        // ========== VERİ YOKSA TABLOYU TEMİZLE VE UYARI GÖSTER ==========
         if (merged.length === 0) {
-          // ========== HER DURUMDA TABLOYU TEMİZLE ==========
           const tbody = document.getElementById("tableBody");
           if (tbody) tbody.innerHTML = "";
           const katsayiElement = document.getElementById("totalKatsayi");
@@ -371,20 +346,14 @@ document.addEventListener("DOMContentLoaded", async function () {
           }
           updateKHTBar([], userType);
           
-          // ========== UYARI MESAJINI BELİRLE (KOŞULA GÖRE) ==========
           let uyariMesaji = "";
           const suAn = new Date();
           const cariAyIndex = suAn.getMonth();
           const cariYil = suAn.getFullYear();
           const gun = suAn.getDate();
-          const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
           const cariAyAdi = aylar[cariAyIndex];
           
-          // DEBUG: Koşul kontrolü
-          console.log("DEBUG: gun =", gun, "cariAyAdi =", cariAyAdi, "secilenAyAdi =", ayStr, "secilenYil =", yil, "cariYil =", cariYil, "kosul =", ayStr === cariAyAdi && yil === cariYil && gun <= 10);
-          
           if (ayStr === cariAyAdi && yil === cariYil && gun <= 10) {
-            // Cari ay, ilk 10 gün: Detaylı uyarı
             let oncekiAyIndex = cariAyIndex - 1;
             let oncekiYil = cariYil;
             if (oncekiAyIndex < 0) {
@@ -394,31 +363,25 @@ document.addEventListener("DOMContentLoaded", async function () {
             const oncekiAyAdi = aylar[oncekiAyIndex];
             uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.\n📌 Daha sonra tekrar deneyiniz.`;
           } else if (ayStr === cariAyAdi && yil === cariYil && gun > 10) {
-            // Cari ay, 10 gün geçti ama veri yok
             uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler sisteme yansımamış olabilir.\n📌 Lütfen daha sonra tekrar deneyiniz.`;
           } else {
-          // Geçmiş ay için veri yoksa
-          uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bir süre sonra tekrar deneyebilirsiniz.`;
+            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bir süre sonra tekrar deneyebilirsiniz.`;
           }
           
           await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
           
-          // ========== KRİTİK: STORAGE'DAKİ SHOWALL DEĞERİNİ DE SIFIRLA ==========
-          setStateShowAll(false);
+          setCurrentShowAll(false);
           updateTable([], userType, false, birimId);
-          // =====================================================================
         }
 
-        // *** DÜZELTME: ASÇ modunda SİNA BİRİM (doctor verisi) çekildiyse hypTimeSpan güncellensin ***
         if (userType === "nurse" && targetUserType === "doctor") {
           const hypTimeSpan = document.getElementById("hypTime");
           if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         }
 
         if (userType === "nurse") {
-          // Eğer veri yoksa, showAll'ı kesinlikle false yap (storage'ı yoksay)
           if (merged.length === 0) {
-            setStateShowAll(false);
+            setCurrentShowAll(false);
             updateTable([], userType, false, birimId);
           } else {
             chrome.storage.local.get([`nurseShowAll_${birimId}`], (showAllRes) => {
@@ -442,18 +405,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         const hypBtn = document.getElementById("btnHyp");
         if (hypBtn) hypBtn.disabled = false;
-        setStatePendingShowAll(false);
-        setStatePendingStorageType("nurse");
+        setPendingShowAll(false);
+        setPendingStorageType("nurse");
       });
     } else if (msg.action === "hypDataParsed") {
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
-      const birimId = getStateBirimId();
+      const birimId = getCurrentBirimId();
 
       if (!birimId) return;
-      const userType = getStateUserType();
-      const showAll = getStateShowAll();
+      const userType = getCurrentUserType();
+      const showAll = getCurrentShowAll();
       const key = `savedResults_${userType}_${birimId}`;
+      
       chrome.storage.local.get([key], async (res) => {
         if (!res[key]?.data) {
           await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
@@ -473,13 +437,9 @@ document.addEventListener("DOMContentLoaded", async function () {
           storeDataWithTimestamp("hypLastTime", simdi, userType, birimId);
           const hypTimeSpan = document.getElementById("hypTime");
           if (hypTimeSpan) hypTimeSpan.textContent = simdi;
-        } else {
-          console.log("HYP verisi boş, storage ve zaman güncellenmedi");
         }
-        // Tabloyu güncelle
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
     }
   });
 });
-

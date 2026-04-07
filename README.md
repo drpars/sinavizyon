@@ -39,40 +39,55 @@
 
 ```
 SinaVizyon/
-├── Main/                                 # Geliştirme ana klasörü
-│   ├── modules/                          # Modüler kod yapısı
-│   │   ├── calculations.js               # Katsayı ve KHT hesaplamaları
-│   │   ├── constants.js                  # Sabitler (katsayı tablosu, eşleme, vs.)
-│   │   ├── date-utils.js                 # Tarih yardımcı fonksiyonları
-│   │   ├── migration.js                  # Veri taşıma (eski sürümlerden)
-│   │   ├── modals.js                     # Modal yönetimi (KVKK, sürüm geçmişi)
-│   │   ├── storage.js                    # Storage işlemleri (birim bazlı)
-│   │   └── ui.js                         # UI güncellemeleri (tablo, tema, vs.)
-│   ├── background.js                     # Arka plan script (Chrome/Firefox uyumlu)
-│   ├── content.js                        # İçerik script (SİNA/HYP veri çekme)
-│   ├── sidepanel.html                    # Ana arayüz
-│   ├── sidepanel.js                      # Ana giriş noktası (DOMContentLoaded)
-│   └── sidepanel-toggle.js               # Gelişmiş ayarlar toggle işlevi
-├── Manifest/                             # Tarayıcı bazlı manifest dosyaları
-│   ├── manifest-chrome.json              # Chrome için manifest
-│   └── manifest-firefox.json             # Firefox için manifest
-└── Tarayıcı/                             # Paketlenmiş sürümler
-    ├── SinaHypEklenti - Chrome/          # Chrome için hazır klasör
-    │   ├── modules/                      # (modules klasörü içeriği aynı)
-    │   ├── background.js
-    │   ├── content.js
-    │   ├── manifest.json
-    │   ├── sidepanel.html
-    │   ├── sidepanel.js
-    │   └── sidepanel-toggle.js
-    └── SinaHypEklenti - Firefox/         # Firefox için hazır klasör
-        ├── modules/                      # (modules klasörü içeriği aynı)
-        ├── background.js
-        ├── content.js
-        ├── manifest.json
-        ├── sidepanel.html
-        ├── sidepanel.js
-        └── sidepanel-toggle.js
+├── modules/
+│   ├── core/
+│   │   ├── dom.js
+│   │   ├── state.js
+│   │   ├── events.js
+│   │   └── storage.js
+│   ├── ui/
+│   │   ├── table/
+│   │   │   └── index.js
+│   │   ├── updaters/
+│   │   │   ├── index.js
+│   │   │   ├── kht-updater.js
+│   │   │   ├── theme-updater.js
+│   │   │   ├── kvkk-updater.js
+│   │   │   ├── button-updater.js
+│   │   │   ├── table-updater.js
+│   │   │   └── helpers.js
+│   │   └── components/
+│   │       ├── index.js
+│   │       ├── modal.js
+│   │       └── dialog.js
+│   ├── features/
+│   │   ├── doctor/
+│   │   │   ├── index.js
+│   │   │   └── calculator.js
+│   │   ├── nurse/
+│   │   │   ├── index.js
+│   │   │   ├── calculator.js
+│   │   │   └── showall-manager.js
+│   │   └── consent/
+│   │       ├── index.js
+│   │       └── manager.js
+│   ├── lib/
+│   │   ├── calculations.js
+│   │   ├── constants.js
+│   │   ├── config.js
+│   │   ├── date-utils.js
+│   │   └── migration.js
+│   └── data/
+│       └── changelog.json
+├── sidepanel.html
+├── sidepanel.js
+├── sidepanel-toggle.js
+├── styles.css
+├── content.js
+├── background.js
+├── manifest-chrome.json
+├── manifest-firefox.json
+└── icons/
 ```
 
 ## 🔧 Geliştirme
