@@ -1,3 +1,32 @@
+// sidepanel.js - en üst satırlar
+// ========== DOM ELEMENTS (dom-elements.js) ==========
+import { 
+  buttons, inputs, containers, infoElements, modals, khtMarks,
+  getDomBirimId, getDomUserType, getDomAy, getDomYil,
+  getDomSurecCarpan, getDomNufus, setDomNufus, setDomBirimId,
+  setDomSinaTime, setDomHypTime, setDomTotalKatsayi, setDomTavanKatsayi,
+  setDomKhtPercentage, setDomKhtBarWidth, setDomKhtDurum, clearDomTableBody,
+  showDomSettingsPanel, toggleDomSettingsPanel, showDomAdvancedSettings, toggleDomAdvancedSettings
+} from './modules/dom-elements.js';
+
+// ========== STATE YÖNETİMİ (state.js) ==========
+import { 
+  getCurrentUserType as getStateUserType,
+  getCurrentBirimId as getStateBirimId,
+  getCurrentShowAll as getStateShowAll,
+  getPendingStorageType as getStatePendingStorageType,
+  getPendingShowAll as getStatePendingShowAll,
+  getFontSettingsActive as getStateFontSettingsActive,
+  setCurrentUserType as setStateUserType,
+  setCurrentBirimId as setStateBirimId,
+  setCurrentShowAll as setStateShowAll,
+  setPendingStorageType as setStatePendingStorageType,
+  setPendingShowAll as setStatePendingShowAll,
+  setFontSettingsActive as setStateFontSettingsActive,
+  updateState, loadStateFromStorage, saveCurrentUserTypeToStorage,
+  saveCurrentBirimIdToStorage, loadNurseShowAllForBirim, saveNurseShowAllForBirim
+} from './modules/state.js';
+
 import { buildSinaUrl, HYP_URLS } from './modules/config.js';
 import { hypToSinaMap } from './modules/constants.js';
 import { 
@@ -10,13 +39,6 @@ import { updateKHTBar } from './modules/ui-helpers.js';
 import { requestConsent, showChangelog, closeModal, confirmDialog, messageDialog, showAboutDialog, showFirstTimeUserTypeModal, showWhatsNewModal } from './modules/modals.js';
 import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/date-utils.js';
 import { migrateFromOldStorage } from './modules/migration.js';
-
-// ========== GLOBAL DEĞİŞKENLER ==========
-let currentUserType = "doctor";
-let currentBirimId = "";
-let pendingShowAll = false;
-let pendingStorageType = "nurse";
-let currentShowAll = false;
 
 // ========== GLOBAL FONKSİYONLAR ==========
 function updateHypButtonState(hasData) {
@@ -41,59 +63,51 @@ function combineData(data) {
 
 // ========== SET USERTYPE (GLOBAL) ==========
 function setUserType(type) {
-  currentUserType = type;
-  chrome.storage.local.set({ userType: type });
-  currentBirimId = getCurrentBirimId();
-
+  // State'i güncelle
+  setStateUserType(type);
+  saveCurrentUserTypeToStorage();
+  
+  const birimId = getDomBirimId();
+  setStateBirimId(birimId);
+  
   const tavanKart = document.getElementById("tavanKatsayi")?.closest(".score-box");
   const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
   const nufusRow = document.getElementById("nufus")?.closest(".row");
-  const sinaBtn = document.getElementById("btnSina");
-  const hypBtn = document.getElementById("btnHyp");
-
-  const currentAy = document.getElementById("ay")?.value || "";
-  const currentYil = parseInt(document.getElementById("yil")?.value || "0");
-
-
+  const sinaBtn = buttons.sina();
+  const hypBtn = buttons.hyp();
+  
+  const currentAy = getDomAy();
+  const currentYil = getDomYil();
+  
   if (type === "nurse") {
+    // ASÇ MODU
     if (tavanKart) tavanKart.style.display = "none";
     if (surecRow) surecRow.style.display = "none";
     if (nufusRow) nufusRow.style.display = "none";
     if (sinaBtn) sinaBtn.textContent = "SİNA";
     if (hypBtn) hypBtn.textContent = "SİNA BİRİM";
     if (sinaBtn) sinaBtn.disabled = false;
-
-    if (currentBirimId) {
-      chrome.storage.local.get([`nurseShowAll_${currentBirimId}`], async (res) => {
-        let showAll = res[`nurseShowAll_${currentBirimId}`] === true;
-        if (res[`nurseShowAll_${currentBirimId}`] === undefined) {
-          const doctorKey = `savedResults_doctor_${currentBirimId}`;
-          const doctorRes = await new Promise(resolve => chrome.storage.local.get([doctorKey], resolve));
-          const hasDoctorData = doctorRes[doctorKey]?.data && doctorRes[doctorKey].data.length > 0;
-          if (hasDoctorData) {
-            showAll = true;
-            chrome.storage.local.set({ [`nurseShowAll_${currentBirimId}`]: true });
-          }
-        }
-        currentShowAll = showAll;
-        loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, currentShowAll, currentAy, currentYil);
+    
+    if (birimId) {
+      loadNurseShowAllForBirim(birimId).then((showAll) => {
+        loadDataForCurrentBirimWithMerge(updateTable, type, birimId, updateHypButtonState, showAll, currentAy, currentYil);
       });
     } else {
-      loadDataForCurrentBirimWithMerge(updateTable, currentUserType, currentBirimId, updateHypButtonState, false, currentAy, currentYil);
+      loadDataForCurrentBirimWithMerge(updateTable, type, birimId, updateHypButtonState, false, currentAy, currentYil);
     }
   } else {
+    // DOKTOR MODU
     if (tavanKart) tavanKart.style.display = "flex";
     if (surecRow) surecRow.style.display = "flex";
     if (nufusRow) nufusRow.style.display = "flex";
     if (sinaBtn) sinaBtn.textContent = "SİNA";
     if (hypBtn) hypBtn.textContent = "HYP";
     if (sinaBtn) sinaBtn.disabled = false;
-    currentShowAll = false;
-
-    if (currentBirimId) {
-      loadNufusForBirim(currentBirimId, tavanHesapla);
+    
+    if (birimId) {
+      loadNufusForBirim(birimId, tavanHesapla);
     }
-    loadDataForCurrentBirim(updateTable, currentUserType, currentBirimId, updateHypButtonState, false, currentAy, currentYil);
+    loadDataForCurrentBirim(updateTable, type, birimId, updateHypButtonState, false, currentAy, currentYil);
   }
 }
 
