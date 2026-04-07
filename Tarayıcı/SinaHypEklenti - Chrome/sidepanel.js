@@ -34,6 +34,11 @@ import {
   updateUIForUserType, applyKvkkVisibilityFromStorage
 } from './modules/ui-updaters.js';
 
+// ========== EVENT HANDLER'LARI BAĞLA ==========
+import { bindAllEvents } from './modules/event-handlers.js';
+
+
+
 
 
 import { buildSinaUrl, HYP_URLS } from './modules/config.js';
@@ -147,9 +152,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
-  if (aySelect) aySelect.addEventListener("change", reloadDataByMonth);
-  if (yilInput) yilInput.addEventListener("change", reloadDataByMonth);
-
   if (aySelect) aySelect.value = aylar[suAn.getMonth()];
   if (yilInput) yilInput.value = suAn.getFullYear();
 
@@ -205,10 +207,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       setUserType(savedType);
     });
   }
-
-  userTypeSelect.addEventListener("change", (e) => {
-    setUserType(e.target.value);
-  });
 
   // ========== SÜRÜM NUMARASI ==========
   try {
@@ -266,85 +264,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (fontContainer) fontContainer.style.display = "none";
   applyFontSize(DEFAULT_FONT_SIZE);
 
-  // ========== PANEL KAPATMA (WHEEL / CLICK) ==========
-  document.addEventListener('wheel', (event) => {
-    const settingsPanel = document.getElementById('settingsPanel');
-    const advancedDiv = document.getElementById('advancedSettings');
-    chrome.storage.local.get(["closeOnWheelOutside"], (res) => {
-      const closeOnWheel = res.closeOnWheelOutside !== false;
-      if (closeOnWheel) {
-        if (settingsPanel?.style.display === 'block' && !settingsPanel.contains(event.target))
-          settingsPanel.style.display = 'none';
-        if (advancedDiv?.classList.contains('show') && !advancedDiv.contains(event.target)) {
-          advancedDiv.classList.remove('show');
-          const toggleBtn = document.getElementById('toggleAdvancedBtn');
-          if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
-        }
-      }
-    });
-  });
-
-  document.addEventListener('click', (event) => {
-    const settingsPanel = document.getElementById('settingsPanel');
-    const settingsBtn = document.getElementById('btnSettings');
-    const advancedDiv = document.getElementById('advancedSettings');
-    const toggleBtn = document.getElementById('toggleAdvancedBtn');
-    chrome.storage.local.get(["closeOnClickOutside"], (res) => {
-      const closeOnClick = res.closeOnClickOutside !== false;
-      if (closeOnClick) {
-        if (settingsPanel?.style.display === 'block' && !settingsPanel.contains(event.target) && event.target !== settingsBtn)
-          settingsPanel.style.display = 'none';
-        if (advancedDiv?.classList.contains('show') && !advancedDiv.contains(event.target) && event.target !== toggleBtn) {
-          advancedDiv.classList.remove('show');
-          if (toggleBtn) toggleBtn.textContent = '🔧 Gelişmiş Ayarlar';
-        }
-      }
-    });
-  });
-
-  // ========== TEMA ==========
-  const themeSelect = document.getElementById("themeSelect");
-  if (themeSelect) {
-    chrome.storage.local.get(["themePreference"], (res) => {
-      const savedTheme = res.themePreference || "light";
-      themeSelect.value = savedTheme;
-      applyTheme(savedTheme);
-    });
-    themeSelect.addEventListener("change", (e) => {
-      const theme = e.target.value;
-      applyTheme(theme);
-      chrome.storage.local.set({ themePreference: theme });
-      const birimId = getStateBirimId();
-      if (birimId) {
-        const userType = getStateUserType();
-        const showAll = getStateShowAll();
-        if (userType === "nurse") {
-          loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, undefined, showAll);
-        } else {
-          const key = `savedResults_${userType}_${birimId}`;
-          chrome.storage.local.get([key], (res) => {
-            if (res[key]?.data) updateTable(res[key].data, userType, false, birimId);
-          });
-        }
-      }
-    });
-  }
-
-  // ========== SÜREÇ YÖNETİMİ ==========
-  const surecSelect = document.getElementById("surecYonetimi");
-  if (surecSelect) {
-    chrome.storage.local.get(["surec"], (res) => {
-      surecSelect.value = res.surec?.data || "1.03";
-    });
-    surecSelect.addEventListener("change", (e) => {
-      const birimId = getStateBirimId();
-      const userType = getStateUserType();
-      const showAll = getStateShowAll();
-      storeDataWithTimestamp("surec", e.target.value, userType, birimId);
-      loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, undefined, showAll);
-    });
-  }
-
   // ========== BİRİM ID ==========
   const birimIdInput = document.getElementById("birimId");
   if (birimIdInput) {
@@ -370,153 +289,36 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
       }
     });
-
-    birimIdInput.addEventListener("change", (e) => {
-      const newBirimId = e.target.value.trim();
-      setStateBirimId(newBirimId);
-      saveCurrentBirimIdToStorage();
-      chrome.storage.local.set({ birimId: newBirimId });
-      document.getElementById("hypTime").textContent = "";
-      document.getElementById("sinaTime").textContent = "";
-      loadNufusForBirim(newBirimId, tavanHesapla);
-      const currentAy = aySelect?.value || "";
-      const currentYil = parseInt(yilInput?.value || "0");
-      const userType = getStateUserType();
-      if (userType === "nurse") {
-        loadNurseShowAllForBirim(newBirimId).then((showAll) => {
-          setStateShowAll(showAll);
-          loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, updateHypButtonStateUI, showAll, currentAy, currentYil);
-        });
-      } else {
-        setStateShowAll(false);
-        loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, updateHypButtonStateUI, false, currentAy, currentYil);
-      }
-    });
-  }
-
-  // ========== NÜFUS ==========
-  const nufusInput = document.getElementById("nufus");
-  if (nufusInput) {
-    nufusInput.addEventListener("change", (e) => {
-      const val = e.target.value;
-      const birimId = getStateBirimId();
-      if (birimId) saveNufusForBirim(birimId, val);
-      tavanHesapla(val);
-      // Nüfus değişince tabloyu yenile (katsayı ve renkler güncellensin)
-      reloadDataByMonth();
-    });
-    nufusInput.addEventListener("input", (e) => tavanHesapla(e.target.value));
   }
 
   // ========== KVKK GÖRÜNÜRLÜK ==========
   applyKvkkVisibilityFromStorage();
 
-  // ========== BUTONLAR ==========
-  document.getElementById("btnSina")?.addEventListener("click", async () => {
-    const ayStr = document.getElementById("ay")?.value || "";
-    const yil = parseInt(document.getElementById("yil")?.value || "0");
-    const ayNum = getMonthNumber(ayStr);
-    const birimId = getDomBirimId();
-    if (!ayStr || !yil) {
-      await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
-      return;
-    }
-    if (!isDateValid(yil, ayNum, true)) {
-      const current = getCurrentYearMonth();
-      await messageDialog(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
-      return;
-    }
-    if (!birimId) {
-      await messageDialog("Lütfen Birim ID girin!", "Uyarı");
-      return;
-    }
-    let url;
-    const userType = getStateUserType();
-    if (userType === "nurse") {
-      url = buildSinaUrl("nurse", ayStr, birimId, yil);
-      setStatePendingStorageType("nurse");
-    } else {
-      url = buildSinaUrl("doctor", ayStr, birimId, yil);
-    }
-    chrome.tabs.create({ url });
-  });
-
-  document.getElementById("btnHyp")?.addEventListener("click", async () => {
-    const ayStr = document.getElementById("ay")?.value || "";
-    const yil = parseInt(document.getElementById("yil")?.value || "0");
-    const ayNum = getMonthNumber(ayStr);
-    const birimId = getDomBirimId();
-    if (!ayStr || !yil) {
-      await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
-      return;
-    }
-    let url;
-    const userType = getStateUserType();
-    if (userType === "nurse") {
-      if (!isDateValid(yil, ayNum, true)) {
-        const current = getCurrentYearMonth();
-        await messageDialog(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
-        return;
-      }
-      url = buildSinaUrl("doctor", ayStr, birimId, yil);
-      setStateShowAll(true);
-      saveNurseShowAllForBirim(birimId, true);
-      setStatePendingStorageType("doctor");
-    } else {
-      if (!isDateValid(yil, ayNum, false)) {
-        const current = getCurrentYearMonth();
-        await messageDialog(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`, "Uyarı");
-        return;
-      }
-      url = HYP_URLS.DASHBOARD;
-    }
-    chrome.tabs.create({ url });
-  });
-
-  document.getElementById("btnDeleteData")?.addEventListener("click", deleteAllData);
-  document.getElementById("btnExportData")?.addEventListener("click", () => { const userType = getStateUserType(); const birimId = getStateBirimId(); exportData(userType, birimId); });
-  document.getElementById("btnRevokeConsent")?.addEventListener("click", revokeConsent);
-  document.getElementById("btnChangelog")?.addEventListener("click", showChangelog);
-  document.getElementById("btnToggleKvkk")?.addEventListener("click", () => {
-    chrome.storage.local.get(["kvkkHidden"], (res) => {
-      const newHide = !(res.kvkkHidden === true);
-      chrome.storage.local.set({ kvkkHidden: newHide });
-      applyKvkkVisibility(newHide);
-    });
-  });
-
-  const btnSettings = document.getElementById("btnSettings");
-  const settingsPanel = document.getElementById("settingsPanel");
-  if (btnSettings && settingsPanel) {
-    btnSettings.addEventListener("click", () => {
-      settingsPanel.style.display = settingsPanel.style.display === "none" ? "block" : "none";
+  // ========== TEMA YÜKLEME ==========
+  const themeSelect = inputs.theme();
+  if (themeSelect) {
+    chrome.storage.local.get(["themePreference"], (res) => {
+      const savedTheme = res.themePreference || "light";
+      themeSelect.value = savedTheme;
+      applyTheme(savedTheme);
     });
   }
 
-  const closeSpan = document.querySelector("#changelogModal .modal-close");
-  if (closeSpan) closeSpan.addEventListener("click", closeModal);
-  window.addEventListener("click", (event) => {
-    const modal = document.getElementById("changelogModal");
-    if (event.target === modal) closeModal();
-  });
-
-  document.getElementById("btnAbout")?.addEventListener("click", showAboutDialog);
-
-  // KVKK FOOTER
-  const kvkkFooter = document.getElementById("kvkkFooter");
-  const toggleFooterBtn = document.getElementById("toggleKvkkFooterBtn");
-  if (kvkkFooter && toggleFooterBtn) {
-    chrome.storage.local.get(["kvkkFooterHidden"], (res) => {
-      kvkkFooter.style.display = res.kvkkFooterHidden === true ? "none" : "flex";
-    });
-    toggleFooterBtn.addEventListener("click", async () => {
-      const confirmed = await confirmDialog("KVKK bilgilendirme metni gizlenecektir. Tekrar göstermek için ayarlar panelindeki (⚙️) 'KVKK Bilgilendirmelerini Göster' butonunu kullanabilirsiniz.\n\nDevam etmek istiyor musunuz?", "Bilgilendirme Metnini Gizle");
-      if (!confirmed) return;
-      kvkkFooter.style.display = "none";
-      chrome.storage.local.set({ kvkkFooterHidden: true });
-      applyKvkkVisibility(true);
-    });
-  }
+  // ========== TÜM EVENT HANDLER'LARI TEK SEFERDE BAĞLA ==========
+  bindAllEvents(
+    setUserType,                 // Kullanıcı tipi değişince çağrılacak fonksiyon
+    deleteAllData,               // Veri silme butonu için
+    revokeConsent,               // Rıza iptali için
+    getDomAy,                    // Seçili ayı okumak için
+    getDomYil,                   // Seçili yılı okumak için
+    getDomBirimId,               // Birim ID'yi okumak için
+    reloadDataByMonth,           // Ay/Yıl değişince verileri yeniden yüklemek için
+    loadNufusForBirim,           // Nüfus yüklemek için
+    tavanHesapla,                // Tavan katsayısı hesaplamak için
+    updateHypButtonStateUI,      // HYP buton durumunu güncellemek için
+    aySelect,                    // Ay select DOM elementi
+    yilInput                     // Yıl input DOM elementi
+  );
 
   // ========== MESAJ DİNLEYİCİ (DÜZELTİLMİŞ) ==========
   chrome.runtime.onMessage.addListener(async (msg) => {
