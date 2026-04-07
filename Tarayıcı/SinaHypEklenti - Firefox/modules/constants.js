@@ -49,6 +49,20 @@ export const RETENTION_DAYS = 90;
 // Sürüm geçmişi verisi (son 3 sürüm)
 export const changelogData = [
   {
+    version: "1.6.5",
+    date: "2026-04-08",
+    changes: [
+      "🧩 **Tam modüler mimariye geçiş:** Tüm kod modüllere ayrıldı (dom-elements, state, ui-updaters, event-handlers).",
+      "🗂️ **Merkezi state yönetimi:** Global değişkenler tamamen kaldırıldı, state.js ile yönetiliyor.",
+      "🎯 **Event handler'lar tek dosyada:** Tüm event listener'lar event-handlers.js'de toplandı.",
+      "🎨 **Tema seçimi kalıcı hale geldi:** Koyu/Açık tema tercihi artık hatırlanıyor.",
+      "📅 **Ay/Yıl değişiminde otomatik yenileme:** Ay veya yıl değiştirildiğinde tablo anında güncelleniyor.",
+      "🔧 **DOM erişimi merkezileştirildi:** Tüm getElementById çağrıları dom-elements.js üzerinden yapılıyor.",
+      "🧹 **Kod temizliği:** Kullanılmayan import'lar ve tekrar eden kodlar temizlendi.",
+      "⚡ **Performans iyileştirmeleri:** Daha hızlı tablo yenileme ve daha az bellek kullanımı."
+    ]
+  },
+  {
     version: "1.6.3",
     date: "2026-04-07",
     changes: [
