@@ -50,10 +50,12 @@ export const RETENTION_DAYS = 90;
 export const changelogData = [
   {
     version: "1.6.3",
-    date: "2026-04-06",
+    date: "2026-04-07",
     changes: [
+      "🐛 **SİNA BİRİM zaman göstergesi düzeltildi:** ASÇ modunda SİNA BİRİM çekimi, SİNA butonunun zamanını etkilemiyor artık.",
       "💬 **Bilgilendirme mesajı iyileştirildi:** Veri bulunamadığında gösterilen mesaj daha temiz ve okunabilir hale getirildi.",
-      "🔧 **messageDialog HTML desteği:** Mesaj pencerelerinde artık satır sonları düzgün görüntüleniyor."
+      "🔧 **messageDialog HTML desteği:** Mesaj pencerelerinde artık satır sonları düzgün görüntüleniyor.",
+      "⚡ **Sıralı hibrit veri çekme:** SİNA sayfasından veri çekme artık daha kararlı (Observer → Interval → Zaman aşımı)."
     ]
   },
   {

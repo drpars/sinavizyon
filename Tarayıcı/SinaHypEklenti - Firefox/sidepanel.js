@@ -541,11 +541,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (merged.length > 0) {
           storeDataWithTimestamp("savedResults", merged, targetUserType, currentBirimId, ayStr, yil);
           storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, currentBirimId);
-          const sinaTimeSpan = document.getElementById("sinaTime");
-          if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
-        } else {
-          console.log("Veri boş, storage ve zaman güncellenmedi (mevcut veri korundu)");
-          // Zaman güncellenmeyecek, eski zaman kalacak
+          
+          // ========== SİNA ZAMANINI GÜNCELLE (SADECE ASÇ VERİSİ İÇİN) ==========
+          if (targetUserType === "nurse") {
+            const sinaTimeSpan = document.getElementById("sinaTime");
+            if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
+          }
         }
 
         // ========== VERİ YOKSA TABLOYU TEMİZLE VE UYARI GÖSTER ==========
