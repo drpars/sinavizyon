@@ -30,7 +30,7 @@ import {
 // ========== UI UPDATERS ==========
 import { 
   clearTable, clearTimeIndicators, resetKatsayiValues, resetUIAfterDataClear,
-  updateHypButtonState as updateHypButtonStateUI, 
+  updateHypButtonStateUI, 
   updateUIForUserType, applyKvkkVisibilityFromStorage
 } from './modules/ui-updaters.js';
 

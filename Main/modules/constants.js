@@ -33,6 +33,7 @@ export const hypToSinaMap = {
 // ASÇ katsayı tablosu
 export const katsayiMapNurse = new Map([
   ["VİTAL BULGU ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.93, azamiKatsayi: 1.06 }],
+  ["VİTAL BULGU ASÇ TEKİL", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.93, azamiKatsayi: 1.06 }],
   ["YAŞLI SAĞLIĞI İZLEMİ ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.97, azamiKatsayi: 1.13 }],
 ]);
 
@@ -48,6 +49,13 @@ export const RETENTION_DAYS = 90;
 
 // Sürüm geçmişi verisi (son 3 sürüm)
 export const changelogData = [
+  {
+    version: "1.6.6",
+    date: "2026-04-08",
+    changes: [
+      "⚡ **Performans iyileştirmeleri:** Küçük düzeltmeler yapıldı."
+    ]
+  },
   {
     version: "1.6.5",
     date: "2026-04-08",

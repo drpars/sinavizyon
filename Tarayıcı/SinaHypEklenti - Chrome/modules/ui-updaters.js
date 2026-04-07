@@ -34,7 +34,7 @@ export function clearTimeIndicators() {
 }
 
 // ========== BUTON DURUM GÜNCELLEMELERİ ==========
-export function updateHypButtonState(hasData) {
+export function updateHypButtonStateUI(hasData) {
   const hypBtn = buttons.hyp();
   if (hypBtn) hypBtn.disabled = !hasData;
 }

@@ -20,7 +20,8 @@ export function katsayiHesapla(islemAdi, gereken, yapilan, devreden, userType = 
   const map = userType === "doctor" ? katsayiMap : katsayiMapNurse;
   
   for (let [anahtar, k] of map.entries()) {
-    if (ad.includes(anahtar.toUpperCase())) {
+    const normalizedKey = anahtar.toUpperCase().trim();
+    if (ad.includes(normalizedKey)) {
       if (oranYuzde < k.asgariOran) return k.asgariKatsayi;
       if (oranYuzde >= k.azamiOran) return k.azamiKatsayi;
       const artis = ((k.azamiKatsayi - 1) / (k.azamiOran - k.asgariOran)) * (oranYuzde - k.asgariOran);

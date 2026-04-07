@@ -2,13 +2,23 @@
   const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
   const isSina = window.location.href.includes("sina.saglik.gov.tr");
 
+  // Consent cache
+  let consentCache = null;
+  let consentPromise = null;
+
   // Rıza kontrolü – sadece rıza varsa veri çekme işlemleri başlatılır
   async function checkConsent() {
-    return new Promise((resolve) => {
+    if (consentCache !== null) return consentCache;
+    
+    if (consentPromise) return consentPromise;
+    
+    consentPromise = new Promise((resolve) => {
       chrome.storage.local.get(["kvkkConsent"], (res) => {
-        resolve(res.kvkkConsent === true);
+        consentCache = res.kvkkConsent === true;
+        resolve(consentCache);
       });
     });
+    return consentPromise;
   }
 
   // --- HYP: İnatçı tıklayıcı ve veri çekici ---

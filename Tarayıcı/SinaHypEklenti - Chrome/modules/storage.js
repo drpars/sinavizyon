@@ -1,6 +1,7 @@
 import { RETENTION_DAYS } from './constants.js';
 import { updateTable, setUIEnabled } from './ui.js';
 import { confirmDialog, messageDialog } from './modals.js';
+import { getCurrentUserType } from './state.js'
 
 // Mevcut birimId'yi al
 export function getCurrentBirimId() {
@@ -8,11 +9,11 @@ export function getCurrentBirimId() {
   return input?.value?.trim() || "";
 }
 
-// Mevcut kullanıcı tipini al
-export function getCurrentUserType() {
-  const select = document.getElementById("userTypeSelect");
-  return select?.value || "doctor";
-}
+// // Mevcut kullanıcı tipini al
+// export function getCurrentUserType() {
+//   const select = document.getElementById("userTypeSelect");
+//   return select?.value || "doctor";
+// }
 
 // Storage anahtarını birimId ve userType ile oluştur
 export function getStorageKey(baseKey, birimId, userType) {
@@ -81,13 +82,15 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
   chrome.storage.local.get([key], (res) => {
     let saved = res[key];
     let data = saved?.data || [];
-    // Filtreleme
-    if (ay !== null && yil !== null) {
-      data = data.filter(item => {
-        // Eğer kaydın ay/yıl bilgisi yoksa gösterme
-        if (saved?.ay === undefined || saved?.yil === undefined) return false;
-        return saved.ay === ay && saved.yil === yil;
-      });
+    // ✅ DÜZELTİLMİŞ FİLTRELEME
+    if (ay !== null && yil !== null && saved) {
+      const hasMonthYear = saved.ay !== undefined && saved.yil !== undefined;
+      if (hasMonthYear) {
+        if (saved.ay !== ay || saved.yil !== yil) {
+          data = [];
+        }
+      }
+      // hasMonthYear === false ise: eski veri, göster (düzeltmeyelim)
     }
     const hasData = data.length > 0;
     if (hasData) {
@@ -127,15 +130,33 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       let nurseData = res[nurseKey]?.data || [];
       let doctorData = res[doctorKey]?.data || [];
       
-      // Filtreleme (eğer ay/yıl verilmişse)
+      // ✅ DÜZELTİLMİŞ FİLTRELEME
       if (ay !== null && yil !== null) {
-        if (res[nurseKey]?.ay !== undefined && res[nurseKey]?.yil !== undefined) {
-          if (res[nurseKey].ay !== ay || res[nurseKey].yil !== yil) nurseData = [];
+        const nurseRecord = res[nurseKey];
+        const doctorRecord = res[doctorKey];
+        
+        // Hemşire verisi filtreleme
+        if (nurseRecord) {
+          const hasMonthYear = nurseRecord.ay !== undefined && nurseRecord.yil !== undefined;
+          if (hasMonthYear) {
+            // Ay/Yıl bilgisi var ama eşleşmiyorsa boş yap
+            if (nurseRecord.ay !== ay || nurseRecord.yil !== yil) {
+              nurseData = [];
+            }
+          }
+          // hasMonthYear === false ise: eski veri, göster (düzeltmeyelim)
         } else {
-          nurseData = []; // eski veri, ay/yıl bilgisi yoksa gösterme
+          nurseData = [];
         }
-        if (res[doctorKey]?.ay !== undefined && res[doctorKey]?.yil !== undefined) {
-          if (res[doctorKey].ay !== ay || res[doctorKey].yil !== yil) doctorData = [];
+        
+        // Doktor verisi filtreleme
+        if (doctorRecord) {
+          const hasMonthYear = doctorRecord.ay !== undefined && doctorRecord.yil !== undefined;
+          if (hasMonthYear) {
+            if (doctorRecord.ay !== ay || doctorRecord.yil !== yil) {
+              doctorData = [];
+            }
+          }
         } else {
           doctorData = [];
         }
@@ -160,7 +181,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       if (onDataLoaded) onDataLoaded(hasData);
     });
     
-    // Zaman damgaları
+    // Zaman damgaları (değişiklik yok)
     const nurseSinaKey = getStorageKey("sinaLastTime", birimId, "nurse");
     const doctorSinaKey = getStorageKey("sinaLastTime", birimId, "doctor");
     chrome.storage.local.get([nurseSinaKey, doctorSinaKey], (res) => {
@@ -173,15 +194,23 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
     return;
   }
   
-  // Doktor modu
+  // DOKTOR MODU İÇİN DE AYNI DÜZELTME
   const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     let saved = res[key];
     let data = saved?.data || [];
-    if (ay !== null && yil !== null) {
-      if (saved?.ay === undefined || saved?.yil === undefined) data = [];
-      else if (saved.ay !== ay || saved.yil !== yil) data = [];
+    
+    // ✅ DÜZELTİLMİŞ DOKTOR FİLTRELEMESİ
+    if (ay !== null && yil !== null && saved) {
+      const hasMonthYear = saved.ay !== undefined && saved.yil !== undefined;
+      if (hasMonthYear) {
+        if (saved.ay !== ay || saved.yil !== yil) {
+          data = [];
+        }
+      }
+      // hasMonthYear === false ise: eski veri, göster
     }
+    
     const hasData = data.length > 0;
     if (hasData) {
       if (updateTableFn) updateTableFn(data, userType, showAll);
