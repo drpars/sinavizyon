@@ -1,0 +1,52 @@
+{
+  "changelogData": [
+    {
+      "version": "1.6.5",
+      "date": "2026-04-08",
+      "changes": [
+        "🧩 **Tam modüler mimariye geçiş:** Tüm kod modüllere ayrıldı (dom-elements, state, ui-updaters, event-handlers).",
+        "🗂️ **Merkezi state yönetimi:** Global değişkenler tamamen kaldırıldı, state.js ile yönetiliyor.",
+        "🎯 **Event handler'lar tek dosyada:** Tüm event listener'lar event-handlers.js'de toplandı.",
+        "🎨 **Tema seçimi kalıcı hale geldi:** Koyu/Açık tema tercihi artık hatırlanıyor.",
+        "📅 **Ay/Yıl değişiminde otomatik yenileme:** Ay veya yıl değiştirildiğinde tablo anında güncelleniyor.",
+        "🔧 **DOM erişimi merkezileştirildi:** Tüm getElementById çağrıları dom-elements.js üzerinden yapılıyor.",
+        "🧹 **Kod temizliği:** Kullanılmayan import'lar ve tekrar eden kodlar temizlendi.",
+        "⚡ **Performans iyileştirmeleri:** Daha hızlı tablo yenileme ve daha az bellek kullanımı."
+      ]
+    },
+    {
+      "version": "1.6.3",
+      "date": "2026-04-07",
+      "changes": [
+        "🐛 **SİNA BİRİM zaman göstergesi düzeltildi:** ASÇ modunda SİNA BİRİM çekimi, SİNA butonunun zamanını etkilemiyor artık.",
+        "💬 **Bilgilendirme mesajı iyileştirildi:** Veri bulunamadığında gösterilen mesaj daha temiz ve okunabilir hale getirildi.",
+        "🔧 **messageDialog HTML desteği:** Mesaj pencerelerinde artık satır sonları düzgün görüntüleniyor.",
+        "⚡ **Sıralı hibrit veri çekme:** SİNA sayfasından veri çekme artık daha kararlı (Observer → Interval → Zaman aşımı)."
+      ]
+    },
+    {
+      "version": "1.6.2",
+      "date": "2026-04-06",
+      "changes": [
+        "📅 **Ay/Yıl bazlı veri saklama:** Veriler artık hangi ay ve yıla ait olduğu bilgisiyle kaydediliyor.",
+        "🔄 **Ay/Yıl değişince otomatik yenileme:** Kullanıcı ay veya yıl seçimini değiştirdiğinde, o döneme ait veriler otomatik olarak yükleniyor.",
+        "⚠️ **Veri yoksa bilgilendirme:** Cari ayın ilk 10 gününde veri çekilemezse, kullanıcıya bilgilendirme mesajı gösteriliyor ve önceki aya yönlendiriliyor.",
+        "⚡ **MutationObserver ile hızlı veri çekme:** SİNA sayfasından veri çekme artık çok daha hızlı ve verimli."
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-04-04",
+      "changes": [
+        "👩‍⚕️ **ASÇ (Aile Sağlığı Çalışanı) desteği:** ASÇ kendi verilerini çekip analiz edebilir.",
+        "🔧 **Çift buton sistemi:** ASÇ modunda SİNA ve SİNA BİRİM butonları.",
+        "📊 **ASÇ özel katsayı tablosu:** Vital Bulgu ve Yaşlı Sağlığı İzlemi için özel katsayılar.",
+        "🎯 **ASÇ tavan katsayısı:** Doktor başarı katsayısına eşittir.",
+        "🔐 **Birim bazlı görünüm modu:** Her birim için son kullanılan tablo görünümü ayrı saklanır.",
+        "🎉 **Hoş geldin modalı:** İlk kurulumda kullanıcı tipi ve tema seçimi sorulur.",
+        "📢 **Yenilikler modalı:** Güncelleme sonrası yeni özellikler tanıtılır.",
+        "🎨 **Hakkında sayfası yenilendi:** Modern kart tasarımı ile yenilendi."
+      ]
+    }
+  ]
+}

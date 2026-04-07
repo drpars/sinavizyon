@@ -1,9 +1,8 @@
-// Migration: 1.5.5 ve öncesinden 1.5.6'ya geçiş (nüfus ve çoklu birim düzeltmeleri)
+// modules/lib/migration.js
 export function migrateFromOldStorage() {
   chrome.storage.local.get(["storageVersion"], (res) => {
     const oldVersion = res.storageVersion;
     
-    // Sadece 1.5.5 veya daha eski sürümlerde çalış
     if (oldVersion && oldVersion >= "1.5.6") {
       console.log(`ℹ️ Storage zaten güncel (v${oldVersion})`);
       return;
@@ -15,14 +14,7 @@ export function migrateFromOldStorage() {
       let hasMigrated = false;
       const userType = "doctor";
       
-      // ========== 1. NÜFUS DÜZELTMESİ ==========
-      // nufus_123 formatında olanları kontrol et (zaten doğru formatta)
-      const existingNufusKeys = Object.keys(allItems).filter(k => 
-        k.startsWith("nufus_") && !k.includes("_doctor_")
-      );
-      
-      // Eğer nufus_123 formatında veri varsa ama nufus_doctor_123 yoksa, sorun yok. Zaten doğru formatta.
-      // Sadece düz nufus formatını taşı (çok eski)
+      // Nüfus migration
       if (allItems.nufus && typeof allItems.nufus === "string") {
         const birimId = allItems.birimId || "default";
         const newKey = `nufus_${birimId}`;
@@ -33,8 +25,7 @@ export function migrateFromOldStorage() {
         }
       }
       
-      // ========== 2. ÇOKLU BİRİM DÜZELTMESİ ==========
-      // Eski savedResults_123 formatındaki tüm anahtarları bul
+      // savedResults migration
       const oldSavedKeys = Object.keys(allItems).filter(k => 
         k.startsWith("savedResults_") && !k.includes("_doctor_") && !k.includes("_nurse_")
       );
@@ -42,11 +33,8 @@ export function migrateFromOldStorage() {
       for (const oldKey of oldSavedKeys) {
         const data = allItems[oldKey];
         if (data) {
-          // Birim ID'yi anahtardan çıkar
           const birimId = oldKey.replace("savedResults_", "");
           const newKey = `savedResults_${userType}_${birimId}`;
-          
-          // Yeni anahtar yoksa taşı
           if (!allItems[newKey]) {
             const timestamp = Date.now();
             const valueToStore = Array.isArray(data) ? { data, timestamp } : data;
@@ -58,7 +46,7 @@ export function migrateFromOldStorage() {
         }
       }
       
-      // ========== 3. ZAMAN DAMGALARI İÇİN AYNI İŞLEM ==========
+      // sinaLastTime migration
       const oldSinaKeys = Object.keys(allItems).filter(k => 
         k.startsWith("sinaLastTime_") && !k.includes("_doctor_") && !k.includes("_nurse_")
       );
@@ -76,6 +64,7 @@ export function migrateFromOldStorage() {
         }
       }
       
+      // hypLastTime migration
       const oldHypKeys = Object.keys(allItems).filter(k => 
         k.startsWith("hypLastTime_") && !k.includes("_doctor_") && !k.includes("_nurse_")
       );
@@ -93,12 +82,11 @@ export function migrateFromOldStorage() {
         }
       }
       
-      // Storage sürümünü güncelle
       chrome.storage.local.set({ storageVersion: "1.5.6" });
       
       if (hasMigrated) {
-        console.log("🎉 1.5.6 migration tamamlandı! Sayfayı yenileyin.");
-        location.reload();
+        console.log("🎉 1.5.6 migration tamamlandı! (reload gerekmez)");
+        // ⚠️ H10 DÜZELTİLDİ: location.reload() KALDIRILDI
       } else {
         console.log("ℹ️ 1.5.6 migration gerekli değil, veriler zaten doğru formatta.");
       }
