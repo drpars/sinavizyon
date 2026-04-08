@@ -8,18 +8,22 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
   if (!tbody) return;
   tbody.innerHTML = "";
 
+  console.log("📊 updateTable çağrıldı:", { userType, showAll, dataLength: data?.length, birimId });
+
   // ASÇ modu
   if (userType === "nurse") {
     if (!data || data.length === 0) {
-      const tbody = document.getElementById("tableBody");
-      if (tbody) tbody.innerHTML = "";
+      console.log("⚠️ ASÇ: Veri yok, tablo temizleniyor");
       const katsayiElement = document.getElementById("totalKatsayi");
       if (katsayiElement) katsayiElement.textContent = "1.00000";
       updateKHTBar([], userType);
       return;
     }
     
+    console.log("📊 ASÇ: buildNurseTable çağrılıyor, data length:", data.length);
     const { asçBasari } = buildNurseTable(data, showAll, updateKHTBar);
+    console.log("📊 ASÇ: asçBasari:", asçBasari);
+    
     const katsayiElement = document.getElementById("totalKatsayi");
     katsayiElement.textContent = asçBasari.toFixed(5);
     

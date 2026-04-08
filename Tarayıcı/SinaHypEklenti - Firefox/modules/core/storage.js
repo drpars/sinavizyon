@@ -125,7 +125,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       let nurseData = res[nurseKey]?.data || [];
       let doctorData = res[doctorKey]?.data || [];
       
-      // ✅ DÜZELTİLMİŞ FİLTRELEME
+      // ✅ AY/YIL FİLTRELEMESİ (düzeltilmiş)
       if (ay !== null && yil !== null) {
         const nurseRecord = res[nurseKey];
         const doctorRecord = res[doctorKey];
@@ -133,13 +133,9 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         // Hemşire verisi filtreleme
         if (nurseRecord) {
           const hasMonthYear = nurseRecord.ay !== undefined && nurseRecord.yil !== undefined;
-          if (hasMonthYear) {
-            // Ay/Yıl bilgisi var ama eşleşmiyorsa boş yap
-            if (nurseRecord.ay !== ay || nurseRecord.yil !== yil) {
-              nurseData = [];
-            }
+          if (hasMonthYear && (nurseRecord.ay !== ay || nurseRecord.yil !== yil)) {
+            nurseData = [];
           }
-          // hasMonthYear === false ise: eski veri, göster (düzeltmeyelim)
         } else {
           nurseData = [];
         }
@@ -147,24 +143,32 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         // Doktor verisi filtreleme
         if (doctorRecord) {
           const hasMonthYear = doctorRecord.ay !== undefined && doctorRecord.yil !== undefined;
-          if (hasMonthYear) {
-            if (doctorRecord.ay !== ay || doctorRecord.yil !== yil) {
-              doctorData = [];
-            }
+          if (hasMonthYear && (doctorRecord.ay !== ay || doctorRecord.yil !== yil)) {
+            doctorData = [];
           }
         } else {
           doctorData = [];
         }
       }
       
-      const storedShowAll = res[`nurseShowAll_${birimId}`];
+      // ✅ showAll kontrolü - storage'daki değeri kullan
       let effectiveShowAll = showAll;
+      const storedShowAll = res[`nurseShowAll_${birimId}`];
+      
+      // Eğer storage'da değer varsa onu kullan, yoksa showAll parametresini kullan
+      if (storedShowAll !== undefined) {
+        effectiveShowAll = storedShowAll;
+      }
+      
+      // Eğer doktor verisi varsa ve showAll tanımlı değilse, true yap
       if (storedShowAll === undefined && doctorData.length > 0) {
         effectiveShowAll = true;
         chrome.storage.local.set({ [`nurseShowAll_${birimId}`]: true });
       }
       
       const hasData = (nurseData.length + doctorData.length) > 0;
+      
+      console.log(`🔍 ASÇ Veri Yükleme: showAll=${effectiveShowAll}, nurseData=${nurseData.length}, doctorData=${doctorData.length}`);
       
       if (effectiveShowAll) {
         const combinedData = [...nurseData, ...doctorData];

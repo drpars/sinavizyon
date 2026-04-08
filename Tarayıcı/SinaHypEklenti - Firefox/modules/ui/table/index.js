@@ -60,6 +60,9 @@ export function buildDoctorTable(data, surecCarpan, updateKHTBarFn) {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return { toplamCarpim: 1.0 };
 
+  // ✅ Document fragment oluştur
+  const fragment = document.createDocumentFragment();
+  
   let toplamCarpim = 1.0;
   const gruplar = {
     TARAMALAR: [],
@@ -102,7 +105,8 @@ export function buildDoctorTable(data, surecCarpan, updateKHTBarFn) {
     headerCell.style.backgroundColor = grupRengi;
     headerCell.style.color = "#ffffff";
     headerRow.appendChild(headerCell);
-    tbody.appendChild(headerRow);
+    // ✅ fragment'e ekle
+    fragment.appendChild(headerRow);
 
     items.forEach((item) => {
       const ger = parseFloat(item.gereken) || 0;
@@ -153,12 +157,16 @@ export function buildDoctorTable(data, surecCarpan, updateKHTBarFn) {
       tdDurum.style.fontWeight = "bold";
       tr.appendChild(tdDurum);
 
-      tbody.appendChild(tr);
+      // ✅ fragment'e ekle
+      fragment.appendChild(tr);
     });
   });
 
+  // ✅ Tek seferde DOM'a ekle
+  tbody.innerHTML = "";
+  tbody.appendChild(fragment);
+  
   const finalSonuc = toplamCarpim * surecCarpan;
-  // KHT bar güncelleme
   if (updateKHTBarFn) updateKHTBarFn(data, "doctor");
   return finalSonuc;
 }
@@ -168,29 +176,40 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return { asçBasari: 1.0, asçItems: [], doctorItems: [] };
 
-  // ASÇ İŞLEMLERİ grubu (TEKİL hesaplamaya dahil edilmez)
+  console.log("📊 buildNurseTable çağrıldı:", { dataLength: data.length, showAll });
+
+  // Document fragment oluştur
+  const fragment = document.createDocumentFragment();
+
+  // ASÇ İŞLEMLERİ grubu
   const asçItems = data.filter(item => {
     const ad = item.ad.toUpperCase();
     if (ad.includes("VİTAL BULGU ASÇ TEKİL")) return false;
     return nurseFilterList.some(filter => ad.includes(filter.toUpperCase()));
   });
   
-  // TEKİL işlemi tabloda gösterilsin ama hesaplamaya girmesin
   const tekilItems = data.filter(item => {
     const ad = item.ad.toUpperCase();
     return ad.includes("VİTAL BULGU ASÇ TEKİL");
   });
   
-  // Doktor işlemleri (showAll true ise gösterilir)
+  // DOKTOR işlemleri (showAll true ise)
   const doctorItems = showAll ? data.filter(item => {
     const ad = item.ad.toUpperCase();
     return !nurseFilterList.some(filter => ad.includes(filter.toUpperCase())) &&
            !ad.includes("VİTAL BULGU ASÇ TEKİL");
   }) : [];
   
-  // ASÇ İŞLEMLERİ başlığı
+  console.log("📊 buildNurseTable filtreleme:", { 
+    asçItems: asçItems.length, 
+    tekilItems: tekilItems.length, 
+    doctorItems: doctorItems.length 
+  });
+  
   const allAsçItems = [...asçItems, ...tekilItems];
+  
   if (allAsçItems.length > 0) {
+    console.log("📊 ASÇ başlığı ekleniyor, satır sayısı:", allAsçItems.length);
     const headerRow = document.createElement("tr");
     const headerCell = document.createElement("td");
     headerCell.colSpan = 5;
@@ -203,16 +222,18 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
     }
     headerCell.style.color = "#ffffff";
     headerRow.appendChild(headerCell);
-    tbody.appendChild(headerRow);
+    fragment.appendChild(headerRow);
     
     allAsçItems.forEach((item) => {
       const tr = createTableRow(item);
-      tbody.appendChild(tr);
+      fragment.appendChild(tr);
     });
   }
   
-  // DOKTOR GRUPLARI (sadece showAll true ise)
+  // DOKTOR GRUPLARI
   if (doctorItems.length > 0) {
+    console.log("📊 DOKTOR grupları ekleniyor, satır sayısı:", doctorItems.length);
+    
     const gruplar = {
       TARAMALAR: [],
       İZLEMLER: [],
@@ -234,6 +255,8 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
       const items = gruplar[grupAdi];
       if (items.length === 0) return;
       
+      console.log(`📊 Grup: ${grupAdi}, satır sayısı: ${items.length}`);
+      
       const headerRow = document.createElement("tr");
       const headerCell = document.createElement("td");
       headerCell.colSpan = 5;
@@ -254,16 +277,22 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
       headerCell.style.backgroundColor = grupRengi;
       headerCell.style.color = "#ffffff";
       headerRow.appendChild(headerCell);
-      tbody.appendChild(headerRow);
+      fragment.appendChild(headerRow);
       
       items.forEach((item) => {
         const tr = createTableRow(item, grupAdi);
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
       });
     });
   }
 
-  // KHT bar'ı güncelle
+  // ✅ Tek seferde DOM'a ekle
+  console.log("📊 fragment içindeki çocuk sayısı:", fragment.childNodes.length);
+  tbody.innerHTML = "";
+  tbody.appendChild(fragment);
+  console.log("📊 tbody içindeki çocuk sayısı:", tbody.childNodes.length);
+
+  // KHT bar güncelleme
   let khtData;
   if (showAll) {
     khtData = data;
@@ -276,7 +305,7 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
   }
   if (updateKHTBarFn) updateKHTBarFn(khtData, "nurse");
 
-  // ASÇ başarı katsayısı hesapla (sadece asçItems üzerinden)
+  // ASÇ başarı katsayısı hesapla
   let toplamCarpim = 1.0;
   asçItems.forEach((item) => {
     const ger = parseFloat(item.gereken) || 0;
@@ -285,6 +314,8 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
     toplamCarpim *= calculateNurseKatsayi(item.ad, ger, yap, dev);
   });
   const asçBasari = toplamCarpim;
+  
+  console.log("📊 asçBasari hesaplandı:", asçBasari);
   
   return { asçBasari, asçItems, doctorItems };
 }

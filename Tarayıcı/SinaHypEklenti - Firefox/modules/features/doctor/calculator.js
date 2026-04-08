@@ -2,20 +2,47 @@
 import { katsayiMap } from '../../lib/constants.js';
 import { getEffectiveYapilan } from '../../lib/calculations.js';
 
+// Cache Map
+const katsayiCache = new Map();
+
 export function calculateDoctorKatsayi(islemAdi, gereken, yapilan, devreden) {
+  // Cache key oluştur
+  const cacheKey = `${islemAdi}|${gereken}|${yapilan}|${devreden}`;
+  
+  // Cache'te varsa döndür
+  if (katsayiCache.has(cacheKey)) {
+    return katsayiCache.get(cacheKey);
+  }
+  
   const ad = islemAdi.toUpperCase().trim();
   const etkiliYapilan = getEffectiveYapilan(gereken, yapilan, devreden);
   const oranYuzde = gereken > 0 ? (etkiliYapilan / gereken) * 100 : 0;
   
+  let sonuc = 1.0;
   for (let [anahtar, k] of katsayiMap.entries()) {
     if (ad.includes(anahtar.toUpperCase().trim())) {
-      if (oranYuzde < k.asgariOran) return k.asgariKatsayi;
-      if (oranYuzde >= k.azamiOran) return k.azamiKatsayi;
+      if (oranYuzde < k.asgariOran) {
+        sonuc = k.asgariKatsayi;
+        break;
+      }
+      if (oranYuzde >= k.azamiOran) {
+        sonuc = k.azamiKatsayi;
+        break;
+      }
       const artis = ((k.azamiKatsayi - 1) / (k.azamiOran - k.asgariOran)) * (oranYuzde - k.asgariOran);
-      return 1 + artis;
+      sonuc = 1 + artis;
+      break;
     }
   }
-  return 1.0;
+  
+  // Cache'e kaydet (maksimum 1000 entry ile sınırla)
+  if (katsayiCache.size > 1000) {
+    const firstKey = katsayiCache.keys().next().value;
+    katsayiCache.delete(firstKey);
+  }
+  katsayiCache.set(cacheKey, sonuc);
+  
+  return sonuc;
 }
 
 export function calculateDoctorKHT(data) {
@@ -61,4 +88,9 @@ export function calculateDoctorKHT(data) {
     totalHedef: toplamHedef,
     totalYapilan: toplamEtkiliYapilan
   };
+}
+
+// Cache temizleme fonksiyonu (gerektiğinde çağrılır)
+export function clearDoctorKatsayiCache() {
+  katsayiCache.clear();
 }

@@ -1,6 +1,23 @@
 {
   "changelogData": [
     {
+      "version": "1.6.7",
+      "date": "2026-04-08",
+      "changes": [
+        "🏗️ **Tam modüler mimariye geçiş (2. Aşama):** Tüm kod klasörlere ayrıldı (core/, ui/, features/, lib/, data/).",
+        "🗂️ **core/ klasörü:** dom.js, state.js, events.js, storage.js (merkezi yönetim).",
+        "🎨 **ui/ klasörü:** table/, updaters/, components/ (tablo, güncellemeler, modal/dialog).",
+        "👩‍⚕️ **features/ klasörü:** doctor/, nurse/, consent/ (özellik bazlı mantık).",
+        "📚 **lib/ klasörü:** calculations.js, constants.js, config.js, date-utils.js, migration.js.",
+        "📄 **data/ klasörü:** changelog.json (sürüm geçmişi ayrı dosyada).",
+        "🎨 **CSS ayrı dosyaya taşındı:** styles.css (sidepanel.html'den ayrıldı).",
+        "⚡ **Performans iyileştirmeleri:** Document fragment ile tablo render optimizasyonu, storage batch mekanizması, katsayı hesaplamalarında cache.",
+        "🐛 **ASÇ modu düzeltildi:** SİNA BİRİM butonu ile çekilen doktor verileri artık tabloda gösteriliyor.",
+        "🐛 **Hata düzeltmeleri:** Gereksiz parametreler kaldırıldı, showAboutDialog try-catch eklendi, migration.js reload kaldırıldı.",
+        "🔧 **Import yolları güncellendi:** Tüm modüller yeni klasör yapısına göre düzenlendi."
+      ]
+    },
+    {
       "version": "1.6.5",
       "date": "2026-04-08",
       "changes": [
@@ -21,7 +38,7 @@
         "🐛 **SİNA BİRİM zaman göstergesi düzeltildi:** ASÇ modunda SİNA BİRİM çekimi, SİNA butonunun zamanını etkilemiyor artık.",
         "💬 **Bilgilendirme mesajı iyileştirildi:** Veri bulunamadığında gösterilen mesaj daha temiz ve okunabilir hale getirildi.",
         "🔧 **messageDialog HTML desteği:** Mesaj pencerelerinde artık satır sonları düzgün görüntüleniyor.",
-        "⚡ **Sıralı hibrit veri çekme:** SİNA sayfasından veri çekme artık daha kararlı (Observer → Interval → Zaman aşımı)."
+        "⚡ **Sıralı hibrit veri çekme:** SİNA sayfasından veri çekme artık çok daha kararlı (Observer → Interval → Zaman aşımı)."
       ]
     },
     {

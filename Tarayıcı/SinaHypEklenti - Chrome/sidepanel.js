@@ -384,6 +384,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             setCurrentShowAll(false);
             updateTable([], userType, false, birimId);
           } else {
+            // ✅ YENİ EKLENEN: SİNA BİRİM (doctor verisi) çekildiyse showAll'ı true yap
+            if (targetUserType === "doctor") {
+              setCurrentShowAll(true);
+              saveNurseShowAllForBirim(birimId, true);
+            }
+            
             chrome.storage.local.get([`nurseShowAll_${birimId}`], (showAllRes) => {
               const showAll = showAllRes[`nurseShowAll_${birimId}`] === true;
               if (showAll) {

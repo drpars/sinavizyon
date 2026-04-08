@@ -225,7 +225,7 @@ export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tava
       chrome.storage.local.set({ birimId: newBirimId });
       
       // Zaman göstergelerini temizle
-      import('./dom-elements.js').then(({ setDomHypTime, setDomSinaTime }) => {
+      import('./dom.js').then(({ setDomHypTime, setDomSinaTime }) => {
         setDomHypTime("");
         setDomSinaTime("");
       });

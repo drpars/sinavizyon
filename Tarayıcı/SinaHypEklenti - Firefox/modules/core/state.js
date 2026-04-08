@@ -1,4 +1,4 @@
-// modules/state.js
+// modules/core/state.js
 // ============================================================
 // Merkezi State Yönetimi
 // ============================================================
@@ -11,8 +11,31 @@ let pendingStorageType = "nurse";
 let pendingShowAll = false;
 let fontSettingsActive = false;
 
-// ---------- STATE LISTENER'LAR (opsiyonel - ileride kullanılır) ----------
+// ---------- STATE LISTENER'LAR ----------
 const listeners = [];
+
+// ---------- STORAGE BATCH QUEUE ----------
+let storageBatchQueue = [];
+let storageBatchTimeout = null;
+
+function batchSetStorage(items) {
+  storageBatchQueue.push(items);
+  
+  if (storageBatchTimeout) clearTimeout(storageBatchTimeout);
+  
+  storageBatchTimeout = setTimeout(() => {
+    if (storageBatchQueue.length === 0) return;
+    
+    const merged = {};
+    for (const items of storageBatchQueue) {
+      Object.assign(merged, items);
+    }
+    
+    chrome.storage.local.set(merged).catch(console.error);
+    storageBatchQueue = [];
+    storageBatchTimeout = null;
+  }, 100);
+}
 
 // ---------- STATE GETTERS ----------
 export function getCurrentUserType() {
@@ -93,7 +116,7 @@ export function resetState() {
   notifyListeners();
 }
 
-// ---------- STATE LISTENER SİSTEMİ (opsiyonel) ----------
+// ---------- STATE LISTENER SİSTEMİ ----------
 export function subscribe(listener) {
   listeners.push(listener);
   return () => {
@@ -130,17 +153,17 @@ export async function loadStateFromStorage() {
   });
 }
 
-// ---------- STATE'İ STORAGE'A KAYDETME ----------
+// ---------- STATE'İ STORAGE'A KAYDETME (BATCH'Lİ) ----------
 export function saveCurrentUserTypeToStorage() {
-  chrome.storage.local.set({ userType: currentUserType });
+  batchSetStorage({ userType: currentUserType });
 }
 
 export function saveCurrentBirimIdToStorage() {
-  chrome.storage.local.set({ birimId: currentBirimId });
+  batchSetStorage({ birimId: currentBirimId });
 }
 
 export function saveFontSettingsActiveToStorage() {
-  chrome.storage.local.set({ fontSettingsActive });
+  batchSetStorage({ fontSettingsActive });
 }
 
 // ---------- BİRİM BAZLI SHOWALL YÖNETİMİ ----------
@@ -162,5 +185,5 @@ export async function loadNurseShowAllForBirim(birimId) {
 export function saveNurseShowAllForBirim(birimId, showAll) {
   if (!birimId) return;
   currentShowAll = showAll;
-  chrome.storage.local.set({ [`nurseShowAll_${birimId}`]: showAll });
+  batchSetStorage({ [`nurseShowAll_${birimId}`]: showAll });
 }
