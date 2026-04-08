@@ -306,30 +306,30 @@ export function closeModal() {
 }
 
 // ========== GÜNCELLEME SONRASI YENİLİKLER MODALI (v1.6.7) ==========
-export async function showWhatsNewModal(currentVersion, lastVersionSeen = null) {
+export async function showWhatsNewModal(version) {
   const changelogData = await getChangelog();
+  const versionData = changelogData.find(item => item.version === version);
   
-  // Gösterilecek versiyonları belirle
-  let versionsToShow = [];
-  
-  if (!lastVersionSeen) {
-    // İlk kurulum: sadece son 2 versiyonu göster (çok uzun olmasın)
-    versionsToShow = changelogData.slice(0, 2);
-  } else {
-    // Güncelleme: son görülen versiyondan itibaren tüm yenilikleri göster
-    const lastIndex = changelogData.findIndex(item => item.version === lastVersionSeen);
-    if (lastIndex === -1) {
-      // Hiç görülmemiş veya eski versiyon → son 3 versiyonu göster
-      versionsToShow = changelogData.slice(0, 3);
-    } else {
-      // Sadece yeni versiyonları göster
-      versionsToShow = changelogData.slice(0, lastIndex);
-    }
-  }
-  
-  if (versionsToShow.length === 0) {
-    // Yeni versiyon yoksa modal gösterme
-    return;
+  if (!versionData) {
+    return new Promise((resolve) => {
+      const modal = document.createElement("div");
+      modal.className = "consent-modal";
+      modal.innerHTML = `
+        <div class="consent-modal-content" style="max-width: 350px; text-align: center;">
+          <img src="icons/icon-org.svg" style="width: 48px; height: 48px; margin-bottom: 12px;">
+          <h3 style="margin: 0 0 8px 0; color: var(--blue);">🎉 Güncelleme Tamamlandı</h3>
+          <p style="font-size: 0.8rem;">SİNA VİZYON v${version} sürümüne güncellendi.</p>
+          <button id="whatsNewConfirmBtn" style="margin-top: 16px; background-color: var(--blue); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">BAŞLAT</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      modal.style.display = "flex";
+      const btn = document.getElementById("whatsNewConfirmBtn");
+      btn.addEventListener("click", () => {
+        modal.remove();
+        resolve();
+      }, { once: true });
+    });
   }
   
   return new Promise((resolve) => {
@@ -337,70 +337,74 @@ export async function showWhatsNewModal(currentVersion, lastVersionSeen = null) 
     modal.className = "consent-modal";
     modal.style.animation = "fadeIn 0.2s ease";
     
-    // Tüm versiyonların HTML'ini oluştur
-    const versionsHtml = versionsToShow.map(versionData => {
-      const isCurrent = versionData.version === currentVersion;
-      const versionTitle = isCurrent 
-        ? `🎉 YENİ SÜRÜM ${versionData.version} (${versionData.date})` 
-        : `📦 Sürüm ${versionData.version} (${versionData.date})`;
-      
-      const changesHtml = versionData.changes.map(change => {
-        // Emoji ve kalın formatlamayı düzenle
-        let formattedChange = change
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/^✅ /, '✅ ')
-          .replace(/^🐛 /, '🐛 ')
-          .replace(/^⚡ /, '⚡ ')
-          .replace(/^🔧 /, '🔧 ')
-          .replace(/^🎨 /, '🎨 ')
-          .replace(/^📅 /, '📅 ')
-          .replace(/^🗂️ /, '🗂️ ')
-          .replace(/^🧩 /, '🧩 ')
-          .replace(/^🎯 /, '🎯 ');
-        
-        return `<div style="margin: 6px 0; font-size: 0.75rem; display: flex; align-items: flex-start; gap: 6px;">
-          <span style="min-width: 20px;">•</span>
-          <span style="flex: 1;">${formattedChange}</span>
-        </div>`;
-      }).join('');
-      
-      return `
-        <div style="margin-bottom: 20px; ${isCurrent ? 'background: var(--bg); border-radius: 12px; padding: 12px;' : ''}">
-          <h4 style="margin: 0 0 8px 0; color: var(--blue); font-size: 0.9rem;">${versionTitle}</h4>
-          <div style="padding-left: 8px;">
-            ${changesHtml}
-          </div>
-        </div>
-      `;
-    }).join('');
+    // Benzersiz ve kullanıcı dostu maddeler
+    const userFriendlyChanges = [];
+    const seenMessages = new Set(); // Tekrar kontrolü için
     
-    // Toplam versiyon sayısı bilgisi
-    const totalVersionsInfo = versionsToShow.length > 1 
-      ? `<div style="font-size: 0.6rem; opacity: 0.6; margin-top: 8px; text-align: center;">📌 ${versionsToShow.length} sürümdeki yenilikler gösteriliyor</div>`
-      : '';
+    for (const change of versionData.changes) {
+      let friendlyText = "";
+      
+      if (change.includes("Veri kaybı") || change.includes("boş veri")) {
+        friendlyText = "🔒 Verileriniz artık daha güvenli, yanlışlıkla silinmeye karşı korumalı";
+      }
+      else if (change.includes("spinner") || change.includes("Loading")) {
+        friendlyText = "⏳ Veri çekilirken bekleme göstergesi eklendi";
+      }
+      else if (change.includes("VİTAL BULGU") || change.includes("TEKİL")) {
+        friendlyText = "👩‍⚕️ ASÇ modunda Vital Bulgu hesaplaması iyileştirildi";
+      }
+      else if (change.includes("SİNA BİRİM") || change.includes("bağımsız")) {
+        friendlyText = "🔘 ASÇ modunda SİNA BİRİM butonu hızlandırıldı";
+      }
+      else if (change.includes("KHT bar") || change.includes("renk")) {
+        friendlyText = "📊 KHT göstergesi renklendirildi (kırmızı/turuncu/yeşil)";
+      }
+      else if (change.includes("CSS") || change.includes("style") || change.includes("görünüm")) {
+        friendlyText = "🎨 Görünüm iyileştirmeleri yapıldı";
+      }
+      else if (change.includes("performans") || change.includes("cache") || change.includes("batch")) {
+        friendlyText = "⚡ Performans iyileştirmeleri yapıldı";
+      }
+      else {
+        // Teknik detayları atla (migration, import, değişken vb.)
+        continue;
+      }
+      
+      // Tekrar eden maddeleri engelle
+      if (friendlyText && !seenMessages.has(friendlyText)) {
+        seenMessages.add(friendlyText);
+        userFriendlyChanges.push(friendlyText);
+      }
+    }
+    
+    // Varsayılan mesaj (hiç madde yoksa)
+    if (userFriendlyChanges.length === 0) {
+      userFriendlyChanges.push("✨ Performans ve kararlılık iyileştirmeleri yapıldı");
+    }
+    
+    const changesHtml = userFriendlyChanges.map(change => `
+      <div style="margin: 10px 0; font-size: 0.8rem; display: flex; align-items: flex-start; gap: 8px;">
+        <span style="min-width: 20px;">•</span>
+        <span style="flex: 1; line-height: 1.4;">${change}</span>
+      </div>
+    `).join('');
     
     modal.innerHTML = `
-      <div class="consent-modal-content" style="max-width: 420px; max-height: 80vh; overflow-y: auto; text-align: left;">
+      <div class="consent-modal-content" style="max-width: 380px; text-align: left; overflow: hidden;">
         <div style="text-align: center; margin-bottom: 16px;">
-          <img src="icons/icon-org.svg" style="width: 48px; height: 48px;">
-          <h3 style="margin: 8px 0 0 0; color: var(--blue);">🎉 SİNA VİZYON GÜNCELLENDİ</h3>
-          <p style="margin: 4px 0 0 0; font-size: 0.7rem; opacity: 0.7;">v${currentVersion} sürümüne hoş geldiniz!</p>
+          <img src="icons/icon-org.svg" style="width: 56px; height: 56px;">
+          <h3 style="margin: 8px 0 4px 0; color: var(--blue);">🎉 Güncelleme Tamamlandı!</h3>
+          <p style="margin: 0; font-size: 0.7rem; opacity: 0.7;">SİNA VİZYON v${version}</p>
         </div>
         
-        <div style="max-height: 50vh; overflow-y: auto; padding-right: 8px;">
-          ${versionsHtml}
+        <div style="background: var(--bg); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-weight: bold; font-size: 0.7rem; margin-bottom: 8px; color: var(--blue);">✨ Neler Değişti?</div>
+          ${changesHtml}
         </div>
         
-        ${totalVersionsInfo}
-        
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button id="whatsNewConfirmBtn" style="flex: 2; background-color: var(--blue); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-            BAŞLAT
-          </button>
-          <button id="whatsNewChangelogBtn" style="flex: 1; background-color: var(--bg-dark); border: 1px solid var(--border); color: var(--fg); padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-            📋 Tüm Geçmiş
-          </button>
-        </div>
+        <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+          KULLANMAYA BAŞLA
+        </button>
       </div>
     `;
     
@@ -408,23 +412,9 @@ export async function showWhatsNewModal(currentVersion, lastVersionSeen = null) 
     modal.style.display = "flex";
     
     const confirmBtn = document.getElementById("whatsNewConfirmBtn");
-    const changelogBtn = document.getElementById("whatsNewChangelogBtn");
-    
-    const handleConfirm = () => {
+    confirmBtn.addEventListener("click", () => {
       modal.remove();
       resolve();
-    };
-    
-    const handleChangelog = async () => {
-      modal.remove();
-      await showChangelog();  // Tüm sürüm geçmişini göster
-      resolve();
-    };
-    
-    confirmBtn.addEventListener("click", handleConfirm, { once: true });
-    if (changelogBtn) {
-      changelogBtn.addEventListener("click", handleChangelog, { once: true });
-    }
+    }, { once: true });
   });
 }
-
