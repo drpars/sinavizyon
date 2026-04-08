@@ -39,7 +39,7 @@ import { bindAllEvents } from './modules/core/events.js';
 import { 
   updateTable, applyTheme, applyKvkkVisibility, setUIEnabled,
   updateHypButtonStateUI, updateUIForUserType,
-  applyKvkkVisibilityFromStorage, resetUIAfterDataClear
+  applyKvkkVisibilityFromStorage, resetUIAfterDataClear, updateKHTBar
 } from './modules/ui/updaters/index.js';
 
 import { 
