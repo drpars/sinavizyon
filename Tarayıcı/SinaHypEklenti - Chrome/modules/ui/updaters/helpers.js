@@ -48,7 +48,6 @@ export function updateHypButtonStateUI(hasData, userType = null) {
 // ========== KULLANICI TİPİ UI GÜNCELLEMELERİ ==========
 export function updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateFn) {
   const tavanKart = document.getElementById("tavanKatsayi")?.closest(".score-box");
-  const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
   const nufusRow = document.getElementById("nufus")?.closest(".row");
   const sinaBtn = buttons.sina();
   const hypBtn = buttons.hyp();
@@ -56,7 +55,6 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
   if (type === "nurse") {
     // ASÇ MODU
     if (tavanKart) tavanKart.style.display = "none";
-    if (surecRow) surecRow.style.display = "none";
     if (nufusRow) nufusRow.style.display = "none";
     if (sinaBtn) sinaBtn.textContent = "SİNA";
     if (hypBtn) hypBtn.textContent = "SİNA BİRİM";
@@ -81,7 +79,6 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
   } else {
     // DOKTOR MODU
     if (tavanKart) tavanKart.style.display = "flex";
-    if (surecRow) surecRow.style.display = "flex";
     if (nufusRow) nufusRow.style.display = "flex";
     if (sinaBtn) sinaBtn.textContent = "SİNA";
     if (hypBtn) hypBtn.textContent = "HYP";

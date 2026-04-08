@@ -26,7 +26,6 @@ export const inputs = {
   ay: () => document.getElementById("ay"),
   userType: () => document.getElementById("userTypeSelect"),
   theme: () => document.getElementById("themeSelect"),
-  surecYonetimi: () => document.getElementById("surecYonetimi"),
   fontSizeSlider: () => document.getElementById("fontSizeSlider"),
   fontToggle: () => document.getElementById("fontToggleCheckbox"),
 };
@@ -88,11 +87,6 @@ export function getDomAy() {
 export function getDomYil() {
   const input = inputs.yil();
   return parseInt(input?.value || "0");
-}
-
-export function getDomSurecCarpan() {
-  const select = inputs.surecYonetimi();
-  return parseFloat(select?.value) || 1.03;
 }
 
 export function getDomNufus() {

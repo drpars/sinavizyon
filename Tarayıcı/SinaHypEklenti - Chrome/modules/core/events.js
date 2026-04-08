@@ -204,22 +204,6 @@ export function bindThemeChange() {
   }
 }
 
-export function bindSurecYonetimiChange() {
-  const select = inputs.surecYonetimi();
-  if (select) {
-    select.addEventListener("change", (e) => {
-      const birimId = getCurrentBirimId();
-      const userType = getCurrentUserType();
-      const showAll = getCurrentShowAll();
-      storeDataWithTimestamp("surec", e.target.value, userType, birimId);
-      
-      import('./storage.js').then(({ loadDataForCurrentBirimWithMerge }) => {
-        loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, undefined, showAll);
-      });
-    });
-  }
-}
-
 export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tavanHesaplaFn, updateHypButtonStateFn, aySelect, yilInput) {
   const input = inputs.birimId();
   if (!input) return;
@@ -379,7 +363,6 @@ export function bindAllEvents(
   bindMonthYearChange(reloadDataByMonthFn, aySelect, yilInput);
   bindUserTypeChange(setUserTypeFn);
   bindThemeChange();
-  bindSurecYonetimiChange();
   bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tavanHesaplaFn, updateHypButtonStateFn, aySelect, yilInput);
   bindNufusChange(reloadDataByMonthFn);
   bindModalClose();

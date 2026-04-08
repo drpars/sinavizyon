@@ -7,7 +7,7 @@
 import { 
   buttons, inputs, containers, infoElements, modals, khtMarks,
   getDomBirimId, getDomUserType, getDomAy, getDomYil,
-  getDomSurecCarpan, getDomNufus, setDomNufus, setDomBirimId,
+  getDomNufus, setDomNufus, setDomBirimId,
   setDomSinaTime, setDomHypTime, setDomTotalKatsayi, setDomTavanKatsayi,
   setDomKhtPercentage, setDomKhtBarWidth, setDomKhtDurum, clearDomTableBody,
   showDomSettingsPanel, toggleDomSettingsPanel, showDomAdvancedSettings, toggleDomAdvancedSettings
@@ -315,8 +315,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           const savedType = userRes.userType || "doctor";
           if (userTypeSelect) userTypeSelect.value = savedType;
           setUserType(savedType);
-          const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
-          if (surecRow) surecRow.style.display = savedType === "nurse" ? "none" : "flex";
           const nufusRow = document.getElementById("nufus")?.closest(".row");
           if (nufusRow) nufusRow.style.display = savedType === "nurse" ? "none" : "flex";
         });
