@@ -133,7 +133,18 @@ export async function showFirstTimeUserTypeModal() {
 }
 
 // Hakkında bilgi göster
+// modules/ui/components/modal.js - showAboutDialog fonksiyonu
+
 export async function showAboutDialog() {
+  // Version bilgisini güvenli şekilde al
+  let version = "1.6.7";
+  try {
+    const manifest = chrome.runtime.getManifest();
+    if (manifest && manifest.version) version = manifest.version;
+  } catch (e) {
+    console.warn("Manifest okunamadı, varsayılan versiyon kullanılıyor:", e);
+  }
+  
   return new Promise((resolve) => {
     const modal = document.createElement("div");
     modal.id = "aboutDialog";
@@ -150,7 +161,7 @@ export async function showAboutDialog() {
         <div style="background: var(--bg); border-radius: 16px; padding: 16px; margin-bottom: 20px; text-align: left;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
             <span style="font-weight: bold;">📦 Sürüm</span>
-            <span id="aboutVersion">${chrome.runtime.getManifest().version}</span>
+            <span id="aboutVersion">${version}</span>
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
             <span style="font-weight: bold;">👨‍💻 Geliştirici</span>
@@ -185,7 +196,7 @@ export async function showAboutDialog() {
         </button>
       </div>
     `;
-    
+
     // Animasyon için keyframe ekle (eğer yoksa)
     if (!document.querySelector("#aboutDialogStyle")) {
       const style = document.createElement("style");
