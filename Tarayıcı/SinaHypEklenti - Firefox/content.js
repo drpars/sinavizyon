@@ -1,3 +1,4 @@
+console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
 (function () {
   const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
   const isSina = window.location.href.includes("sina.saglik.gov.tr");
@@ -31,6 +32,10 @@
 
       console.log("🚀 HYP Eklentisi: İnatçı Tıklama Modu Devrede");
 
+      // ========== SPINNER GÖSTER ==========
+      chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
+      console.log("🔄 HYP: Spinner gösterildi");
+
       let basarili = false;
       let intervalId = null;
       let observer = null;
@@ -46,6 +51,8 @@
         attemptCount++;
         if (attemptCount > MAX_ATTEMPTS) {
           console.warn("⏰ Zaman aşımı: Hedef kartlar bulunamadı.");
+          // ========== ZAMAN AŞIMINDA SPINNER'I GİZLE ==========
+          chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
           if (intervalId) clearInterval(intervalId);
           if (observer) observer.disconnect();
           return;
@@ -94,6 +101,10 @@
       observer.observe(document.body, { childList: true, subtree: true });
 
       function veriCekVeGonder(kartlar) {
+        // ========== VERİ ÇEKİLDİ, SPINNER'I GİZLE ==========
+        chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+        console.log("✅ HYP: Spinner gizlendi");
+        
         const sonuclar = Array.from(kartlar)
           .map((kart) => ({
             ad: kart.querySelector(".title")?.textContent?.trim() || "",
@@ -111,6 +122,8 @@
             })
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
           console.log("🚀 Veriler eklentiye başarıyla gönderildi!");
+        } else {
+          console.log("⚠️ HYP verisi bulunamadı");
         }
       }
     });
@@ -132,9 +145,19 @@
       let observerTimeout = null;
       let finalTimeout = null;
 
+      // ========== SPINNER GÖSTER ==========
+      // Sayfa yüklenmeye başladığında spinner'ı göster
+      chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
+      console.log("🔄 SİNA: Spinner gösterildi");
+
       // Veri çekme fonksiyonu
       function sinaExtractData() {
         if (veriGonderildi) return;
+        
+        // ========== ÖNCE SPINNER'I GİZLE ==========
+        // Veri çekme işlemi tamamlandı, spinner'ı kaldır
+        chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+        console.log("✅ SİNA: Spinner gizlendi");
         
         // ASÇ sayfasındaki flex tablo için özel seçici
         let rows = document.querySelectorAll('div[role="row"], [role="row"]');
@@ -208,7 +231,6 @@
         
         if (results.length > 0) {
           console.log("✅ SİNA verileri çekildi:", results.length, "işlem");
-          console.log("📊 İşlemler:", results.map(r => r.ad));
           chrome.runtime.sendMessage({ action: "dataParsed", results: results })
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
         } else {
@@ -223,6 +245,16 @@
         if (observerTimeout) clearTimeout(observerTimeout);
         if (finalTimeout) clearTimeout(finalTimeout);
       }
+
+      // ========== ZAMAN AŞIMI DURUMUNDA SPINNER'I GİZLE ==========
+      // Eğer 15 saniye içinde veri gelmezse spinner'ı zorla gizle
+      finalTimeout = setTimeout(() => {
+        if (!veriGonderildi) {
+          console.log("⏰ Zaman aşımı (15 sn), spinner zorla gizleniyor...");
+          chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+          sinaExtractData(); // Veri çekmeyi dene (belki bir şeyler gelir)
+        }
+      }, 15000); // 15 saniye (10'dan 15'e çıkardım, daha güvenli)
 
       // ========== 1. MUTATION OBSERVER (3 saniye boyunca) ==========
       observer = new MutationObserver(() => {

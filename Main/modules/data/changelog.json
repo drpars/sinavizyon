@@ -4,17 +4,15 @@
       "version": "1.6.7",
       "date": "2026-04-08",
       "changes": [
-        "🏗️ **Tam modüler mimariye geçiş (2. Aşama):** Tüm kod klasörlere ayrıldı (core/, ui/, features/, lib/, data/).",
-        "🗂️ **core/ klasörü:** dom.js, state.js, events.js, storage.js (merkezi yönetim).",
-        "🎨 **ui/ klasörü:** table/, updaters/, components/ (tablo, güncellemeler, modal/dialog).",
-        "👩‍⚕️ **features/ klasörü:** doctor/, nurse/, consent/ (özellik bazlı mantık).",
-        "📚 **lib/ klasörü:** calculations.js, constants.js, config.js, date-utils.js, migration.js.",
-        "📄 **data/ klasörü:** changelog.json (sürüm geçmişi ayrı dosyada).",
-        "🎨 **CSS ayrı dosyaya taşındı:** styles.css (sidepanel.html'den ayrıldı).",
-        "⚡ **Performans iyileştirmeleri:** Document fragment ile tablo render optimizasyonu, storage batch mekanizması, katsayı hesaplamalarında cache.",
-        "🐛 **ASÇ modu düzeltildi:** SİNA BİRİM butonu ile çekilen doktor verileri artık tabloda gösteriliyor.",
-        "🐛 **Hata düzeltmeleri:** Gereksiz parametreler kaldırıldı, showAboutDialog try-catch eklendi, migration.js reload kaldırıldı.",
-        "🔧 **Import yolları güncellendi:** Tüm modüller yeni klasör yapısına göre düzenlendi."
+        "🐛 **Veri kaybı hatası düzeltildi:** SİNA'dan boş veri gelince mevcut verilerin silinmesi engellendi.",
+        "⚡ **Loading spinner iyileştirildi:** Veri çekilirken spinner gösteriliyor, 30 saniye sonra timeout ile kapanıyor.",
+        "🔧 **VİTAL BULGU TEKİL optimizasyonu:** TEKİL ve normal VİTAL BULGU arasında katsayısı yüksek olan otomatik seçiliyor.",
+        "🔧 **ASÇ modunda SİNA BİRİM bağımsızlaştırıldı:** SİNA butonuna basmadan SİNA BİRİM kullanılabiliyor.",
+        "🔧 **KHT bar renk iyileştirmesi:** 0-40% kırmızı, 40-70% turuncu, 70%+ yeşil.",
+        "🐛 **Eksik importlar düzeltildi:** consent/manager.js'deki confirmDialog ve messageDialog import edildi.",
+        "🐛 **Storage version güncellendi:** Migration versiyonu 1.6.7'ye yükseltildi.",
+        "🐛 **Tanımsız değişken hatası düzeltildi:** sidepanel.js'deki 'result' değişkeni 'merged' olarak düzeltildi.",
+        "🎨 **CSS ayrı dosyaya taşındı:** styles.css artık sidepanel.html'den bağımsız."
       ]
     },
     {

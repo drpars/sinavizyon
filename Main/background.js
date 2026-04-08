@@ -1,6 +1,20 @@
 // Tarayıcı tespiti
 const isFirefox = typeof browser !== 'undefined' && navigator.userAgent.includes('Firefox');
 
+// background.js - EKLENECEK KISIM
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "showSpinner") {
+    // Sidepanel'e spinner göster mesajı gönder
+    chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
+    sendResponse({ status: "ok" });
+  } 
+  else if (message.action === "hideSpinner") {
+    chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+    sendResponse({ status: "ok" });
+  }
+  return true;
+});
+
 if (isFirefox) {
   console.log("🔍 Firefox modu aktif");
   

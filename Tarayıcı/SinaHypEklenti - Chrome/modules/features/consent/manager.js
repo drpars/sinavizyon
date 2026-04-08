@@ -1,5 +1,6 @@
 // modules/features/consent/manager.js
 import { showConsentModal } from '../../ui/components/modal.js';
+import { confirmDialog, messageDialog } from '../../ui/components/dialog.js';
 
 export async function requestConsent() {
   const userConfirmed = await showConsentModal();
@@ -8,7 +9,7 @@ export async function requestConsent() {
 }
 
 export async function revokeConsent(updateTableFn, setUIEnabledFn) {
-  const confirmed = await confirmDialog(  // confirmDialog import edilmeli
+  const confirmed = await confirmDialog(
     "Rızanızı geri çekerseniz tüm verileriniz silinecek ve eklenti veri toplamayı durduracaktır. Devam etmek istiyor musunuz?",
     "Rıza Geri Çekme"
   );
@@ -25,6 +26,6 @@ export async function revokeConsent(updateTableFn, setUIEnabledFn) {
     if (hypBtn) hypBtn.disabled = true;
     
     setUIEnabledFn(false);
-    messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");  // messageDialog import edilmeli
+    messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");
   });
 }

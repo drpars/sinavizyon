@@ -22,6 +22,13 @@ export function bindSinaButton(setUserTypeFn, getCurrentAy, getCurrentYil, getDo
   if (!btn) return;
   
   btn.addEventListener("click", async () => {
+    // ✅ Spinner göster - hata yakalama ile
+    try {
+      chrome.runtime.sendMessage({ action: "showSpinner" });
+    } catch (e) {
+      console.log("Spinner mesajı gönderilemedi (normal, sidepanel kapalı olabilir)");
+    }
+
     const ayStr = getCurrentAy();
     const yil = getCurrentYil();
     const ayNum = getMonthNumber(ayStr);

@@ -3,12 +3,12 @@ export function migrateFromOldStorage() {
   chrome.storage.local.get(["storageVersion"], (res) => {
     const oldVersion = res.storageVersion;
     
-    if (oldVersion && oldVersion >= "1.5.6") {
+    if (oldVersion && oldVersion >= "1.6.7") {
       console.log(`ℹ️ Storage zaten güncel (v${oldVersion})`);
       return;
     }
     
-    console.log(`🔄 Storage sürümü: ${oldVersion || "yok"} → 1.5.6 migration başlıyor...`);
+    console.log(`🔄 Storage sürümü: ${oldVersion || "yok"} → 1.6.7 migration başlıyor...`);
     
     chrome.storage.local.get(null, (allItems) => {
       let hasMigrated = false;
@@ -82,13 +82,12 @@ export function migrateFromOldStorage() {
         }
       }
       
-      chrome.storage.local.set({ storageVersion: "1.5.6" });
+      chrome.storage.local.set({ storageVersion: "1.6.7" });
       
       if (hasMigrated) {
-        console.log("🎉 1.5.6 migration tamamlandı! (reload gerekmez)");
-        // ⚠️ H10 DÜZELTİLDİ: location.reload() KALDIRILDI
+        console.log("🎉 1.6.7 migration tamamlandı! (reload gerekmez)");
       } else {
-        console.log("ℹ️ 1.5.6 migration gerekli değil, veriler zaten doğru formatta.");
+        console.log("ℹ️ 1.6.7 migration gerekli değil, veriler zaten doğru formatta.");
       }
     });
   });

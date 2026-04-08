@@ -53,7 +53,52 @@ import { migrateFromOldStorage } from './modules/lib/migration.js';
 import { hypToSinaMap } from './modules/lib/constants.js';
 import { buildSinaUrl, HYP_URLS } from './modules/lib/config.js';
 
+
 // ========== HELPER FUNCTIONS ==========
+let spinnerTimeout = null;  // Timeout için global değişken
+
+function showLoadingSpinner() {
+  const spinner = document.getElementById("loadingSpinner");
+  const table = document.getElementById("dataTable");
+  
+  // Önceki timeout'u temizle
+  if (spinnerTimeout) {
+    clearTimeout(spinnerTimeout);
+    spinnerTimeout = null;
+  }
+  
+  if (spinner) {
+    spinner.style.display = "block";
+    spinner.style.opacity = "1";
+  }
+  if (table) table.style.display = "none";
+  
+  // Güvenlik: 30 saniye sonra spinner'ı zorla kapat
+  spinnerTimeout = setTimeout(() => {
+    console.warn("⚠️ Spinner timeout: 30 saniye geçti, zorla kapatılıyor");
+    hideLoadingSpinner();
+  }, 30000);
+}
+
+function hideLoadingSpinner() {
+  const spinner = document.getElementById("loadingSpinner");
+  const table = document.getElementById("dataTable");
+  
+  // Timeout'u temizle
+  if (spinnerTimeout) {
+    clearTimeout(spinnerTimeout);
+    spinnerTimeout = null;
+  }
+  
+  if (spinner) {
+    spinner.style.opacity = "0";
+    setTimeout(() => {
+      if (spinner) spinner.style.display = "none";
+    }, 200);
+  }
+  if (table) table.style.display = "table";
+}
+
 function combineData(data) {
   const map = new Map();
   data.forEach(item => {
@@ -179,9 +224,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   const lastVersionSeen = await new Promise(resolve => 
     chrome.storage.local.get(["lastVersionSeen"], (res) => resolve(res.lastVersionSeen))
   );
-  if (lastVersionSeen !== "1.6.7") {
-    await showWhatsNewModal("1.6.7");
-    await chrome.storage.local.set({ lastVersionSeen: "1.6.7" });
+
+  const manifest = chrome.runtime.getManifest();
+  const currentVersion = manifest.version;
+
+  if (lastVersionSeen !== currentVersion) {
+    // Sadece gerçekten yeni bir versiyonsa göster
+    await showWhatsNewModal(currentVersion, lastVersionSeen);
+    await chrome.storage.local.set({ lastVersionSeen: currentVersion });
   }
 
   // Kullanıcı tipi
@@ -302,11 +352,27 @@ document.addEventListener("DOMContentLoaded", async function () {
   );
 
   // Mesaj dinleyici
-  chrome.runtime.onMessage.addListener(async (msg) => {
+  chrome.runtime.onMessage.addListener(async (msg, sendResponse) => {
+    console.log("📨 Mesaj alındı:", msg.action);
+    
+    // ✅ SPINNER KONTROLÜ EKLE
+    if (msg.action === "showSpinner") {
+      showLoadingSpinner();
+      sendResponse({ status: "ok" });
+      return true;
+    }
+    
+    if (msg.action === "hideSpinner") {
+      hideLoadingSpinner();
+      sendResponse({ status: "ok" });
+      return true;
+    }
+
     const simdi = new Date().toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
     const { confirmDialog, messageDialog } = await import('./modules/ui/components/index.js');
 
     if (msg.action === "dataParsed") {
+      hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
       const birimId = getCurrentBirimId();
@@ -340,8 +406,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         if (merged.length === 0) {
-          const tbody = document.getElementById("tableBody");
-          if (tbody) tbody.innerHTML = "";
+          // const tbody = document.getElementById("tableBody");
+          // if (tbody) tbody.innerHTML = "";
           const katsayiElement = document.getElementById("totalKatsayi");
           if (katsayiElement) katsayiElement.textContent = "1.00000";
           const tavanElement = document.getElementById("tavanKatsayi");
@@ -374,8 +440,16 @@ document.addEventListener("DOMContentLoaded", async function () {
           
           await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
           
-          setCurrentShowAll(false);
-          updateTable([], userType, false, birimId);
+          // ✅ KRİTİK: Mevcut verileri storage'dan TEKRAR YÜKLE (silme!)
+          if (userType === "nurse") {
+            loadNurseShowAllForBirim(birimId).then((showAll) => {
+              loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
+            });
+          } else {
+            loadDataForCurrentBirim(updateTable, userType, birimId, null, false, ayStr, yil);
+          }
+          
+          return;  // İşlemi bitir, aşağıdaki kod çalışmasın
         }
 
         if (userType === "nurse" && targetUserType === "doctor") {
@@ -418,7 +492,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         setPendingShowAll(false);
         setPendingStorageType("nurse");
       });
+      sendResponse({ status: "ok", data: merged });
+      return true;
     } else if (msg.action === "hypDataParsed") {
+      hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
       const birimId = getCurrentBirimId();
@@ -456,6 +533,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Tabloyu güncelle (mevcut showAll değerine göre)
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
+      sendResponse({ status: "ok" });
+      return true;
     }
+    return true;
   });
 });
