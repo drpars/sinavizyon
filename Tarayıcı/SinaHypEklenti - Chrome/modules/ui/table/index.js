@@ -176,44 +176,89 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return { asçBasari: 1.0, asçItems: [], doctorItems: [] };
 
-  console.log("📊 buildNurseTable çağrıldı:", { dataLength: data.length, showAll });
-
-  // Document fragment oluştur
   const fragment = document.createDocumentFragment();
 
-  // ASÇ İŞLEMLERİ grubu
-  const asçItems = data.filter(item => {
+  // ========== VİTAL BULGU AYIRMA (TEKİL vs DİĞERİ) ==========
+  const vitalNormalItems = [];
+  const vitalTekilItems = [];
+  const otherNurseItems = [];
+
+  data.forEach(item => {
     const ad = item.ad.toUpperCase();
-    if (ad.includes("VİTAL BULGU ASÇ TEKİL")) return false;
-    return nurseFilterList.some(filter => ad.includes(filter.toUpperCase()));
+    if (ad.includes("VİTAL BULGU ASÇ TEKİL")) {
+      vitalTekilItems.push(item);
+    } else if (ad.includes("VİTAL BULGU ASÇ")) {
+      vitalNormalItems.push(item);
+    } else if (nurseFilterList.some(filter => ad.includes(filter.toUpperCase()))) {
+      otherNurseItems.push(item);
+    }
   });
+
+  // ========== KATSAYI KARŞILAŞTIRMASI ==========
+  let selectedVitalItems = [...vitalNormalItems];
+  let useTekilInstead = false;
   
-  const tekilItems = data.filter(item => {
-    const ad = item.ad.toUpperCase();
-    return ad.includes("VİTAL BULGU ASÇ TEKİL");
+  if (vitalNormalItems.length > 0 && vitalTekilItems.length > 0) {
+    let normalKatsayi = 1.0;
+    let tekilKatsayi = 1.0;
+    
+    vitalNormalItems.forEach(item => {
+      const ger = parseFloat(item.gereken) || 0;
+      const yap = parseFloat(item.yapilan) || 0;
+      const dev = parseFloat(item.devreden) || 0;
+      normalKatsayi *= calculateNurseKatsayi(item.ad, ger, yap, dev);
+    });
+    
+    vitalTekilItems.forEach(item => {
+      const ger = parseFloat(item.gereken) || 0;
+      const yap = parseFloat(item.yapilan) || 0;
+      const dev = parseFloat(item.devreden) || 0;
+      tekilKatsayi *= calculateNurseKatsayi(item.ad, ger, yap, dev);
+    });
+    
+    console.log("📊 Vital Karşılaştırma:", { normalKatsayi, tekilKatsayi });
+    
+    if (tekilKatsayi > normalKatsayi) {
+      useTekilInstead = true;
+      selectedVitalItems = [...vitalTekilItems];
+      console.log("✅ TEKİL seçildi (katsayısı daha yüksek)");
+    } else {
+      console.log("✅ Normal Vital seçildi (katsayısı daha yüksek veya eşit)");
+    }
+  } else if (vitalTekilItems.length > 0) {
+    selectedVitalItems = [...vitalTekilItems];
+    useTekilInstead = true;
+    console.log("✅ Sadece TEKİL var, onu kullan");
+  }
+
+  // ========== ASÇ İŞLEMLERİ ==========
+  const asçItems = [...selectedVitalItems, ...otherNurseItems];
+  
+  console.log("📊 ASÇ İşlemleri:", {
+    selectedVitalCount: selectedVitalItems.length,
+    otherNurseCount: otherNurseItems.length,
+    totalAsçCount: asçItems.length,
+    useTekilInstead
   });
-  
-  // DOKTOR işlemleri (showAll true ise)
+
+  // ========== DOKTOR İŞLEMLERİ (showAll true ise) ==========
+  // ✅ DÜZELTİLDİ: nurseFilterList zaten VİTAL BULGU'ları içeriyor, ekstra kontrol gerekmez
   const doctorItems = showAll ? data.filter(item => {
     const ad = item.ad.toUpperCase();
-    return !nurseFilterList.some(filter => ad.includes(filter.toUpperCase())) &&
-           !ad.includes("VİTAL BULGU ASÇ TEKİL");
+    // nurseFilterList'te olmayanlar doktor işlemidir
+    return !nurseFilterList.some(filter => ad.includes(filter.toUpperCase()));
   }) : [];
   
-  console.log("📊 buildNurseTable filtreleme:", { 
-    asçItems: asçItems.length, 
-    tekilItems: tekilItems.length, 
-    doctorItems: doctorItems.length 
-  });
+  console.log("📊 DOKTOR İşlemleri:", { doctorItemsCount: doctorItems.length });
   
-  const allAsçItems = [...asçItems, ...tekilItems];
+  // ========== TABLO OLUŞTURMA ==========
   
-  if (allAsçItems.length > 0) {
-    console.log("📊 ASÇ başlığı ekleniyor, satır sayısı:", allAsçItems.length);
+  // ASÇ başlığı
+  if (asçItems.length > 0) {
     const headerRow = document.createElement("tr");
     const headerCell = document.createElement("td");
     headerCell.colSpan = 5;
-    headerCell.textContent = "ASÇ İŞLEMLERİ";
+    headerCell.textContent = useTekilInstead ? "ASÇ İŞLEMLERİ (TEKİL)" : "ASÇ İŞLEMLERİ";
     headerCell.className = "category-header";
     if (document.body.classList.contains("dark-mode")) {
       headerCell.style.backgroundColor = "var(--blue)";
@@ -224,7 +269,7 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
     headerRow.appendChild(headerCell);
     fragment.appendChild(headerRow);
     
-    allAsçItems.forEach((item) => {
+    asçItems.forEach((item) => {
       const tr = createTableRow(item);
       fragment.appendChild(tr);
     });
@@ -232,8 +277,6 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
   
   // DOKTOR GRUPLARI
   if (doctorItems.length > 0) {
-    console.log("📊 DOKTOR grupları ekleniyor, satır sayısı:", doctorItems.length);
-    
     const gruplar = {
       TARAMALAR: [],
       İZLEMLER: [],
@@ -254,8 +297,6 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
     Object.keys(gruplar).forEach((grupAdi) => {
       const items = gruplar[grupAdi];
       if (items.length === 0) return;
-      
-      console.log(`📊 Grup: ${grupAdi}, satır sayısı: ${items.length}`);
       
       const headerRow = document.createElement("tr");
       const headerCell = document.createElement("td");
@@ -286,22 +327,16 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
     });
   }
 
-  // ✅ Tek seferde DOM'a ekle
-  console.log("📊 fragment içindeki çocuk sayısı:", fragment.childNodes.length);
+  // Tabloyu DOM'a ekle
   tbody.innerHTML = "";
   tbody.appendChild(fragment);
-  console.log("📊 tbody içindeki çocuk sayısı:", tbody.childNodes.length);
 
   // KHT bar güncelleme
   let khtData;
   if (showAll) {
     khtData = data;
   } else {
-    khtData = data.filter(item => {
-      const ad = item.ad.toUpperCase();
-      if (ad.includes("VİTAL BULGU ASÇ TEKİL")) return false;
-      return nurseFilterList.some(filter => ad.includes(filter.toUpperCase()));
-    });
+    khtData = asçItems;
   }
   if (updateKHTBarFn) updateKHTBarFn(khtData, "nurse");
 

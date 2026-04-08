@@ -219,7 +219,7 @@ export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tava
   
   input.addEventListener("change", (e) => {
     const newBirimId = e.target.value.trim();
-    import('./state.js').then(({ setCurrentBirimId, saveCurrentBirimIdToStorage, setCurrentShowAll, loadNurseShowAllForBirim }) => {
+    import('./state.js').then(({ setCurrentBirimId, saveCurrentBirimIdToStorage, setCurrentShowAll, loadNurseShowAllForBirim, getCurrentUserType }) => {
       setCurrentBirimId(newBirimId);
       saveCurrentBirimIdToStorage();
       chrome.storage.local.set({ birimId: newBirimId });
@@ -234,19 +234,25 @@ export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tava
       
       const currentAy = aySelect?.value || "";
       const currentYil = parseInt(yilInput?.value || "0");
-      const userType = getCurrentUserType();
+      const userType = getCurrentUserType();  // ← getCurrentUserType import edilmeli
       
       if (userType === "nurse") {
         loadNurseShowAllForBirim(newBirimId).then((showAll) => {
           setCurrentShowAll(showAll);
           import('./storage.js').then(({ loadDataForCurrentBirimWithMerge }) => {
-            loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, updateHypButtonStateFn, showAll, currentAy, currentYil);
+            // ✅ userType parametresini ekle
+            loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, (hasData) => {
+              updateHypButtonStateFn(hasData, userType);
+            }, showAll, currentAy, currentYil);
           });
         });
       } else {
         setCurrentShowAll(false);
         import('./storage.js').then(({ loadDataForCurrentBirimWithMerge }) => {
-          loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, updateHypButtonStateFn, false, currentAy, currentYil);
+          // ✅ userType parametresini ekle
+          loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, (hasData) => {
+            updateHypButtonStateFn(hasData, userType);
+          }, false, currentAy, currentYil);
         });
       }
     });

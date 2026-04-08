@@ -133,10 +133,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     if (userType === "nurse") {
       loadNurseShowAllForBirim(birimId).then((showAll) => {
-        loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, updateHypButtonStateUI, showAll, selectedAy, selectedYil);
+        loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, (hasData) => {
+          updateHypButtonStateUI(hasData, userType);
+        }, showAll, selectedAy, selectedYil);
       });
     } else {
-      loadDataForCurrentBirim(updateTable, userType, birimId, updateHypButtonStateUI, false, selectedAy, selectedYil);
+      loadDataForCurrentBirim(updateTable, userType, birimId, (hasData) => {
+        updateHypButtonStateUI(hasData, userType);
+      }, false, selectedAy, selectedYil);
     }
   }
 
@@ -425,11 +429,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       const key = `savedResults_${userType}_${birimId}`;
       
       chrome.storage.local.get([key], async (res) => {
-        if (!res[key]?.data) {
-          await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
-          return;
-        }
-        let guncelVeri = [...res[key].data];
+        // ✅ BU KONTROLÜ KALDIR VEYA DEĞİŞTİR
+        // if (!res[key]?.data) {
+        //   await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
+        //   return;
+        // }
+        
+        // Yeni yaklaşım: SİNA verisi yoksa bile doktor verisini kaydet
+        let guncelVeri = res[key]?.data || [];
+        
         msg.results.forEach((hypItem) => {
           const sinaKarsiligi = hypToSinaMap[hypItem.ad.toUpperCase()];
           if (sinaKarsiligi) {
@@ -444,6 +452,8 @@ document.addEventListener("DOMContentLoaded", async function () {
           const hypTimeSpan = document.getElementById("hypTime");
           if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         }
+        
+        // Tabloyu güncelle (mevcut showAll değerine göre)
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
     }

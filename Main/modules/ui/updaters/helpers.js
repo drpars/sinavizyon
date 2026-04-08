@@ -30,9 +30,19 @@ export function clearTimeIndicators() {
 }
 
 // ========== BUTON DURUM GÜNCELLEMELERİ ==========
-export function updateHypButtonStateUI(hasData) {
+export function updateHypButtonStateUI(hasData, userType = null) {
   const hypBtn = buttons.hyp();
-  if (hypBtn) hypBtn.disabled = !hasData;
+  if (!hypBtn) return;
+  
+  // ASÇ modunda SİNA BİRİM butonu HER ZAMAN aktif
+  if (userType === "nurse") {
+    hypBtn.disabled = false;
+    console.log("🔘 ASÇ modu: SİNA BİRİM butonu aktif edildi");
+  } else {
+    // Doktor modunda HYP butonu sadece SİNA verisi varsa aktif
+    hypBtn.disabled = !hasData;
+    console.log("🔘 Doktor modu: HYP butonu aktif:", !hypBtn.disabled);
+  }
 }
 
 // ========== KULLANICI TİPİ UI GÜNCELLEMELERİ ==========
@@ -44,6 +54,7 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
   const hypBtn = buttons.hyp();
   
   if (type === "nurse") {
+    // ASÇ MODU
     if (tavanKart) tavanKart.style.display = "none";
     if (surecRow) surecRow.style.display = "none";
     if (nufusRow) nufusRow.style.display = "none";
@@ -51,14 +62,24 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
     if (hypBtn) hypBtn.textContent = "SİNA BİRİM";
     if (sinaBtn) sinaBtn.disabled = false;
     
+    // ✅ SİNA BİRİM butonunu her zaman aktif yap
+    if (hypBtn) hypBtn.disabled = false;
+    
     if (birimId) {
       loadNurseShowAllForBirim(birimId).then((showAll) => {
-        loadDataForCurrentBirimWithMerge(updateTable, type, birimId, updateHypButtonStateFn, showAll, currentAy, currentYil);
+        loadDataForCurrentBirimWithMerge(updateTable, type, birimId, (hasData) => {
+          // ASÇ modunda buton her zaman aktif olduğu için updateHypButtonStateFn çağrısına gerek yok
+          // ama callback'i çağırarak dışarıdaki state'i güncelleyelim
+          if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
+        }, showAll, currentAy, currentYil);
       });
     } else {
-      loadDataForCurrentBirimWithMerge(updateTable, type, birimId, updateHypButtonStateFn, false, currentAy, currentYil);
+      loadDataForCurrentBirimWithMerge(updateTable, type, birimId, (hasData) => {
+        if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
+      }, false, currentAy, currentYil);
     }
   } else {
+    // DOKTOR MODU
     if (tavanKart) tavanKart.style.display = "flex";
     if (surecRow) surecRow.style.display = "flex";
     if (nufusRow) nufusRow.style.display = "flex";
@@ -69,7 +90,9 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
     if (birimId) {
       loadNufusForBirim(birimId, tavanHesapla);
     }
-    loadDataForCurrentBirim(updateTable, type, birimId, updateHypButtonStateFn, false, currentAy, currentYil);
+    loadDataForCurrentBirim(updateTable, type, birimId, (hasData) => {
+      if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
+    }, false, currentAy, currentYil);
   }
 }
 
