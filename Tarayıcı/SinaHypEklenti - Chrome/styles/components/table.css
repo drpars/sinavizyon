@@ -1,0 +1,96 @@
+/* ============================================
+   TABLE.CSS - Tablo Stillleri
+   ============================================ */
+
+.table-container {
+  margin-top: 12px;
+  overflow-x: auto;
+  overflow-y: auto;
+  flex-grow: 1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.table-container::-webkit-scrollbar {
+  display: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.68rem;
+}
+
+th:nth-child(1) { width: 65%; }
+th:nth-child(2) { width: 15%; }
+th:nth-child(3) { width: 15%; }
+th:nth-child(4) { width: 15%; }
+th:nth-child(5) { width: 20%; }
+
+th, td {
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+th:first-child, td:first-child {
+  text-align: left;
+}
+
+.row-title {
+  text-align: left;
+  font-weight: bold;
+  max-width: 120px;
+  overflow-wrap: break-word;
+}
+
+.category-header {
+  background-color: var(--blue);
+  color: #ffffff;
+  font-weight: bold;
+  text-align: left;
+  padding: 8px;
+}
+
+tr.status-done {
+  background-color: var(--soft-green);
+}
+
+tr.status-fail {
+  background-color: var(--soft-red);
+}
+
+tr.status-done td:nth-child(2),
+tr.status-done td:nth-child(3),
+tr.status-done td:nth-child(4) {
+  color: #1c9b6f;
+  font-weight: bold;
+}
+
+.kvkk-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 8px;
+  font-size: 0.6rem;
+  text-align: center;
+  z-index: 10;
+  margin-top: 8px;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kvkk-footer-btn {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.6rem;
+}

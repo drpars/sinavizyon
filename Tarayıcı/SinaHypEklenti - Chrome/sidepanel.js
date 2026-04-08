@@ -341,6 +341,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
+  // Ayarlar butonu
+  const settingsBtn = document.getElementById("btnSettings");
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", () => {
+      import('./modules/ui/components/modal/settings.js').then(({ openSettingsModal }) => {
+        openSettingsModal();
+      });
+    });
+  }
+
   // Tüm event handler'ları bağla
   bindAllEvents(
     setUserType, deleteAllData, revokeConsent,

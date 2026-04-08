@@ -2,94 +2,36 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css">
+    <!-- ANA STILLER -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- KOMPONENTLER -->
+    <link rel="stylesheet" href="styles/components/header.css">
+    <link rel="stylesheet" href="styles/components/buttons.css">
+    <link rel="stylesheet" href="styles/components/cards.css">
+    <link rel="stylesheet" href="styles/components/table.css">
+    <link rel="stylesheet" href="styles/components/modal.css">
+    <link rel="stylesheet" href="styles/components/settings-modal.css">
+    <link rel="stylesheet" href="styles/components/toast.css">
+    <link rel="stylesheet" href="styles/components/spinner.css">
   </head>
   <body>
+    <!-- HEADER -->
     <div class="header-container">
-      <button id="btnAbout" title="Hakkında" style="position: absolute; left: 0; background: none; border: none; cursor: pointer; padding: 0;">
+      <button id="btnAbout" title="Hakkında" class="header-btn about-btn">
         <img src="icons/about.png" style="width: 18px; height: 18px; opacity: 0.8;">
       </button>
       <div class="title">
-        SİNA VİZYON<span id="versionBadge" style="font-size: 10px; opacity: 0.7; margin-left: 6px"></span>
+        SİNA VİZYON<span id="versionBadge" class="version-badge"></span>
       </div>
-      <button id="btnSettings" title="Ayarlar">⚙️</button>
+      <button id="btnSettings" title="Ayarlar" class="header-btn settings-btn">⚙️</button>
     </div>
 
-    <div id="settingsPanel">
-      <label>KULLANICI TÜRÜ</label>
-      <select id="userTypeSelect">
-        <option value="doctor">👨‍⚕️ Aile Hekimi</option>
-        <option value="nurse">👩‍⚕️ Aile Sağlığı Çalışanı (ASÇ)</option>
-      </select>
-      <hr style="margin: 8px 0; border-color: var(--border)" />
-      <label>GÖRÜNÜM TEMASI</label>
-      <select id="themeSelect">
-        <option value="light">Açık (Varsayılan)</option>
-        <option value="dark">Koyu (Tokyo Night)</option>
-      </select>
-      <hr style="margin: 8px 0; border-color: var(--border)" />
-      <button id="btnDeleteData" class="small-btn">
-        🗑️ Tüm Verilerimi Sil
-      </button>
-      <button id="btnExportData" class="small-btn">
-        📤 Verilerimi Dışa Aktar
-      </button>
-      <button id="btnToggleKvkk" class="small-btn">
-        🔒 KVKK Bilgilendirmelerini Gizle
-      </button>
-      <button id="btnRevokeConsent" class="small-btn">
-        🔒 Rızamı Geri Çek
-      </button>
-      <button id="btnChangelog" class="small-btn">📋 Sürüm Geçmişi</button>
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-        <label>YAZI BOYUTU</label>
-        <label class="switch">
-          <input type="checkbox" id="fontToggleCheckbox">
-          <span class="slider round"></span>
-        </label>
-      </div>
-      <div id="fontSettingsContainer" style="display: none;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
-          <span style="font-size: 10px;">A</span>
-          <input type="range" id="fontSizeSlider" min="12" max="20" step="0.25" value="16" style="flex: 1;">
-          <span style="font-size: 18px;">A</span>
-          <span id="fontSizeValue" style="min-width: 40px;">16px</span>
-        </div>
-        <hr style="margin: 8px 0; border-color: var(--border);">
-      </div>
-      <!-- MENU KAPATMA AYARLARI -->
-      <!-- <hr style="margin: 8px 0; border-color: var(--border)"> -->
-      <!-- <div style="margin-bottom: 8px;"> -->
-      <!--   <label>MENU KAPATMA AYARLARI</label> -->
-      <!--   <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;"> -->
-      <!--     <span style="font-size: 0.625rem;">Dışarı tıklayınca kapat</span> -->
-      <!--     <label class="switch"> -->
-      <!--       <input type="checkbox" id="closeOnClickOutsideToggle"> -->
-      <!--       <span class="slider round"></span> -->
-      <!--     </label> -->
-      <!--   </div> -->
-      <!--   <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;"> -->
-      <!--     <span style="font-size: 0.625rem;">Fare tekerleği ile kapat</span> -->
-      <!--     <label class="switch"> -->
-      <!--       <input type="checkbox" id="closeOnWheelOutsideToggle"> -->
-      <!--       <span class="slider round"></span> -->
-      <!--     </label> -->
-      <!--   </div> -->
-      <!-- </div> -->
-      <!-- <hr style="margin: 8px 0; border-color: var(--border)"> -->
-
-      <div id="kvkkSettingsNote" class="kvkk-settings-note">
-        🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra
-        otomatik silinir. İstediğiniz zaman silebilir veya dışa
-        aktarabilirsiniz.
-      </div>
-    </div>
-
+    <!-- UYARI -->
     <div id="consentWarning" class="hidden">
-      ⚠️ KVKK rızası verilmemiş. Lütfen ayarlardan rıza vermek için eklentiyi
-      yeniden başlatın.
+      ⚠️ KVKK rızası verilmemiş. Lütfen ayarlardan rıza vermek için eklentiyi yeniden başlatın.
     </div>
 
+    <!-- KHT KARTI -->
     <div id="totalScoreCard">
       <div class="kht-header">
         <span>KHT YÜZDESİ</span>
@@ -122,67 +64,25 @@
       </div>
     </div>
 
-    <!-- GELİŞMİŞ AYARLAR BUTONU -->
-    <button id="toggleAdvancedBtn" class="toggle-advanced-btn">
-      🔧 Gelişmiş Ayarlar
-    </button>
-
-    <!-- GELİŞMİŞ AYARLAR ALANI (başlangıçta gizli) -->
-    <div id="advancedSettings" class="advanced-settings">
-      <div style="display: flex; gap: 8px; margin-bottom: 8px">
-        <div class="row" style="flex: 1">
-          <label>AY</label>
-          <select id="ay">
-            <option value="OCAK">OCAK</option>
-            <option value="SUBAT">SUBAT</option>
-            <option value="MART">MART</option>
-            <option value="NISAN">NISAN</option>
-            <option value="MAYIS">MAYIS</option>
-            <option value="HAZIRAN">HAZIRAN</option>
-            <option value="TEMMUZ">TEMMUZ</option>
-            <option value="AGUSTOS">AGUSTOS</option>
-            <option value="EYLUL">EYLUL</option>
-            <option value="EKIM">EKIM</option>
-            <option value="KASIM">KASIM</option>
-            <option value="ARALIK">ARALIK</option>
-          </select>
-        </div>
-        <div class="row" style="flex: 1">
-          <label>YIL</label>
-          <input type="number" id="yil" value="2026" />
-        </div>
+    <!-- BUTON GRUBU -->
+    <div class="btn-group">
+      <div class="btn-wrapper">
+        <button id="btnSina" class="btn btn-sina">SİNA</button>
+        <div id="sinaTime" class="time-label">Veri bekleniyor...</div>
       </div>
-
-      <div style="display: flex; gap: 8px; margin-bottom: 8px">
-        <div class="row" style="flex: 1">
-          <label>BİRİM ID</label>
-          <input type="text" id="birimId" placeholder="Birim ID" />
-        </div>
-        <div class="row" style="flex: 1">
-          <label>NÜFUS</label>
-          <input type="number" id="nufus" placeholder="Nüfus girin" />
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <div class="btn-wrapper">
-          <button id="btnSina" class="btn">SİNA</button>
-          <div id="sinaTime" class="time-label">Veri bekleniyor...</div>
-        </div>
-        <div class="btn-wrapper">
-          <button id="btnHyp" class="btn">HYP</button>
-          <div id="hypTime" class="time-label"></div>
-        </div>
+      <div class="btn-wrapper">
+        <button id="btnHyp" class="btn btn-hyp">HYP</button>
+        <div id="hypTime" class="time-label"></div>
       </div>
     </div>
 
+    <!-- TABLO -->
     <div class="table-container">
-      <div id="loadingSpinner" style="display: none; text-align: center; padding: 40px 20px;">
+      <div id="loadingSpinner" style="display: none;">
         <div class="spinner"></div>
         <div class="spinner-text">Veri çekiliyor, lütfen bekleyin...</div>
-        <div style="font-size: 0.6rem; margin-top: 8px; opacity: 0.6;">Bu işlem 5-10 saniye sürebilir</div>
       </div>
-      <table>
+      <table id="dataTable">
         <thead>
           <tr>
             <th style="text-align: left">İŞLEM ADI</th>
@@ -194,12 +94,15 @@
         </thead>
         <tbody id="tableBody"></tbody>
       </table>
-      <div id="kvkkFooter" class="kvkk-footer" style="display: flex; justify-content: space-between; align-items: center;">
-        <span>🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra otomatik silinir. İstediğiniz zaman silebilir veya dışa aktarabilirsiniz.</span>
-        <button id="toggleKvkkFooterBtn" class="small-btn" style="width: auto; padding: 2px 8px; margin: 0; background: var(--bg);">Gizle</button>
-      </div>
     </div>
 
+    <!-- KVKK FOOTER -->
+    <div id="kvkkFooter" class="kvkk-footer">
+      <span>🔒 Verileriniz yalnızca sizin cihazınızda saklanır, 90 gün sonra otomatik silinir.</span>
+      <button id="toggleKvkkFooterBtn" class="kvkk-footer-btn">Gizle</button>
+    </div>
+
+    <!-- MODAL'LAR -->
     <div id="changelogModal" class="modal">
       <div class="modal-content">
         <span class="modal-close">&times;</span>
@@ -211,7 +114,7 @@
     <div id="consentModal" class="consent-modal">
       <div class="consent-modal-content">
         <h3>🔒 KVKK Aydınlatma ve Rıza</h3>
-        <p style="text-align: left">
+        <p>
           Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini
           yerel olarak saklar.<br /><br />
           ✓ Verileriniz yalnızca sizin cihazınızda tutulur<br />
@@ -225,8 +128,6 @@
         </div>
       </div>
     </div>
-
     <script type="module" src="sidepanel.js"></script>
-    <script src="sidepanel-toggle.js"></script>
   </body>
 </html>

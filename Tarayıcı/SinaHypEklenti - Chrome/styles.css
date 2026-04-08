@@ -636,3 +636,471 @@ input:focus + .slider {
 input:checked + .slider:before {
   transform: translateX(18px); /* 40-18-2-2 = 18 */
 }
+
+/* ========== TOAST NOTIFICATION ========== */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--blue);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  z-index: 10000;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-notification.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-notification.toast-error {
+  background: var(--red);
+}
+
+.toast-notification.toast-warning {
+  background: var(--orange);
+}
+
+.toast-icon {
+  font-size: 1rem;
+}
+
+.toast-message {
+  font-size: 0.8rem;
+}
+
+/* ========== AYARLAR MODAL ========== */
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.settings-modal-container {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  background: var(--bg-dark);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-modal-icon {
+  font-size: 28px;
+  margin-right: 12px;
+}
+
+.settings-modal-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--blue);
+}
+
+.settings-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--fg);
+  opacity: 0.6;
+  transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.settings-modal-close:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.settings-modal-body {
+  padding: 20px 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.settings-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-modal-body::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.settings-modal-body::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 3px;
+}
+
+/* Settings Cards */
+.settings-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.settings-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 2px 8px rgba(122, 162, 247, 0.1);
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-card-icon {
+  font-size: 18px;
+}
+
+.settings-card-title {
+  font-weight: bold;
+  font-size: 0.8rem;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-card-body {
+  padding: 16px 18px;
+}
+
+.settings-row {
+  margin-bottom: 16px;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--blue);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.settings-select,
+.settings-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--fg);
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.settings-select:focus,
+.settings-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1);
+}
+
+.settings-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--blue);
+  cursor: pointer;
+}
+
+.settings-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.settings-radio input {
+  display: none;
+}
+
+.settings-radio-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.settings-radio input:checked + .settings-radio-custom {
+  border-color: var(--blue);
+}
+
+.settings-radio input:checked + .settings-radio-custom::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  background: var(--blue);
+  border-radius: 50%;
+}
+
+.settings-radio-label {
+  font-size: 0.85rem;
+}
+
+.settings-theme-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.theme-btn {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.theme-btn:hover {
+  border-color: var(--blue);
+}
+
+.theme-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.settings-font-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.font-size-value {
+  min-width: 45px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--blue);
+}
+
+.settings-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.settings-btn:last-child {
+  margin-bottom: 0;
+}
+
+.settings-btn-primary {
+  background: var(--blue);
+  color: white;
+}
+
+.settings-btn-primary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.settings-btn-danger {
+  background: var(--red);
+  color: white;
+}
+
+.settings-btn-danger:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.settings-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.settings-footer-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-footer-btn-primary {
+  background: var(--blue);
+  color: white;
+}
+
+.settings-footer-btn-secondary {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+.settings-footer-btn-primary:hover,
+.settings-footer-btn-secondary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+/* Header butonları */
+.header-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Hakkında butonu - sol */
+.about-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.settings-btn {
+  font-size: 18px;
+  color: var(--blue);
+}
+
+.version-badge {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 6px;
+}
+
+/* Buton stilleri */
+.btn-sina {
+  background-color: var(--blue);
+  color: #fff;
+}
+
+.btn-hyp {
+  background-color: var(--magenta);
+  color: #fff;
+}
+
+/* KVKK footer butonu */
+.kvkk-footer-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.6rem;
+}
+
+/* Tablo container */
+.table-container {
+  margin-top: 12px;
+  overflow-x: auto;
+  flex-grow: 1;
+}
