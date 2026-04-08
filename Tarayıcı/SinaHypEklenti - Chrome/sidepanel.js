@@ -161,6 +161,92 @@ function deleteAllData() {
   });
 }
 
+// ========== KAYITLI AYARLARI YÜKLE ==========
+async function loadSavedPeriodSettings() {
+  // Ay
+  const savedAy = await new Promise(resolve => 
+    chrome.storage.local.get(["lastSelectedAy"], (res) => resolve(res.lastSelectedAy))
+  );
+  if (savedAy) {
+    const aySelect = document.getElementById("ay");
+    if (aySelect) aySelect.value = savedAy;
+  }
+  
+  // Yıl
+  const savedYil = await new Promise(resolve => 
+    chrome.storage.local.get(["lastSelectedYil"], (res) => resolve(res.lastSelectedYil))
+  );
+  if (savedYil) {
+    const yilInput = document.getElementById("yil");
+    if (yilInput) yilInput.value = savedYil;
+  }
+  
+  // Birim ID
+  const savedBirimId = await new Promise(resolve => 
+    chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId))
+  );
+  if (savedBirimId) {
+    const birimIdInput = document.getElementById("birimId");
+    if (birimIdInput) birimIdInput.value = savedBirimId;
+    setCurrentBirimId(savedBirimId);
+    
+    const savedNufus = await new Promise(resolve => 
+      chrome.storage.local.get([`nufus_${savedBirimId}`], (res) => resolve(res[`nufus_${savedBirimId}`]))
+    );
+    if (savedNufus) {
+      const nufusInput = document.getElementById("nufus");
+      if (nufusInput) nufusInput.value = savedNufus;
+      tavanHesapla(savedNufus);
+    }
+  }
+  
+  // ✅ TEMA
+  const savedTheme = await new Promise(resolve => 
+    chrome.storage.local.get(["themePreference"], (res) => resolve(res.themePreference || "light"))
+  );
+  applyTheme(savedTheme);
+  
+  // ✅ KULLANICI TİPİ - AL ve UYGULA (setUserType fonksiyonunu kullan!)
+  const savedUserType = await new Promise(resolve => 
+    chrome.storage.local.get(["userType"], (res) => resolve(res.userType || "doctor"))
+  );
+  
+  // setUserType fonksiyonu UI'ı tamamen günceller
+  if (typeof setUserType === 'function') {
+    setUserType(savedUserType);
+  } else {
+    // Fallback: manuel güncelle
+    setCurrentUserType(savedUserType);
+    await saveCurrentUserTypeToStorage();
+    
+    const birimId = getCurrentBirimId();
+    const currentAy = getDomAy();
+    const currentYil = getDomYil();
+    
+    // UI'ı güncelle
+    updateUIForUserType(savedUserType, birimId, currentAy, currentYil, updateHypButtonStateUI);
+  }
+  
+  // ✅ YAZI BOYUTU
+  const savedFontSize = await new Promise(resolve => 
+    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 12))
+  );
+  document.documentElement.style.fontSize = savedFontSize + "px";
+  
+  const fontToggleCheckbox = document.getElementById("fontToggleCheckbox");
+  const fontContainer = document.getElementById("fontSettingsContainer");
+  if (fontToggleCheckbox && savedFontSize !== 12) {
+    fontToggleCheckbox.checked = true;
+    if (fontContainer) fontContainer.style.display = "block";
+  } else if (fontToggleCheckbox) {
+    fontToggleCheckbox.checked = false;
+    if (fontContainer) fontContainer.style.display = "none";
+  }
+  
+  const fontSizeValue = document.getElementById("fontSizeValue");
+  if (fontSizeValue) fontSizeValue.textContent = savedFontSize + "px";
+}
+
 // ========== SAYFA YÜKLENİNCE ==========
 document.addEventListener("DOMContentLoaded", async function () {
   const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
@@ -350,6 +436,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       });
     });
   }
+
+  // ✅ KAYITLI DÖNEM AYARLARINI YÜKLE (veri yenilemeden ÖNCE)
+  await loadSavedPeriodSettings();
 
   // Tüm event handler'ları bağla
   bindAllEvents(

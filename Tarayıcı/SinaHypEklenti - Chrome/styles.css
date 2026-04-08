@@ -30,6 +30,11 @@ body.dark-mode {
   --header-kanser: #e0af68;
 }
 
+/* Tarayıcılar arası kutu modeli standartlaştırması */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 /* Ana body – taşma kontrolü */
 body {
   background-color: var(--bg);
@@ -40,7 +45,13 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden; /* Ana taşma yok, tablo içinde kaydırma */
+  overflow: hidden;
+  
+  /* Chrome ve Firefox için font yumuşatma - Daha net okunabilirlik */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.4;
 }
 
 .header-container {
@@ -49,14 +60,18 @@ body {
   align-items: center;
   position: relative;
   margin-bottom: 12px;
+  min-height: 24px; /* Butonların yüksekliği kadar minimum alan */
 }
+
 .title {
   font-size: 0.875rem;
   font-weight: bold;
   color: var(--blue);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: center;
 }
+
 #versionBadge {
   font-size: 0.625rem;
   font-weight: normal;
@@ -66,17 +81,18 @@ body {
   border-radius: 12px;
   margin-left: 8px;
   opacity: 0.9;
+  vertical-align: middle; /* Badge'in başlık yanındaki dikey hizasını düzeltir */
 }
-#btnSettings {
-  position: absolute;
-  right: 0;
-  background: none;
-  border: none;
-  color: var(--blue);
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-}
+/* #btnSettings { */
+/*   position: absolute; */
+/*   right: 0; */
+/*   background: none; */
+/*   border: none; */
+/*   color: var(--blue); */
+/*   cursor: pointer; */
+/*   font-size: 18px; */
+/*   line-height: 1; */
+/* } */
 #settingsPanel {
   display: none;
   background: var(--bg-dark);
@@ -783,6 +799,9 @@ input:checked + .slider:before {
   max-height: 60vh;
   overflow-y: auto;
   scrollbar-width: thin;
+  /* Firefox Scrollbar Şekillendirme */
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) var(--border);
 }
 
 .settings-modal-body::-webkit-scrollbar {
@@ -1049,6 +1068,37 @@ input:checked + .slider:before {
 }
 
 /* Header butonları */
+.header-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.2s;
+  position: absolute;
+}
+
+.header-icon-btn:hover {
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
+
+/* Sol buton */
+#btnAbout {
+  left: 0;
+  opacity: 0.8;
+}
+
+/* Sağ buton (⚙️) */
+#btnSettings {
+  right: 0;
+  font-size: 18px;
+  color: var(--blue);
+  line-height: 1;
+}
+
 .header-btn {
   background: none;
   border: none;
@@ -1056,20 +1106,20 @@ input:checked + .slider:before {
 }
 
 /* Hakkında butonu - sol */
-.about-btn {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
+/* .about-btn { */
+/*   flex-shrink: 0; */
+/*   background: none; */
+/*   border: none; */
+/*   cursor: pointer; */
+/*   padding: 0; */
+/*   opacity: 0.8; */
+/*   transition: opacity 0.2s; */
+/* } */
 
-.settings-btn {
-  font-size: 18px;
-  color: var(--blue);
-}
+/* .settings-btn { */
+/*   font-size: 18px; */
+/*   color: var(--blue); */
+/* } */
 
 .version-badge {
   font-size: 10px;

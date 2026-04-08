@@ -1,9 +1,9 @@
 // modules/ui/components/modal/settings.js
-// Ayarlar Modalı
+// Ayarlar Modalı - Tüm ayarlar hafızada tutulur
 
 import { getCurrentUserType, setCurrentUserType, saveCurrentUserTypeToStorage, getCurrentBirimId, setCurrentBirimId, getCurrentShowAll } from '../../../core/state.js';
 import { getDomAy, getDomYil, getDomBirimId, getDomNufus } from '../../../core/dom.js';
-import { saveNufusForBirim } from '../../../core/storage.js';
+import { saveNufusForBirim, loadNufusForBirim } from '../../../core/storage.js';
 import { applyTheme } from '../../updaters/theme-updater.js';
 import { tavanHesapla } from '../../../lib/calculations.js';
 import { loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge } from '../../../core/storage.js';
@@ -13,9 +13,7 @@ import { exportData, revokeConsent } from '../../../core/storage.js';
 import { confirmDialog } from '../dialog.js';
 
 let modalElement = null;
-let currentSettings = {};
 
-// Modal HTML'i oluştur
 function createSettingsModal() {
   const modal = document.createElement("div");
   modal.id = "settingsModal";
@@ -31,7 +29,31 @@ function createSettingsModal() {
       </div>
       
       <div class="settings-modal-body">
-        <!-- KULLANICI TİPİ -->
+        <!-- 1. GÖRÜNÜM -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon">🎨</span>
+            <span class="settings-card-title">Görünüm</span>
+          </div>
+          <div class="settings-card-body">
+            <div class="settings-row">
+              <label class="settings-label">Tema</label>
+              <div class="settings-theme-buttons">
+                <button class="theme-btn" data-theme="light">☀️ Açık</button>
+                <button class="theme-btn" data-theme="dark">🌙 Koyu</button>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label class="settings-label">Yazı Boyutu</label>
+              <div class="settings-font-control">
+                <span class="font-size-value" id="modalFontSizeValue">12px</span>
+                <input type="range" id="modalFontSizeSlider" class="settings-slider" min="10" max="18" step="0.5" value="12">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. KULLANICI TİPİ -->
         <div class="settings-card">
           <div class="settings-card-header">
             <span class="settings-card-icon">👤</span>
@@ -53,70 +75,50 @@ function createSettingsModal() {
           </div>
         </div>
 
-        <!-- DÖNEM AYARLARI -->
+        <!-- 3. DÖNEM AYARLARI - YAN YANA -->
         <div class="settings-card">
           <div class="settings-card-header">
             <span class="settings-card-icon">📅</span>
             <span class="settings-card-title">Dönem Ayarları</span>
           </div>
           <div class="settings-card-body">
-            <div class="settings-row">
-              <label class="settings-label">Ay</label>
-              <select id="modalAy" class="settings-select">
-                <option value="OCAK">OCAK</option>
-                <option value="SUBAT">SUBAT</option>
-                <option value="MART">MART</option>
-                <option value="NISAN">NISAN</option>
-                <option value="MAYIS">MAYIS</option>
-                <option value="HAZIRAN">HAZIRAN</option>
-                <option value="TEMMUZ">TEMMUZ</option>
-                <option value="AGUSTOS">AGUSTOS</option>
-                <option value="EYLUL">EYLUL</option>
-                <option value="EKIM">EKIM</option>
-                <option value="KASIM">KASIM</option>
-                <option value="ARALIK">ARALIK</option>
-              </select>
-            </div>
-            <div class="settings-row">
-              <label class="settings-label">Yıl</label>
-              <input type="number" id="modalYil" class="settings-input" value="2026">
-            </div>
-            <div class="settings-row">
-              <label class="settings-label">Birim ID</label>
-              <input type="text" id="modalBirimId" class="settings-input" placeholder="Birim ID girin">
-            </div>
-            <div class="settings-row">
-              <label class="settings-label">Nüfus</label>
-              <input type="number" id="modalNufus" class="settings-input" placeholder="Nüfus girin">
-            </div>
-          </div>
-        </div>
-
-        <!-- GÖRÜNÜM -->
-        <div class="settings-card">
-          <div class="settings-card-header">
-            <span class="settings-card-icon">🎨</span>
-            <span class="settings-card-title">Görünüm</span>
-          </div>
-          <div class="settings-card-body">
-            <div class="settings-row">
-              <label class="settings-label">Tema</label>
-              <div class="settings-theme-buttons">
-                <button class="theme-btn" data-theme="light">☀️ Açık</button>
-                <button class="theme-btn" data-theme="dark">🌙 Koyu</button>
+            <div class="settings-row-double">
+              <div class="settings-row">
+                <label class="settings-label">Ay</label>
+                <select id="modalAy" class="settings-select">
+                  <option value="OCAK">OCAK</option>
+                  <option value="SUBAT">SUBAT</option>
+                  <option value="MART">MART</option>
+                  <option value="NISAN">NISAN</option>
+                  <option value="MAYIS">MAYIS</option>
+                  <option value="HAZIRAN">HAZIRAN</option>
+                  <option value="TEMMUZ">TEMMUZ</option>
+                  <option value="AGUSTOS">AGUSTOS</option>
+                  <option value="EYLUL">EYLUL</option>
+                  <option value="EKIM">EKIM</option>
+                  <option value="KASIM">KASIM</option>
+                  <option value="ARALIK">ARALIK</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <label class="settings-label">Yıl</label>
+                <input type="number" id="modalYil" class="settings-input" value="2026">
               </div>
             </div>
-            <div class="settings-row">
-              <label class="settings-label">Yazı Boyutu</label>
-              <div class="settings-font-control">
-                <span class="font-size-value" id="modalFontSizeValue">16px</span>
-                <input type="range" id="modalFontSizeSlider" class="settings-slider" min="12" max="20" step="0.5" value="16">
+            <div class="settings-row-double">
+              <div class="settings-row">
+                <label class="settings-label">Birim ID</label>
+                <input type="text" id="modalBirimId" class="settings-input" placeholder="Birim ID">
+              </div>
+              <div class="settings-row">
+                <label class="settings-label">Nüfus</label>
+                <input type="number" id="modalNufus" class="settings-input" placeholder="Nüfus">
               </div>
             </div>
           </div>
         </div>
 
-        <!-- VERİ YÖNETİMİ -->
+        <!-- 4. VERİ YÖNETİMİ -->
         <div class="settings-card">
           <div class="settings-card-header">
             <span class="settings-card-icon">💾</span>
@@ -140,8 +142,8 @@ function createSettingsModal() {
   return modal;
 }
 
-// Mevcut değerleri modala yükle
-function loadCurrentValues() {
+// Modal'a mevcut değerleri yükle
+async function loadCurrentValues() {
   // Kullanıcı tipi
   const currentUserType = getCurrentUserType();
   const userTypeRadio = document.querySelector(`input[name="userTypeRadio"][value="${currentUserType}"]`);
@@ -159,88 +161,108 @@ function loadCurrentValues() {
     }
   });
   
-  // Yazı boyutu
-  const currentFontSize = parseInt(document.documentElement.style.fontSize) || 16;
+  // Yazı boyutu - storage'dan al
+  const savedFontSize = await new Promise(resolve => 
+    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 12))
+  );
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
   const fontSizeValue = document.getElementById("modalFontSizeValue");
-  if (fontSizeSlider) fontSizeSlider.value = currentFontSize;
-  if (fontSizeValue) fontSizeValue.textContent = currentFontSize + "px";
+  if (fontSizeSlider) fontSizeSlider.value = savedFontSize;
+  if (fontSizeValue) fontSizeValue.textContent = savedFontSize + "px";
   
-  // Dönem ayarları
+  // Dönem ayarları - storage'dan al
+  const savedAy = await new Promise(resolve => 
+    chrome.storage.local.get(["lastSelectedAy"], (res) => resolve(res.lastSelectedAy || getDomAy()))
+  );
+  const savedYil = await new Promise(resolve => 
+    chrome.storage.local.get(["lastSelectedYil"], (res) => resolve(res.lastSelectedYil || getDomYil()))
+  );
+  const savedBirimId = await new Promise(resolve => 
+    chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId || getDomBirimId()))
+  );
+  
   const modalAy = document.getElementById("modalAy");
   const modalYil = document.getElementById("modalYil");
   const modalBirimId = document.getElementById("modalBirimId");
   const modalNufus = document.getElementById("modalNufus");
   
-  if (modalAy) modalAy.value = getDomAy();
-  if (modalYil) modalYil.value = getDomYil();
-  if (modalBirimId) modalBirimId.value = getDomBirimId();
-  if (modalNufus) modalNufus.value = getDomNufus();
+  if (modalAy) modalAy.value = savedAy;
+  if (modalYil) modalYil.value = savedYil;
+  if (modalBirimId) modalBirimId.value = savedBirimId;
+  
+  // Nüfusu birim ID'ye göre yükle
+  if (savedBirimId) {
+    const savedNufus = await new Promise(resolve => 
+      chrome.storage.local.get([`nufus_${savedBirimId}`], (res) => resolve(res[`nufus_${savedBirimId}`] || ""))
+    );
+    if (modalNufus) modalNufus.value = savedNufus;
+  } else {
+    if (modalNufus) modalNufus.value = "";
+  }
 }
 
 // Değişiklikleri kaydet ve uygula
 async function applyChanges() {
-  // 1. Kullanıcı tipini al ve uygula
+  // 1. Kullanıcı tipi
   const selectedUserType = document.querySelector('input[name="userTypeRadio"]:checked')?.value;
   if (selectedUserType && selectedUserType !== getCurrentUserType()) {
     setCurrentUserType(selectedUserType);
     await saveCurrentUserTypeToStorage();
   }
   
-  // 2. Temayı al ve uygula
+  // 2. Tema
   const activeThemeBtn = document.querySelector(".theme-btn.active");
   const selectedTheme = activeThemeBtn?.dataset.theme || "light";
   applyTheme(selectedTheme);
-  await chrome.storage.local.set({ themePreference: selectedTheme });
+  await chrome.storage.local.set({ themePreference: selectedTheme }); // ✅ Kaydediyor
   
-  // 3. Yazı boyutunu al ve uygula
+  // 3. Yazı boyutu
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
-  const newFontSize = parseInt(fontSizeSlider?.value) || 12; // Varsayılan 12px
-
-  // ✅ Ana eklentinin fontunu değiştir
+  const newFontSize = parseInt(fontSizeSlider?.value) || 12;
   document.documentElement.style.fontSize = newFontSize + "px";
   await chrome.storage.local.set({ userFontSize: newFontSize });
-
-  // Font toggle checkbox'ı varsa işaretli mi kontrol et
+  
+  // Font toggle'ı aç
   const fontToggleCheckbox = document.getElementById("fontToggleCheckbox");
   if (fontToggleCheckbox && !fontToggleCheckbox.checked) {
-    // Eğer font ayarı kapalıysa, aç
     fontToggleCheckbox.checked = true;
     const fontContainer = document.getElementById("fontSettingsContainer");
     if (fontContainer) fontContainer.style.display = "block";
   }
   
-  // 4. Dönem ayarlarını al
+  // 4. Dönem ayarları
   const newAy = document.getElementById("modalAy")?.value || getDomAy();
   const newYil = parseInt(document.getElementById("modalYil")?.value) || getDomYil();
   const newBirimId = document.getElementById("modalBirimId")?.value.trim() || "";
   const newNufus = document.getElementById("modalNufus")?.value || "";
   
-  // 5. Değişiklikleri uygula
   let needsReload = false;
-  let needsStorageUpdate = false;
   
+  // AY ve YIL - storage'a kaydet
   if (newAy !== getDomAy()) {
     const aySelect = document.getElementById("ay");
     if (aySelect) aySelect.value = newAy;
+    await chrome.storage.local.set({ lastSelectedAy: newAy });
     needsReload = true;
   }
   
   if (newYil !== getDomYil()) {
     const yilInput = document.getElementById("yil");
     if (yilInput) yilInput.value = newYil;
+    await chrome.storage.local.set({ lastSelectedYil: newYil });
     needsReload = true;
   }
   
+  // BİRİM ID - storage'a kaydet
   if (newBirimId !== getDomBirimId()) {
     const birimIdInput = document.getElementById("birimId");
     if (birimIdInput) birimIdInput.value = newBirimId;
     setCurrentBirimId(newBirimId);
-    await saveCurrentUserTypeToStorage(); // BirimId'yi kaydet
+    await chrome.storage.local.set({ birimId: newBirimId });
     needsReload = true;
-    needsStorageUpdate = true;
   }
   
+  // NÜFUS - storage'a kaydet
   if (newNufus !== getDomNufus()) {
     const nufusInput = document.getElementById("nufus");
     if (nufusInput) nufusInput.value = newNufus;
@@ -253,7 +275,7 @@ async function applyChanges() {
     needsReload = true;
   }
   
-  // 6. Verileri yeniden yükle
+  // Verileri yeniden yükle
   if (needsReload) {
     const birimId = getCurrentBirimId();
     const userType = getCurrentUserType();
@@ -268,16 +290,12 @@ async function applyChanges() {
     }
   }
   
-  // 7. Başarılı mesajı göster
   showToast("Ayarlar kaydedildi ✅");
-  
-  // 8. Modal'ı kapat
   closeSettingsModal();
 }
 
-// Event listener'ları bağla
+// Event listener'lar
 function bindEvents() {
-  // Kapatma butonları
   const closeBtn = document.getElementById("closeSettingsModalBtn");
   if (closeBtn) closeBtn.addEventListener("click", closeSettingsModal);
   
@@ -287,11 +305,9 @@ function bindEvents() {
   const overlay = document.querySelector(".settings-modal-overlay");
   if (overlay) overlay.addEventListener("click", closeSettingsModal);
   
-  // Uygula butonu
   const applyBtn = document.getElementById("settingsApplyBtn");
   if (applyBtn) applyBtn.addEventListener("click", applyChanges);
   
-  // Tema butonları
   const themeBtns = document.querySelectorAll(".theme-btn");
   themeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -300,7 +316,6 @@ function bindEvents() {
     });
   });
   
-  // Yazı boyutu slider
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
   const fontSizeValue = document.getElementById("modalFontSizeValue");
   if (fontSizeSlider && fontSizeValue) {
@@ -309,7 +324,6 @@ function bindEvents() {
     });
   }
   
-  // Veri yönetimi butonları
   const exportBtn = document.getElementById("modalExportData");
   if (exportBtn) {
     exportBtn.addEventListener("click", async () => {
@@ -324,7 +338,6 @@ function bindEvents() {
       closeSettingsModal();
       const confirmed = await confirmDialog("Tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?", "Veri Silme Onayı");
       if (confirmed) {
-        // deleteAllData fonksiyonu çağrılacak
         const { deleteAllData } = await import('../../../sidepanel.js');
         deleteAllData();
       }
@@ -341,13 +354,13 @@ function bindEvents() {
 }
 
 // Modal'ı aç
-export function openSettingsModal() {
+export async function openSettingsModal() {
   if (!modalElement) {
     modalElement = createSettingsModal();
     document.body.appendChild(modalElement);
     bindEvents();
   }
-  loadCurrentValues();
+  await loadCurrentValues();
   modalElement.style.display = "flex";
 }
 
@@ -356,9 +369,4 @@ export function closeSettingsModal() {
   if (modalElement) {
     modalElement.style.display = "none";
   }
-}
-
-// Ayarları dışarıdan uygula (gerekirse)
-export async function applySettingsFromOutside() {
-  await applyChanges();
 }

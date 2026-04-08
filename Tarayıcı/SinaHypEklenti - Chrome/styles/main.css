@@ -2,6 +2,10 @@
    MAIN.CSS - Ana Değişkenler ve Temel Stilller
    ============================================ */
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   --bg: #f8fbfd;
   --bg-dark: #ffffff;
@@ -16,16 +20,13 @@
   --soft-red: #fff1f2;
   --header-izlem: #1eb482;
   --header-kanser: #ed921b;
-
-  /* FONT BOYUTLARI */
-  --font-xs: 0.6rem;    /* 9.6px */
-  --font-sm: 0.7rem;    /* 11.2px */
-  --font-base: 0.75rem; /* 12px - varsayılan */
-  --font-md: 0.8rem;    /* 12.8px */
-  --font-lg: 0.9rem;    /* 14.4px */
-  --font-xl: 1rem;      /* 16px */
-  --font-2xl: 1.1rem;   /* 17.6px */
-  --font-3xl: 1.25rem;  /* 20px */
+  
+  --font-xs: 0.625rem;
+  --font-sm: 0.6875rem;
+  --font-base: 0.75rem;
+  --font-md: 0.8125rem;
+  --font-lg: 0.875rem;
+  --font-xl: 1rem;
 }
 
 body.dark-mode {
@@ -44,10 +45,6 @@ body.dark-mode {
   --header-kanser: #e0af68;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   background-color: var(--bg);
   color: var(--fg);
@@ -59,23 +56,15 @@ body {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Modal içindeki fontlar daha küçük */
-.settings-card-body,
-.settings-radio-label,
-.settings-label {
-  font-size: var(--font-sm);
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
 }
-
-.settings-card-title {
-  font-size: var(--font-xs);
-}
-
-.settings-modal-title {
-  font-size: var(--font-xl);
-}
-
 
 input:focus,
 select:focus {

@@ -1,5 +1,5 @@
 /* ============================================
-   TOAST.CSS - Toast Bildirim Stilleri
+   TOAST.CSS - Bildirimler
    ============================================ */
 
 .toast-notification {
@@ -9,9 +9,9 @@
   transform: translateX(-50%) translateY(100px);
   background: var(--blue);
   color: white;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 40px;
-  font-size: 0.8rem;
+  font-size: var(--font-sm);
   font-weight: 500;
   z-index: 10000;
   opacity: 0;
@@ -37,9 +37,9 @@
 }
 
 .toast-icon {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .toast-message {
-  font-size: 0.8rem;
+  font-size: var(--font-sm);
 }

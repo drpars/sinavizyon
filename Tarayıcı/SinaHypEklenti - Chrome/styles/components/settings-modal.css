@@ -1,18 +1,17 @@
 /* ============================================
-   SETTINGS-MODAL.CSS - Ayarlar Modalı Stillleri
+   SETTINGS-MODAL.CSS - Ayarlar Modalı
    ============================================ */
 
-.settings-btn {
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: all 0.2s;
-  font-size: 0.7rem;
-  text-align: center;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-modal-overlay {
@@ -29,7 +28,7 @@
 .settings-modal-container {
   position: relative;
   width: 90%;
-  max-width: 500px;
+  max-width: 450px;
   max-height: 85vh;
   background: var(--bg-dark);
   border-radius: 24px;
@@ -51,20 +50,20 @@
 .settings-modal-header {
   display: flex;
   align-items: center;
-  padding: 20px 24px;
+  padding: 16px 20px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
 .settings-modal-icon {
-  font-size: 28px;
-  margin-right: 12px;
+  font-size: 24px;
+  margin-right: 10px;
 }
 
 .settings-modal-title {
   flex: 1;
   margin: 0;
-  font-size: 1.3rem;
+  font-size: var(--font-md);
   font-weight: bold;
   color: var(--blue);
 }
@@ -72,13 +71,13 @@
 .settings-modal-close {
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 24px;
   cursor: pointer;
   color: var(--fg);
   opacity: 0.6;
   transition: all 0.2s;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,10 +90,11 @@
 }
 
 .settings-modal-body {
-  padding: 20px 24px;
-  max-height: 60vh;
+  padding: 16px 20px;
+  max-height: 55vh;
   overflow-y: auto;
   scrollbar-width: thin;
+  scrollbar-color: var(--blue) var(--border);
 }
 
 .settings-modal-body::-webkit-scrollbar {
@@ -111,59 +111,67 @@
   border-radius: 3px;
 }
 
+/* Kartlar */
 .settings-card {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  margin-bottom: 20px;
+  border-radius: 14px;
+  margin-bottom: 16px;
   overflow: hidden;
-  transition: all 0.2s;
-}
-
-.settings-card:hover {
-  border-color: var(--blue);
-  box-shadow: 0 2px 8px rgba(122, 162, 247, 0.1);
 }
 
 .settings-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 18px;
+  padding: 10px 14px;
   background: var(--bg-dark);
   border-bottom: 1px solid var(--border);
 }
 
 .settings-card-icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .settings-card-title {
   font-weight: bold;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: var(--blue);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .settings-card-body {
-  padding: 16px 18px;
+  padding: 12px 14px;
 }
 
+/* Form elemanları */
 .settings-row {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .settings-row:last-child {
   margin-bottom: 0;
 }
 
+/* ✅ YAN YANA SATIRLAR (AY/YIL ve BİRİM ID/NÜFUS) */
+.settings-row-double {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.settings-row-double .settings-row {
+  flex: 1;
+  margin-bottom: 0;
+}
+
 .settings-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: var(--font-xs);
   font-weight: bold;
   color: var(--blue);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -171,12 +179,12 @@
 .settings-select,
 .settings-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--fg);
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   transition: all 0.2s;
 }
 
@@ -184,37 +192,20 @@
 .settings-input:focus {
   outline: none;
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1);
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.1);
 }
 
-.settings-slider {
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--border);
-  outline: none;
-  -webkit-appearance: none;
-}
-
-.settings-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--blue);
-  cursor: pointer;
-}
-
+/* Radio grup */
 .settings-radio-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .settings-radio {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
 }
 
@@ -223,8 +214,8 @@
 }
 
 .settings-radio-custom {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border: 2px solid var(--border);
   border-radius: 50%;
   position: relative;
@@ -238,8 +229,8 @@
 .settings-radio input:checked + .settings-radio-custom::after {
   content: "";
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
   width: 8px;
   height: 8px;
   background: var(--blue);
@@ -247,22 +238,23 @@
 }
 
 .settings-radio-label {
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
 }
 
+/* Tema butonları */
 .settings-theme-buttons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .theme-btn {
   flex: 1;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   transition: all 0.2s;
 }
 
@@ -276,28 +268,50 @@
   border-color: var(--blue);
 }
 
+/* Font kontrol */
 .settings-font-control {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .font-size-value {
-  min-width: 45px;
-  font-size: 0.85rem;
+  min-width: 40px;
+  font-size: var(--font-sm);
   font-weight: bold;
   color: var(--blue);
 }
 
+.settings-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--blue);
+  cursor: pointer;
+}
+
+/* Butonlar */
 .settings-btn {
   width: 100%;
-  padding: 10px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 10px;
-  font-weight: bold;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   transition: all 0.2s;
+  font-size: var(--font-sm) !important;
+  text-align: center;
 }
 
 .settings-btn:last-child {
@@ -326,22 +340,34 @@
   transform: translateY(-1px);
 }
 
+body:not(.dark-mode) .settings-btn-primary,
+body:not(.dark-mode) .settings-btn-danger {
+  color: white;
+}
+
+.settings-btn-primary:hover,
+.settings-btn-danger:hover {
+  color: white;
+}
+
+/* Footer butonları */
 .settings-modal-footer {
   display: flex;
-  gap: 12px;
-  padding: 16px 24px;
+  gap: 10px;
+  padding: 12px 20px;
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
 
 .settings-footer-btn {
   flex: 1;
-  padding: 10px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: var(--font-sm);
 }
 
 .settings-footer-btn-primary {
@@ -360,16 +386,3 @@
   opacity: 0.85;
   transform: translateY(-1px);
 }
-
-/* Açık tema için ekstra güvenlik */
-body:not(.dark-mode) .settings-btn-primary,
-body:not(.dark-mode) .settings-btn-danger {
-  color: white;
-}
-
-/* Buton üzerine gelince yazı rengi değişmesin */
-.settings-btn-primary:hover,
-.settings-btn-danger:hover {
-  color: white;
-}
-
