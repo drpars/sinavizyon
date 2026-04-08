@@ -2,6 +2,13 @@
 import { calculateDoctorKHT } from '../../features/doctor/calculator.js';
 import { calculateNurseKHT } from '../../features/nurse/calculator.js';
 
+// KHT yüzdesine göre renk döndür
+function getKHTBarColor(percent) {
+  if (percent < 40) return '#e74c3c';  // Kırmızı
+  if (percent < 70) return '#f39c12';  // Turuncu
+  return '#2ecc71';                    // Yeşil
+}
+
 export function updateKHTBar(data, userType = "doctor") {
   const kht = userType === "doctor" ? calculateDoctorKHT(data) : calculateNurseKHT(data);
   const percent = kht.percentage;
@@ -10,7 +17,12 @@ export function updateKHTBar(data, userType = "doctor") {
   const khtDurumElem = document.getElementById('khtDurum');
   
   if (percentElem) percentElem.innerText = percent + '%';
-  if (barFill) barFill.style.width = percent + '%';
+  if (barFill) {
+    barFill.style.width = percent + '%';
+    // ✅ Yüzdeye göre renk değişimi
+    barFill.style.backgroundColor = getKHTBarColor(percent);
+    barFill.style.backgroundImage = 'none';  // Gradient'i kaldır
+  }
   if (khtDurumElem) {
     khtDurumElem.innerText = percent >= 70 ? 'TAMAM' : 'EKSİK';
     khtDurumElem.style.color = percent >= 70 ? 'var(--green)' : 'var(--red)';
