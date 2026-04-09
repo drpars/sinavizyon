@@ -305,22 +305,42 @@ export function closeModal() {
   if (modal) modal.style.display = "none";
 }
 
-// ========== GÜNCELLEME SONRASI YENİLİKLER MODALI (v2.0.0) ==========
+// ========== GÜNCELLEME SONRASI YENİLİKLER MODALI (v2.0.1) ==========
 export async function showWhatsNewModal(version) {
   return new Promise((resolve) => {
     const modal = document.createElement("div");
     modal.className = "consent-modal";
     modal.style.animation = "fadeIn 0.2s ease";
     
-    // v2.0.0 için özel, kullanıcı dostu içerik
-    const whatsNewItems = [
-      "🎨 Yepyeni ve sade bir görünüm",
-      "🌙 Göz yormayan koyu tema",
-      "🔧 Tüm ayarlar tek pencerede",
-      "📏 Yazı boyutunu kendiniz ayarlayın",
-      "👩‍⚕️ ASÇ hesaplamaları iyileştirildi",
-      "⚡ Daha hızlı veri çekme"
-    ];
+    // Versiyona göre içerik seçimi
+    let whatsNewItems = [];
+    
+    if (version === "2.0.1") {
+      whatsNewItems = [
+        "🎨 Görsel iyileştirmeler yapıldı",
+        "🌙 Koyu tema uyumu tamamlandı",
+        "🐛 Farklı aylara ait veriler artık karışmıyor",
+        "⚡ Veri çekme, tutarsızlık ve birleştirme düzeltildi",
+        "🔧 Ayarlar penceresindeki butonlar düzeltildi",
+        "🛡️ Sadece ihtiyaç duyulan sayfalarda veri çekiliyor"
+      ];
+    } else if (version === "2.0.0") {
+      whatsNewItems = [
+        "🎨 Yepyeni ve sade bir görünüm",
+        "🌙 Göz yormayan koyu tema",
+        "🔧 Tüm ayarlar tek pencerede",
+        "📏 Yazı boyutunu kendiniz ayarlayın",
+        "👩‍⚕️ ASÇ hesaplamaları iyileştirildi",
+        "⚡ Daha hızlı veri çekme"
+      ];
+    } else {
+      // Varsayılan (eski versiyonlar için)
+      whatsNewItems = [
+        "🎨 Yeni görünüm ve temalar",
+        "🐛 Hata düzeltmeleri",
+        "⚡ Performans iyileştirmeleri"
+      ];
+    }
     
     const itemsHtml = whatsNewItems.map(item => `
       <div style="margin: 12px 0; font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px;">

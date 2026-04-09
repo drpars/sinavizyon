@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SİNA VİZYON",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "SİNA ve HYP sistemlerinden performans verilerini çeker, katsayı hesaplar.",
   "author": "drpars",
   "permissions": ["storage"],

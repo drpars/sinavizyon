@@ -1,6 +1,17 @@
 {
   "changelogData": [
     {
+      "version": "2.0.1",
+      "date": "2026-04-09",
+      "changes": [
+        "🐛 **Veri karışması sorunu çözüldü:** Farklı aylara ait veriler artık birbirine karışmıyor.",
+        "🎨 **Görsel iyileştirmeler:** Kartlara hover efekti eklendi, kaydırma çubukları yenilendi.",
+        "🔧 **Kapatma butonu düzeltildi:** Ayarlar penceresindeki × butonu tam ortalandı.",
+        "⚡ **Performans artışı:** Veri çekme ve kaydetme işlemleri hızlandırıldı.",
+        "🛡️ **Güvenlik iyileştirmesi:** Sadece #kopyala içeren SİNA sayfalarında veri çekilir."
+      ]
+    },
+    {
       "version": "2.0.0",
       "date": "2026-04-09",
       "changes": [

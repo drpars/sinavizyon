@@ -1,4 +1,4 @@
-console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
+console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
 (function () {
   const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
   const isSina = window.location.href.includes("sina.saglik.gov.tr");
@@ -133,7 +133,9 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
   }
 
   // --- SİNA: Sıralı Hibrit Yaklaşım (Observer → Interval → Zaman Aşımı) ---
-  if (isSina) {
+  const hasCopyHash = window.location.hash === "#kopyala";
+  
+  if (isSina && hasCopyHash) {
     checkConsent().then((hasConsent) => {
       if (!hasConsent) {
         console.log("🔒 KVKK rızası yok, SİNA verisi çekilmiyor.");
@@ -157,7 +159,6 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
         if (veriGonderildi) return;
         
         // ========== ÖNCE SPINNER'I GİZLE ==========
-        // Veri çekme işlemi tamamlandı, spinner'ı kaldır
         chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
         console.log("✅ SİNA: Spinner gizlendi");
         
@@ -257,7 +258,7 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
         }
         if (observer) observer.disconnect();
         if (fallbackInterval) clearInterval(fallbackInterval);
-      }, 12000);  // ✅ 12 saniye
+      }, 12000);
 
       // ========== 1. MUTATION OBSERVER (2 saniye) ==========
       observer = new MutationObserver(() => {
@@ -283,7 +284,7 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
           
           // ========== 2. FALLBACK INTERVAL (maksimum 10 sn) ==========
           let intervalAttempts = 0;
-          const MAX_INTERVAL_ATTEMPTS = 10;  // 10 sn (her deneme 1 sn)
+          const MAX_INTERVAL_ATTEMPTS = 10;
           
           fallbackInterval = setInterval(() => {
             intervalAttempts++;
@@ -293,7 +294,6 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
               return;
             }
             
-            // Maksimum deneme sayısına ulaştıysa dur
             if (intervalAttempts > MAX_INTERVAL_ATTEMPTS) {
               console.log("⏹️ Interval maksimum denemeye ulaştı, durduruluyor...");
               clearInterval(fallbackInterval);
@@ -308,7 +308,9 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
             }
           }, 1000);
         }
-      }, 2000);  // ✅ 2 saniye (eskiden 3 saniyeydi)
+      }, 2000);
     });
+  } else if (isSina && !hasCopyHash) {
+    console.log("ℹ️ SİNA sayfası açıldı ama #kopyala yok, veri çekme işlemi başlatılmadı.");
   }
 })();

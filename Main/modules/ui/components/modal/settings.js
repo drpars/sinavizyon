@@ -111,7 +111,7 @@ function createSettingsModal() {
             <div class="settings-row">
               <label class="settings-label">Yazı Boyutu</label>
               <div class="settings-font-control">
-                <span class="font-size-value" id="modalFontSizeValue">12px</span>
+                <span class="font-size-value" id="modalFontSizeValue">16px</span>
                 <input type="range" id="modalFontSizeSlider" class="settings-slider" min="12" max="20" step="0.5" value="16">
               </div>
             </div>
@@ -163,11 +163,11 @@ async function loadCurrentValues() {
   
   // Yazı boyutu - storage'dan al
   const savedFontSize = await new Promise(resolve => 
-    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 12))
+    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 16))
   );
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
   const fontSizeValue = document.getElementById("modalFontSizeValue");
-  if (fontSizeSlider) fontSizeSlider.value = savedFontSize;
+  if (fontSizeSlider) fontSizeSlider.value = parseFloat(savedFontSize).toFixed(1);
   if (fontSizeValue) fontSizeValue.textContent = savedFontSize + "px";
   
   // Dönem ayarları - storage'dan al
@@ -237,7 +237,7 @@ async function applyChanges() {
   
   // 3. Yazı boyutu
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
-  const newFontSize = parseInt(fontSizeSlider?.value) || 12;
+  const newFontSize = parseFloat(fontSizeSlider?.value) || 16;
   document.documentElement.style.fontSize = newFontSize + "px";
   await chrome.storage.local.set({ userFontSize: newFontSize });
   
@@ -339,7 +339,8 @@ function bindEvents() {
   const fontSizeValue = document.getElementById("modalFontSizeValue");
   if (fontSizeSlider && fontSizeValue) {
     fontSizeSlider.addEventListener("input", (e) => {
-      fontSizeValue.textContent = e.target.value + "px";
+      const val = parseFloat(e.target.value).toFixed(1);
+      fontSizeValue.textContent = val + "px";
     });
   }
   

@@ -71,22 +71,25 @@
 .settings-modal-close {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
   color: var(--fg);
   opacity: 0.6;
-  transition: all 0.2s;
-  width: 28px;
-  height: 28px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
+  line-height: 1;
+  padding: 0;
 }
 
 .settings-modal-close:hover {
   opacity: 1;
   background: var(--border);
+  transform: scale(1.05);
 }
 
 .settings-modal-body {
@@ -115,9 +118,24 @@
 .settings-card {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  margin-bottom: 16px;
+  border-radius: 16px;
+  margin-bottom: 20px;
   overflow: hidden;
+  transition: all 0.3s ease;  /* geçiş efekti */
+}
+
+/* Hover efekti - parlama ve yükselme */
+.settings-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Karanlık tema için hover efekti */
+body.dark-mode .settings-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(122, 162, 247, 0.3);
+  transform: translateY(-2px);
 }
 
 .settings-card-header {
@@ -249,17 +267,19 @@
 
 .theme-btn {
   flex: 1;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: var(--font-sm);
+  font-size: 0.85rem;
   transition: all 0.2s;
+  color: var(--fg);
 }
 
 .theme-btn:hover {
   border-color: var(--blue);
+  background: var(--bg);
 }
 
 .theme-btn.active {
@@ -268,11 +288,29 @@
   border-color: var(--blue);
 }
 
+/* Karanlık tema için ek güvence */
+body.dark-mode .theme-btn {
+  background: #2a2b36;
+  border-color: #414868;
+  color: #c0caf5;
+}
+
+body.dark-mode .theme-btn:hover {
+  background: #3a3b46;
+  border-color: #7aa2f7;
+}
+
+body.dark-mode .theme-btn.active {
+  background: #7aa2f7;
+  color: #1a1b26;
+  border-color: #7aa2f7;
+}
+
+
 /* Font kontrol */
 .settings-font-control {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .font-size-value {

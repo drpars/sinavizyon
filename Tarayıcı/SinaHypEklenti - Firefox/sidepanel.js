@@ -477,7 +477,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const { confirmDialog, messageDialog } = await import('./modules/ui/components/index.js');
 
     if (msg.action === "dataParsed") {
-      console.log("📊 dataParsed alındı, results:", msg.results);
       hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
@@ -491,120 +490,114 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (userType === "nurse" && pendingStorage) targetUserType = pendingStorage;
       const key = `savedResults_${targetUserType}_${birimId}`;
       
-      chrome.storage.local.get([key], async (res) => {
-        let existingData = res[key]?.data || [];
-        const hypYapilanMap = new Map();
-        existingData.forEach(item => hypYapilanMap.set(item.ad, item.yapilan));
-        const merged = msg.results.map(sinaItem => {
-          const hypYapilan = hypYapilanMap.get(sinaItem.ad);
-          if (hypYapilan !== undefined && hypYapilan !== sinaItem.yapilan) return { ...sinaItem, yapilan: hypYapilan };
-          return sinaItem;
-        });
+      // ✅ BİRLEŞTİRME YOK: Sadece gelen SİNA verisini kullan
+      const merged = msg.results;  // Hiçbir hyp birleştirmesi yapma
+      
+      console.log(`📊 dataParsed: ${merged.length} işlem, targetUserType=${targetUserType}`);
 
-        if (merged.length > 0) {
-          storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
-          storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
-          
-          // DOKTOR MODU İÇİN DE SİNA ZAMANINI GÜNCELLE
+      if (merged.length > 0) {
+        // ✅ Eski veriyi tamamen temizle
+        const eskiKey = `savedResults_${targetUserType}_${birimId}`;
+        await new Promise(resolve => chrome.storage.local.remove([eskiKey], resolve));
+        console.log(`🗑️ Eski veri temizlendi: ${eskiKey}`);
+        
+        // Yeni veriyi kaydet
+        storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
+        storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
+        
+        if (targetUserType === "nurse") {
           const sinaTimeSpan = document.getElementById("sinaTime");
           if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
-          
-          if (targetUserType === "nurse") {
-            const sinaTimeSpan = document.getElementById("sinaTime");
-            if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
-          }
         }
-
-        if (merged.length === 0) {
-          // const tbody = document.getElementById("tableBody");
-          // if (tbody) tbody.innerHTML = "";
-          const katsayiElement = document.getElementById("totalKatsayi");
-          if (katsayiElement) katsayiElement.textContent = "1.00000";
-          const tavanElement = document.getElementById("tavanKatsayi");
-          if (tavanElement && userType === "nurse") {
-            tavanElement.textContent = "1.00000";
-          }
-          updateKHTBar([], userType);
-          
-          let uyariMesaji = "";
-          const suAn = new Date();
-          const cariAyIndex = suAn.getMonth();
-          const cariYil = suAn.getFullYear();
-          const gun = suAn.getDate();
-          const cariAyAdi = aylar[cariAyIndex];
-          
-          if (ayStr === cariAyAdi && yil === cariYil && gun <= 10) {
-            let oncekiAyIndex = cariAyIndex - 1;
-            let oncekiYil = cariYil;
-            if (oncekiAyIndex < 0) {
-              oncekiAyIndex = 11;
-              oncekiYil--;
-            }
-            const oncekiAyAdi = aylar[oncekiAyIndex];
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.\n📌 Daha sonra tekrar deneyiniz.`;
-          } else if (ayStr === cariAyAdi && yil === cariYil && gun > 10) {
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler sisteme yansımamış olabilir.\n📌 Lütfen daha sonra tekrar deneyiniz.`;
-          } else {
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bir süre sonra tekrar deneyebilirsiniz.`;
-          }
-          
-          await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
-          
-          // ✅ KRİTİK: Mevcut verileri storage'dan TEKRAR YÜKLE (silme!)
-          if (userType === "nurse") {
-            loadNurseShowAllForBirim(birimId).then((showAll) => {
-              loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
-            });
-          } else {
-            loadDataForCurrentBirim(updateTable, userType, birimId, null, false, ayStr, yil);
-          }
-          
-          return;  // İşlemi bitir, aşağıdaki kod çalışmasın
-        }
-
-        if (userType === "nurse" && targetUserType === "doctor") {
-          const hypTimeSpan = document.getElementById("hypTime");
-          if (hypTimeSpan) hypTimeSpan.textContent = simdi;
-        }
-
-        if (userType === "nurse") {
-          if (merged.length === 0) {
-            setCurrentShowAll(false);
-            updateTable([], userType, false, birimId);
-          } else {
-            // ✅ YENİ EKLENEN: SİNA BİRİM (doctor verisi) çekildiyse showAll'ı true yap
-            if (targetUserType === "doctor") {
-              setCurrentShowAll(true);
-              saveNurseShowAllForBirim(birimId, true);
-            }
-            
-            chrome.storage.local.get([`nurseShowAll_${birimId}`], (showAllRes) => {
-              const showAll = showAllRes[`nurseShowAll_${birimId}`] === true;
-              if (showAll) {
-                const nurseKey = `savedResults_nurse_${birimId}`;
-                const doctorKey = `savedResults_doctor_${birimId}`;
-                chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
-                  const nurseData = allRes[nurseKey]?.data || [];
-                  const doctorData = allRes[doctorKey]?.data || [];
-                  const combinedData = [...nurseData, ...doctorData];
-                  updateTable(combineData(combinedData), userType, true, birimId);
-                });
-              } else {
-                updateTable(merged, userType, false, birimId);
-              }
-            });
-          }
-        } else {
-          updateTable(merged, userType, currentShowAllValue, birimId);
-        }
-        const hypBtn = document.getElementById("btnHyp");
-        if (hypBtn) hypBtn.disabled = false;
-        setPendingShowAll(false);
-        setPendingStorageType("nurse");
-      });
-      if (sendResponse && typeof sendResponse === 'function') {
-        sendResponse({ status: "ok", data: msg.results });
       }
+
+      if (merged.length === 0) {
+        const katsayiElement = document.getElementById("totalKatsayi");
+        if (katsayiElement) katsayiElement.textContent = "1.00000";
+        const tavanElement = document.getElementById("tavanKatsayi");
+        if (tavanElement && userType === "nurse") {
+          tavanElement.textContent = "1.00000";
+        }
+        updateKHTBar([], userType);
+        
+        let uyariMesaji = "";
+        const suAn = new Date();
+        const cariAyIndex = suAn.getMonth();
+        const cariYil = suAn.getFullYear();
+        const gun = suAn.getDate();
+        const cariAyAdi = aylar[cariAyIndex];
+        
+        if (ayStr === cariAyAdi && yil === cariYil && gun <= 10) {
+          let oncekiAyIndex = cariAyIndex - 1;
+          let oncekiYil = cariYil;
+          if (oncekiAyIndex < 0) {
+            oncekiAyIndex = 11;
+            oncekiYil--;
+          }
+          const oncekiAyAdi = aylar[oncekiAyIndex];
+          uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.\n📌 Daha sonra tekrar deneyiniz.`;
+        } else if (ayStr === cariAyAdi && yil === cariYil && gun > 10) {
+          uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler sisteme yansımamış olabilir.\n📌 Lütfen daha sonra tekrar deneyiniz.`;
+        } else {
+          uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bir süre sonra tekrar deneyebilirsiniz.`;
+        }
+        
+        await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
+        
+        // ✅ KRİTİK: Mevcut verileri storage'dan TEKRAR YÜKLE (silme!)
+        if (userType === "nurse") {
+          loadNurseShowAllForBirim(birimId).then((showAll) => {
+            loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
+          });
+        } else {
+          loadDataForCurrentBirim(updateTable, userType, birimId, null, false, ayStr, yil);
+        }
+        
+        if (sendResponse) sendResponse({ status: "ok", data: [] });
+        return;  // İşlemi bitir, aşağıdaki kod çalışmasın
+      }
+
+      if (userType === "nurse" && targetUserType === "doctor") {
+        const hypTimeSpan = document.getElementById("hypTime");
+        if (hypTimeSpan) hypTimeSpan.textContent = simdi;
+      }
+
+      if (userType === "nurse") {
+        if (merged.length === 0) {
+          setCurrentShowAll(false);
+          updateTable([], userType, false, birimId);
+        } else {
+          // ✅ YENİ EKLENEN: SİNA BİRİM (doctor verisi) çekildiyse showAll'ı true yap
+          if (targetUserType === "doctor") {
+            setCurrentShowAll(true);
+            saveNurseShowAllForBirim(birimId, true);
+          }
+          
+          chrome.storage.local.get([`nurseShowAll_${birimId}`], (showAllRes) => {
+            const showAll = showAllRes[`nurseShowAll_${birimId}`] === true;
+            if (showAll) {
+              const nurseKey = `savedResults_nurse_${birimId}`;
+              const doctorKey = `savedResults_doctor_${birimId}`;
+              chrome.storage.local.get([nurseKey, doctorKey], (allRes) => {
+                const nurseData = allRes[nurseKey]?.data || [];
+                const doctorData = allRes[doctorKey]?.data || [];
+                const combinedData = [...nurseData, ...doctorData];
+                updateTable(combineData(combinedData), userType, true, birimId);
+              });
+            } else {
+              updateTable(merged, userType, false, birimId);
+            }
+          });
+        }
+      } else {
+        updateTable(merged, userType, currentShowAllValue, birimId);
+      }
+      const hypBtn = document.getElementById("btnHyp");
+      if (hypBtn) hypBtn.disabled = false;
+      setPendingShowAll(false);
+      setPendingStorageType("nurse");
+      
+      if (sendResponse) sendResponse({ status: "ok", data: merged });
       return true;
     } else if (msg.action === "hypDataParsed") {
       hideLoadingSpinner();
@@ -618,12 +611,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       const key = `savedResults_${userType}_${birimId}`;
       
       chrome.storage.local.get([key], async (res) => {
-        // ✅ BU KONTROLÜ KALDIR VEYA DEĞİŞTİR
-        // if (!res[key]?.data) {
-        //   await messageDialog("Önce SİNA verilerini çekmelisiniz.", "Uyarı");
-        //   return;
-        // }
-        
         // Yeni yaklaşım: SİNA verisi yoksa bile doktor verisini kaydet
         let guncelVeri = res[key]?.data || [];
         
@@ -636,6 +623,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
 
         if (guncelVeri.length > 0) {
+          const eskiKey = `savedResults_${userType}_${birimId}`;
+          chrome.storage.local.remove([eskiKey], () => {
+            console.log(`🗑️ Eski HYP verisi temizlendi: ${eskiKey}`);
+          });
+
           storeDataWithTimestamp("savedResults", guncelVeri, userType, birimId, ayStr, yil);
           storeDataWithTimestamp("hypLastTime", simdi, userType, birimId);
           const hypTimeSpan = document.getElementById("hypTime");

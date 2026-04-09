@@ -7,12 +7,47 @@
   overflow-x: auto;
   overflow-y: auto;
   flex-grow: 1;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  padding-bottom: 20px;
+  max-height: calc(100vh - 280px);  /* sabit yükseklik, scrollbar çalışır */
 }
 
+/* Firefox scrollbar */
+.table-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) var(--border);
+}
+
+/* Chrome/Edge/Safari scrollbar */
 .table-container::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--magenta);
+}
+
+/* Karanlık temada scrollbar */
+body.dark-mode .table-container {
+  scrollbar-color: var(--blue) var(--border);
+}
+
+body.dark-mode .table-container::-webkit-scrollbar-track {
+  background: var(--border);
+}
+
+body.dark-mode .table-container::-webkit-scrollbar-thumb {
+  background: var(--blue);
 }
 
 table {
