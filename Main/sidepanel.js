@@ -7,7 +7,7 @@
 import { 
   buttons, inputs, containers, infoElements, modals, khtMarks,
   getDomBirimId, getDomUserType, getDomAy, getDomYil,
-  getDomSurecCarpan, getDomNufus, setDomNufus, setDomBirimId,
+  getDomNufus, setDomNufus, setDomBirimId,
   setDomSinaTime, setDomHypTime, setDomTotalKatsayi, setDomTavanKatsayi,
   setDomKhtPercentage, setDomKhtBarWidth, setDomKhtDurum, clearDomTableBody,
   showDomSettingsPanel, toggleDomSettingsPanel, showDomAdvancedSettings, toggleDomAdvancedSettings
@@ -73,11 +73,16 @@ function showLoadingSpinner() {
   }
   if (table) table.style.display = "none";
   
-  // Güvenlik: 30 saniye sonra spinner'ı zorla kapat
+  // Güvenlik: 15 saniye sonra spinner'ı zorla kapat
   spinnerTimeout = setTimeout(() => {
-    console.warn("⚠️ Spinner timeout: 30 saniye geçti, zorla kapatılıyor");
+    console.warn("⚠️ Spinner timeout: 15 saniye geçti, zorla kapatılıyor");
     hideLoadingSpinner();
-  }, 30000);
+    
+    // Kullanıcıya bilgi ver
+    import('./modules/ui/components/index.js').then(({ messageDialog }) => {
+      messageDialog("Veri çekme işlemi çok uzun sürüyor. Lütfen daha sonra tekrar deneyin.\n\n⏱️ Bekleme süresi aşıldı (15 saniye).", "Zaman Aşımı");
+    });
+  }, 15000);
 }
 
 function hideLoadingSpinner() {
@@ -127,7 +132,10 @@ function setUserType(type) {
   updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateUI);
 }
 
-function deleteAllData() {
+// ========== GLOBAL UI REFRESH FONKSİYONU (Ayarlar modal'ı için) ==========
+window.refreshUIForUserType = setUserType;
+
+export function deleteAllData() {
   import('./modules/ui/components/index.js').then(({ confirmDialog, messageDialog }) => {
     confirmDialog(
       "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
@@ -159,6 +167,92 @@ function deleteAllData() {
       });
     });
   });
+}
+
+// ========== KAYITLI AYARLARI YÜKLE ==========
+async function loadSavedPeriodSettings() {
+  // Ay
+  const savedAy = await new Promise(resolve => 
+    chrome.storage.local.get(["lastSelectedAy"], (res) => resolve(res.lastSelectedAy))
+  );
+  if (savedAy) {
+    const aySelect = document.getElementById("ay");
+    if (aySelect) aySelect.value = savedAy;
+  }
+  
+  // Yıl
+  const savedYil = await new Promise(resolve => 
+    chrome.storage.local.get(["lastSelectedYil"], (res) => resolve(res.lastSelectedYil))
+  );
+  if (savedYil) {
+    const yilInput = document.getElementById("yil");
+    if (yilInput) yilInput.value = savedYil;
+  }
+  
+  // Birim ID
+  const savedBirimId = await new Promise(resolve => 
+    chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId))
+  );
+  if (savedBirimId) {
+    const birimIdInput = document.getElementById("birimId");
+    if (birimIdInput) birimIdInput.value = savedBirimId;
+    setCurrentBirimId(savedBirimId);
+    
+    const savedNufus = await new Promise(resolve => 
+      chrome.storage.local.get([`nufus_${savedBirimId}`], (res) => resolve(res[`nufus_${savedBirimId}`]))
+    );
+    if (savedNufus) {
+      const nufusInput = document.getElementById("nufus");
+      if (nufusInput) nufusInput.value = savedNufus;
+      tavanHesapla(savedNufus);
+    }
+  }
+  
+  // ✅ TEMA
+  const savedTheme = await new Promise(resolve => 
+    chrome.storage.local.get(["themePreference"], (res) => resolve(res.themePreference || "light"))
+  );
+  applyTheme(savedTheme);
+  
+  // ✅ KULLANICI TİPİ - AL ve UYGULA (setUserType fonksiyonunu kullan!)
+  const savedUserType = await new Promise(resolve => 
+    chrome.storage.local.get(["userType"], (res) => resolve(res.userType || "doctor"))
+  );
+  
+  // setUserType fonksiyonu UI'ı tamamen günceller
+  if (typeof setUserType === 'function') {
+    setUserType(savedUserType);
+  } else {
+    // Fallback: manuel güncelle
+    setCurrentUserType(savedUserType);
+    await saveCurrentUserTypeToStorage();
+    
+    const birimId = getCurrentBirimId();
+    const currentAy = getDomAy();
+    const currentYil = getDomYil();
+    
+    // UI'ı güncelle
+    updateUIForUserType(savedUserType, birimId, currentAy, currentYil, updateHypButtonStateUI);
+  }
+  
+  // ✅ YAZI BOYUTU
+  const savedFontSize = await new Promise(resolve => 
+    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 12))
+  );
+  document.documentElement.style.fontSize = savedFontSize + "px";
+  
+  const fontToggleCheckbox = document.getElementById("fontToggleCheckbox");
+  const fontContainer = document.getElementById("fontSettingsContainer");
+  if (fontToggleCheckbox && savedFontSize !== 12) {
+    fontToggleCheckbox.checked = true;
+    if (fontContainer) fontContainer.style.display = "block";
+  } else if (fontToggleCheckbox) {
+    fontToggleCheckbox.checked = false;
+    if (fontContainer) fontContainer.style.display = "none";
+  }
+  
+  const fontSizeValue = document.getElementById("fontSizeValue");
+  if (fontSizeValue) fontSizeValue.textContent = savedFontSize + "px";
 }
 
 // ========== SAYFA YÜKLENİNCE ==========
@@ -228,9 +322,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const manifest = chrome.runtime.getManifest();
   const currentVersion = manifest.version;
 
+  // ✅ v2.0.0 için ilk açılışta göster
   if (lastVersionSeen !== currentVersion) {
-    // Sadece gerçekten yeni bir versiyonsa göster
-    await showWhatsNewModal(currentVersion, lastVersionSeen);
+    await showWhatsNewModal(currentVersion);
     await chrome.storage.local.set({ lastVersionSeen: currentVersion });
   }
 
@@ -315,8 +409,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           const savedType = userRes.userType || "doctor";
           if (userTypeSelect) userTypeSelect.value = savedType;
           setUserType(savedType);
-          const surecRow = document.getElementById("surecYonetimi")?.closest(".row");
-          if (surecRow) surecRow.style.display = savedType === "nurse" ? "none" : "flex";
           const nufusRow = document.getElementById("nufus")?.closest(".row");
           if (nufusRow) nufusRow.style.display = savedType === "nurse" ? "none" : "flex";
         });
@@ -343,6 +435,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
+  // Ayarlar butonu
+  const settingsBtn = document.getElementById("btnSettings");
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", () => {
+      import('./modules/ui/components/modal/settings.js').then(({ openSettingsModal }) => {
+        openSettingsModal();
+      });
+    });
+  }
+
+  // ✅ KAYITLI DÖNEM AYARLARINI YÜKLE (veri yenilemeden ÖNCE)
+  await loadSavedPeriodSettings();
+
   // Tüm event handler'ları bağla
   bindAllEvents(
     setUserType, deleteAllData, revokeConsent,
@@ -352,7 +457,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   );
 
   // Mesaj dinleyici
-  chrome.runtime.onMessage.addListener(async (msg, sendResponse) => {
+  chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
     console.log("📨 Mesaj alındı:", msg.action);
     
     // ✅ SPINNER KONTROLÜ EKLE
@@ -372,6 +477,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const { confirmDialog, messageDialog } = await import('./modules/ui/components/index.js');
 
     if (msg.action === "dataParsed") {
+      console.log("📊 dataParsed alındı, results:", msg.results);
       hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
@@ -398,6 +504,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (merged.length > 0) {
           storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
           storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
+          
+          // DOKTOR MODU İÇİN DE SİNA ZAMANINI GÜNCELLE
+          const sinaTimeSpan = document.getElementById("sinaTime");
+          if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
           
           if (targetUserType === "nurse") {
             const sinaTimeSpan = document.getElementById("sinaTime");
@@ -492,7 +602,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         setPendingShowAll(false);
         setPendingStorageType("nurse");
       });
-      sendResponse({ status: "ok", data: merged });
+      if (sendResponse && typeof sendResponse === 'function') {
+        sendResponse({ status: "ok", data: msg.results });
+      }
       return true;
     } else if (msg.action === "hypDataParsed") {
       hideLoadingSpinner();
@@ -533,7 +645,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Tabloyu güncelle (mevcut showAll değerine göre)
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
-      sendResponse({ status: "ok" });
+      if (sendResponse && typeof sendResponse === 'function') {
+        sendResponse({ status: "ok" });
+      }
       return true;
     }
     return true;

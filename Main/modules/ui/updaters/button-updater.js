@@ -5,7 +5,7 @@ export function setUIEnabled(enabled) {
     const btn = document.getElementById(id);
     if (btn) btn.disabled = !enabled;
   });
-  const inputs = ["ay", "yil", "birimId", "nufus", "surecYonetimi"];
+  const inputs = ["ay", "yil", "birimId", "nufus"];
   inputs.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = !enabled;

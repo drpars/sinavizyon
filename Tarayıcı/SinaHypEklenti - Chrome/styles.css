@@ -83,16 +83,6 @@ body {
   opacity: 0.9;
   vertical-align: middle; /* Badge'in başlık yanındaki dikey hizasını düzeltir */
 }
-/* #btnSettings { */
-/*   position: absolute; */
-/*   right: 0; */
-/*   background: none; */
-/*   border: none; */
-/*   color: var(--blue); */
-/*   cursor: pointer; */
-/*   font-size: 18px; */
-/*   line-height: 1; */
-/* } */
 #settingsPanel {
   display: none;
   background: var(--bg-dark);

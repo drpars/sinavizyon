@@ -303,7 +303,7 @@ export async function revokeConsent() {
   );
   if (!confirmed) return;
   
-  chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "surec", "theme"], () => {
+  chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "theme"], () => {
     updateTable([]);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";

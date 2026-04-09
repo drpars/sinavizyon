@@ -1,0 +1,388 @@
+/* ============================================
+   SETTINGS-MODAL.CSS - Ayarlar Modalı
+   ============================================ */
+
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.settings-modal-container {
+  position: relative;
+  width: 90%;
+  max-width: 450px;
+  max-height: 85vh;
+  background: var(--bg-dark);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-modal-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.settings-modal-title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--font-md);
+  font-weight: bold;
+  color: var(--blue);
+}
+
+.settings-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--fg);
+  opacity: 0.6;
+  transition: all 0.2s;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.settings-modal-close:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.settings-modal-body {
+  padding: 16px 20px;
+  max-height: 55vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) var(--border);
+}
+
+.settings-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-modal-body::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.settings-modal-body::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 3px;
+}
+
+/* Kartlar */
+.settings-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-card-icon {
+  font-size: 16px;
+}
+
+.settings-card-title {
+  font-weight: bold;
+  font-size: var(--font-xs);
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.settings-card-body {
+  padding: 12px 14px;
+}
+
+/* Form elemanları */
+.settings-row {
+  margin-bottom: 12px;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+/* ✅ YAN YANA SATIRLAR (AY/YIL ve BİRİM ID/NÜFUS) */
+.settings-row-double {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.settings-row-double .settings-row {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.settings-label {
+  display: block;
+  font-size: var(--font-xs);
+  font-weight: bold;
+  color: var(--blue);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.settings-select,
+.settings-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--fg);
+  font-size: var(--font-sm);
+  transition: all 0.2s;
+}
+
+.settings-select:focus,
+.settings-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.1);
+}
+
+/* Radio grup */
+.settings-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.settings-radio input {
+  display: none;
+}
+
+.settings-radio-custom {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.settings-radio input:checked + .settings-radio-custom {
+  border-color: var(--blue);
+}
+
+.settings-radio input:checked + .settings-radio-custom::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: var(--blue);
+  border-radius: 50%;
+}
+
+.settings-radio-label {
+  font-size: var(--font-sm);
+}
+
+/* Tema butonları */
+.settings-theme-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.theme-btn {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: var(--font-sm);
+  transition: all 0.2s;
+}
+
+.theme-btn:hover {
+  border-color: var(--blue);
+}
+
+.theme-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+/* Font kontrol */
+.settings-font-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.font-size-value {
+  min-width: 40px;
+  font-size: var(--font-sm);
+  font-weight: bold;
+  color: var(--blue);
+}
+
+.settings-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--blue);
+  cursor: pointer;
+}
+
+/* Butonlar */
+.settings-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  font-size: var(--font-sm) !important;
+  text-align: center;
+}
+
+.settings-btn:last-child {
+  margin-bottom: 0;
+}
+
+.settings-btn-primary {
+  background: var(--blue);
+  color: white;
+  border: 1px solid var(--blue);
+}
+
+.settings-btn-primary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.settings-btn-danger {
+  background: var(--red);
+  color: white;
+  border: 1px solid var(--red);
+}
+
+.settings-btn-danger:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+body:not(.dark-mode) .settings-btn-primary,
+body:not(.dark-mode) .settings-btn-danger {
+  color: white;
+}
+
+.settings-btn-primary:hover,
+.settings-btn-danger:hover {
+  color: white;
+}
+
+/* Footer butonları */
+.settings-modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.settings-footer-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: var(--font-sm);
+}
+
+.settings-footer-btn-primary {
+  background: var(--blue);
+  color: white;
+}
+
+.settings-footer-btn-secondary {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+.settings-footer-btn-primary:hover,
+.settings-footer-btn-secondary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}

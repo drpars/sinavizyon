@@ -15,7 +15,7 @@ export async function revokeConsent(updateTableFn, setUIEnabledFn) {
   );
   if (!confirmed) return;
   
-  chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "surec", "theme"], () => {
+  chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "theme"], () => {
     updateTableFn([]);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";

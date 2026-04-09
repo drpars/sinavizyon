@@ -73,11 +73,16 @@ function showLoadingSpinner() {
   }
   if (table) table.style.display = "none";
   
-  // Güvenlik: 30 saniye sonra spinner'ı zorla kapat
+  // Güvenlik: 15 saniye sonra spinner'ı zorla kapat
   spinnerTimeout = setTimeout(() => {
-    console.warn("⚠️ Spinner timeout: 30 saniye geçti, zorla kapatılıyor");
+    console.warn("⚠️ Spinner timeout: 15 saniye geçti, zorla kapatılıyor");
     hideLoadingSpinner();
-  }, 30000);
+    
+    // Kullanıcıya bilgi ver
+    import('./modules/ui/components/index.js').then(({ messageDialog }) => {
+      messageDialog("Veri çekme işlemi çok uzun sürüyor. Lütfen daha sonra tekrar deneyin.\n\n⏱️ Bekleme süresi aşıldı (15 saniye).", "Zaman Aşımı");
+    });
+  }, 15000);
 }
 
 function hideLoadingSpinner() {
@@ -127,7 +132,10 @@ function setUserType(type) {
   updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateUI);
 }
 
-function deleteAllData() {
+// ========== GLOBAL UI REFRESH FONKSİYONU (Ayarlar modal'ı için) ==========
+window.refreshUIForUserType = setUserType;
+
+export function deleteAllData() {
   import('./modules/ui/components/index.js').then(({ confirmDialog, messageDialog }) => {
     confirmDialog(
       "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
@@ -314,9 +322,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const manifest = chrome.runtime.getManifest();
   const currentVersion = manifest.version;
 
+  // ✅ v2.0.0 için ilk açılışta göster
   if (lastVersionSeen !== currentVersion) {
-    // Sadece gerçekten yeni bir versiyonsa göster
-    await showWhatsNewModal(currentVersion, lastVersionSeen);
+    await showWhatsNewModal(currentVersion);
     await chrome.storage.local.set({ lastVersionSeen: currentVersion });
   }
 
@@ -449,7 +457,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   );
 
   // Mesaj dinleyici
-  chrome.runtime.onMessage.addListener(async (msg, sendResponse) => {
+  chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
     console.log("📨 Mesaj alındı:", msg.action);
     
     // ✅ SPINNER KONTROLÜ EKLE
@@ -469,6 +477,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const { confirmDialog, messageDialog } = await import('./modules/ui/components/index.js');
 
     if (msg.action === "dataParsed") {
+      console.log("📊 dataParsed alındı, results:", msg.results);
       hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
@@ -495,6 +504,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (merged.length > 0) {
           storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
           storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
+          
+          // DOKTOR MODU İÇİN DE SİNA ZAMANINI GÜNCELLE
+          const sinaTimeSpan = document.getElementById("sinaTime");
+          if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
           
           if (targetUserType === "nurse") {
             const sinaTimeSpan = document.getElementById("sinaTime");
@@ -589,7 +602,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         setPendingShowAll(false);
         setPendingStorageType("nurse");
       });
-      sendResponse({ status: "ok", data: merged });
+      if (sendResponse && typeof sendResponse === 'function') {
+        sendResponse({ status: "ok", data: msg.results });
+      }
       return true;
     } else if (msg.action === "hypDataParsed") {
       hideLoadingSpinner();
@@ -630,7 +645,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Tabloyu güncelle (mevcut showAll değerine göre)
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
-      sendResponse({ status: "ok" });
+      if (sendResponse && typeof sendResponse === 'function') {
+        sendResponse({ status: "ok" });
+      }
       return true;
     }
     return true;

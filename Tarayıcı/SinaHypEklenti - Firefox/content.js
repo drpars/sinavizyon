@@ -40,7 +40,7 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
       let intervalId = null;
       let observer = null;
       let attemptCount = 0;
-      const MAX_ATTEMPTS = 30;
+      const MAX_ATTEMPTS = 10;
 
       const tiklaVeKontrolEt = () => {
         if (basarili) {
@@ -120,7 +120,10 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
               action: "hypDataParsed",
               results: sonuclar,
             })
-            .catch((err) => console.error("Mesaj gönderilemedi:", err));
+          .catch((err) => {
+            console.error("Mesaj gönderilemedi:", err);
+            console.trace(); // Stack trace göster
+          });
           console.log("🚀 Veriler eklentiye başarıyla gönderildi!");
         } else {
           console.log("⚠️ HYP verisi bulunamadı");
@@ -145,8 +148,7 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
       let observerTimeout = null;
       let finalTimeout = null;
 
-      // ========== SPINNER GÖSTER ==========
-      // Sayfa yüklenmeye başladığında spinner'ı göster
+      // Spinner göster
       chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
       console.log("🔄 SİNA: Spinner gösterildi");
 
@@ -246,17 +248,18 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
         if (finalTimeout) clearTimeout(finalTimeout);
       }
 
-      // ========== ZAMAN AŞIMI DURUMUNDA SPINNER'I GİZLE ==========
-      // Eğer 15 saniye içinde veri gelmezse spinner'ı zorla gizle
+      // ========== TEK ZAMAN AŞIMI (12 sn) ==========
       finalTimeout = setTimeout(() => {
         if (!veriGonderildi) {
-          console.log("⏰ Zaman aşımı (15 sn), spinner zorla gizleniyor...");
+          console.log("⏰ Zaman aşımı (12 sn), zorla veri çekiliyor...");
           chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
-          sinaExtractData(); // Veri çekmeyi dene (belki bir şeyler gelir)
+          sinaExtractData();
         }
-      }, 15000); // 15 saniye (10'dan 15'e çıkardım, daha güvenli)
+        if (observer) observer.disconnect();
+        if (fallbackInterval) clearInterval(fallbackInterval);
+      }, 12000);  // ✅ 12 saniye
 
-      // ========== 1. MUTATION OBSERVER (3 saniye boyunca) ==========
+      // ========== 1. MUTATION OBSERVER (2 saniye) ==========
       observer = new MutationObserver(() => {
         if (veriGonderildi) return;
         setTimeout(() => {
@@ -272,18 +275,31 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
 
       observer.observe(document.body, { childList: true, subtree: true });
 
-      // 3 saniye sonra Observer'ı durdur ve Interval'e geç
+      // 2 saniye sonra Observer'ı durdur ve Interval'e geç
       observerTimeout = setTimeout(() => {
         if (!veriGonderildi) {
-          console.log("⏳ Observer 3 sn içinde veri bulamadı, Interval moduna geçiliyor...");
+          console.log("⏳ Observer 2 sn içinde veri bulamadı, Interval moduna geçiliyor...");
           if (observer) observer.disconnect();
           
-          // ========== 2. FALLBACK INTERVAL ==========
+          // ========== 2. FALLBACK INTERVAL (maksimum 10 sn) ==========
+          let intervalAttempts = 0;
+          const MAX_INTERVAL_ATTEMPTS = 10;  // 10 sn (her deneme 1 sn)
+          
           fallbackInterval = setInterval(() => {
+            intervalAttempts++;
+            
             if (veriGonderildi) {
               clearInterval(fallbackInterval);
               return;
             }
+            
+            // Maksimum deneme sayısına ulaştıysa dur
+            if (intervalAttempts > MAX_INTERVAL_ATTEMPTS) {
+              console.log("⏹️ Interval maksimum denemeye ulaştı, durduruluyor...");
+              clearInterval(fallbackInterval);
+              return;
+            }
+            
             const rows = document.querySelectorAll('div[role="row"], [role="row"], table tbody tr');
             if (rows.length > 0) {
               console.log("🔄 Interval ile veri bulundu, çekiliyor...");
@@ -292,17 +308,7 @@ console.log("📦 content.js sürüm: v1.6.7 - 2026-04-08");
             }
           }, 1000);
         }
-      }, 3000);
-
-      // ========== 3. ZAMAN AŞIMI (10 saniye sonra zorla) ==========
-      finalTimeout = setTimeout(() => {
-        if (!veriGonderildi) {
-          console.log("⏰ Zaman aşımı (10 sn), zorla veri çekiliyor...");
-          sinaExtractData();
-        }
-        if (observer) observer.disconnect();
-        if (fallbackInterval) clearInterval(fallbackInterval);
-      }, 10000);
+      }, 2000);  // ✅ 2 saniye (eskiden 3 saniyeydi)
     });
   }
 })();

@@ -42,3 +42,4 @@ export const nurseFilterList = [
 ];
 
 export const RETENTION_DAYS = 90;
+export const SUREC_KATSAYISI = 1.03;

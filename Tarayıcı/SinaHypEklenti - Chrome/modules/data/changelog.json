@@ -1,6 +1,19 @@
 {
   "changelogData": [
     {
+      "version": "2.0.0",
+      "date": "2026-04-09",
+      "changes": [
+        "🎨 **Yepyeni Görünüm:** Daha modern ve sade bir tasarım",
+        "🌙 **Koyu Tema Desteği:** Göz yormayan koyu tema artık tamamen kararlı",
+        "🔧 **Kolay Ayarlar:** Tüm ayarlar tek bir pencereden yapılabiliyor",
+        "📏 **Yazı Boyutu Düzenleme:** Kendi gözünüze göre yazı büyüklüğünü ayarlayın",
+        "👩‍⚕️ **ASÇ Desteği Gelişti:** Aile Sağlığı Çalışanları için daha iyi hesaplamalar",
+        "⚡ **Daha Hızlı Veri Çekme:** SİNA ve HYP'den veri çekme süreleri kısaldı",
+        "🐛 **Hata Düzeltmeleri:** Çeşitli hatalar giderildi, kararlılık artırıldı"
+      ]
+    },
+    {
       "version": "1.6.7",
       "date": "2026-04-08",
       "changes": [

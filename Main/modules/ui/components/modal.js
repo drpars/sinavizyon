@@ -305,105 +305,48 @@ export function closeModal() {
   if (modal) modal.style.display = "none";
 }
 
-// ========== GÜNCELLEME SONRASI YENİLİKLER MODALI (v1.6.7) ==========
+// ========== GÜNCELLEME SONRASI YENİLİKLER MODALI (v2.0.0) ==========
 export async function showWhatsNewModal(version) {
-  const changelogData = await getChangelog();
-  const versionData = changelogData.find(item => item.version === version);
-  
-  if (!versionData) {
-    return new Promise((resolve) => {
-      const modal = document.createElement("div");
-      modal.className = "consent-modal";
-      modal.innerHTML = `
-        <div class="consent-modal-content" style="max-width: 350px; text-align: center;">
-          <img src="icons/icon-org.svg" style="width: 48px; height: 48px; margin-bottom: 12px;">
-          <h3 style="margin: 0 0 8px 0; color: var(--blue);">🎉 Güncelleme Tamamlandı</h3>
-          <p style="font-size: 0.8rem;">SİNA VİZYON v${version} sürümüne güncellendi.</p>
-          <button id="whatsNewConfirmBtn" style="margin-top: 16px; background-color: var(--blue); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">BAŞLAT</button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-      modal.style.display = "flex";
-      const btn = document.getElementById("whatsNewConfirmBtn");
-      btn.addEventListener("click", () => {
-        modal.remove();
-        resolve();
-      }, { once: true });
-    });
-  }
-  
   return new Promise((resolve) => {
     const modal = document.createElement("div");
     modal.className = "consent-modal";
     modal.style.animation = "fadeIn 0.2s ease";
     
-    // Benzersiz ve kullanıcı dostu maddeler
-    const userFriendlyChanges = [];
-    const seenMessages = new Set(); // Tekrar kontrolü için
+    // v2.0.0 için özel, kullanıcı dostu içerik
+    const whatsNewItems = [
+      "🎨 Yepyeni ve sade bir görünüm",
+      "🌙 Göz yormayan koyu tema",
+      "🔧 Tüm ayarlar tek pencerede",
+      "📏 Yazı boyutunu kendiniz ayarlayın",
+      "👩‍⚕️ ASÇ hesaplamaları iyileştirildi",
+      "⚡ Daha hızlı veri çekme"
+    ];
     
-    for (const change of versionData.changes) {
-      let friendlyText = "";
-      
-      if (change.includes("Veri kaybı") || change.includes("boş veri")) {
-        friendlyText = "🔒 Verileriniz artık daha güvenli, yanlışlıkla silinmeye karşı korumalı";
-      }
-      else if (change.includes("spinner") || change.includes("Loading")) {
-        friendlyText = "⏳ Veri çekilirken bekleme göstergesi eklendi";
-      }
-      else if (change.includes("VİTAL BULGU") || change.includes("TEKİL")) {
-        friendlyText = "👩‍⚕️ ASÇ modunda Vital Bulgu hesaplaması iyileştirildi";
-      }
-      else if (change.includes("SİNA BİRİM") || change.includes("bağımsız")) {
-        friendlyText = "🔘 ASÇ modunda SİNA BİRİM butonu hızlandırıldı";
-      }
-      else if (change.includes("KHT bar") || change.includes("renk")) {
-        friendlyText = "📊 KHT göstergesi renklendirildi (kırmızı/turuncu/yeşil)";
-      }
-      else if (change.includes("CSS") || change.includes("style") || change.includes("görünüm")) {
-        friendlyText = "🎨 Görünüm iyileştirmeleri yapıldı";
-      }
-      else if (change.includes("performans") || change.includes("cache") || change.includes("batch")) {
-        friendlyText = "⚡ Performans iyileştirmeleri yapıldı";
-      }
-      else {
-        // Teknik detayları atla (migration, import, değişken vb.)
-        continue;
-      }
-      
-      // Tekrar eden maddeleri engelle
-      if (friendlyText && !seenMessages.has(friendlyText)) {
-        seenMessages.add(friendlyText);
-        userFriendlyChanges.push(friendlyText);
-      }
-    }
-    
-    // Varsayılan mesaj (hiç madde yoksa)
-    if (userFriendlyChanges.length === 0) {
-      userFriendlyChanges.push("✨ Performans ve kararlılık iyileştirmeleri yapıldı");
-    }
-    
-    const changesHtml = userFriendlyChanges.map(change => `
-      <div style="margin: 10px 0; font-size: 0.8rem; display: flex; align-items: flex-start; gap: 8px;">
-        <span style="min-width: 20px;">•</span>
-        <span style="flex: 1; line-height: 1.4;">${change}</span>
+    const itemsHtml = whatsNewItems.map(item => `
+      <div style="margin: 12px 0; font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px;">
+        <span style="min-width: 24px;">✅</span>
+        <span style="flex: 1; line-height: 1.4;">${item}</span>
       </div>
     `).join('');
     
     modal.innerHTML = `
-      <div class="consent-modal-content" style="max-width: 380px; text-align: left; overflow: hidden;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <img src="icons/icon-org.svg" style="width: 56px; height: 56px;">
-          <h3 style="margin: 8px 0 4px 0; color: var(--blue);">🎉 Güncelleme Tamamlandı!</h3>
-          <p style="margin: 0; font-size: 0.7rem; opacity: 0.7;">SİNA VİZYON v${version}</p>
+      <div class="consent-modal-content" style="max-width: 420px; text-align: left; overflow: hidden;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="icons/icon-org.svg" style="width: 64px; height: 64px;">
+          <h2 style="margin: 12px 0 4px 0; color: var(--blue); font-size: 1.3rem;">SİNA VİZYON</h2>
+          <p style="margin: 0; font-size: 0.75rem; opacity: 0.7;">v${version} ile neler değişti?</p>
         </div>
         
-        <div style="background: var(--bg); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
-          <div style="font-weight: bold; font-size: 0.7rem; margin-bottom: 8px; color: var(--blue);">✨ Neler Değişti?</div>
-          ${changesHtml}
+        <div style="background: var(--bg); border-radius: 16px; padding: 8px 16px; margin-bottom: 20px; max-height: 350px; overflow-y: auto;">
+          ${itemsHtml}
         </div>
         
-        <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">
-          KULLANMAYA BAŞLA
+        <div style="background: var(--bg-dark); border-radius: 12px; padding: 10px; margin-bottom: 16px; text-align: center; border: 1px solid var(--border);">
+          <span style="font-size: 0.7rem;">💡 İpucu: Ayarlar penceresinden ⚙️ tema, yazı boyutu ve kullanıcı tipinizi değiştirebilirsiniz.</span>
+        </div>
+        
+        <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
+          SİNA VİZYON'U KULLANMAYA BAŞLA
         </button>
       </div>
     `;

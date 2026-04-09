@@ -18,6 +18,13 @@ import { getMonthNumber, isDateValid, getCurrentYearMonth } from '../lib/date-ut
 
 // ========== BUTON EVENTLERİ ==========
 export function bindSinaButton(setUserTypeFn, getCurrentAy, getCurrentYil, getDomBirimId) {
+
+console.log("🔍 SİNA butonu tıklandı - DOM değerleri:", {
+  ay: getCurrentAy(),
+  yil: getCurrentYil(),
+  birimId: getDomBirimId()
+});
+
   const btn = buttons.sina();
   if (!btn) return;
   

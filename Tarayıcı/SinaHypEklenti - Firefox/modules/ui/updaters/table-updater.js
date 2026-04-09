@@ -2,6 +2,7 @@
 import { buildDoctorTable, buildNurseTable } from '../table/index.js';
 import { updateKHTBar } from './kht-updater.js';
 import { calculateDoctorKatsayi } from '../../features/doctor/calculator.js';
+import { SUREC_KATSAYISI } from '../../lib/constants.js';
 
 export function updateTable(data, userType = "doctor", showAll = false, birimId = "") {
   const tbody = document.getElementById("tableBody");
@@ -33,14 +34,13 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
         const doctorData = res[doctorKey]?.data || [];
         if (doctorData.length > 0) {
           let doctorToplam = 1.0;
-          const surecCarpan = parseFloat(document.getElementById("surecYonetimi")?.value) || 1.03;
           doctorData.forEach(item => {
             const ger = parseFloat(item.gereken) || 0;
             const yap = parseFloat(item.yapilan) || 0;
             const dev = parseFloat(item.devreden) || 0;
             doctorToplam *= calculateDoctorKatsayi(item.ad, ger, yap, dev);
           });
-          const doctorBasari = doctorToplam * surecCarpan;
+          const doctorBasari = doctorToplam * SUREC_KATSAYISI;
           const tavanElement = document.getElementById("tavanKatsayi");
           tavanElement.textContent = doctorBasari.toFixed(5);
           const kosul1 = asçBasari >= 1.0;
@@ -74,8 +74,7 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
     return;
   }
   
-  const surecCarpan = parseFloat(document.getElementById("surecYonetimi")?.value) || 1.03;
-  const finalSonuc = buildDoctorTable(data, surecCarpan, updateKHTBar);
+  const finalSonuc = buildDoctorTable(data, updateKHTBar);
   const katsayiElement = document.getElementById("totalKatsayi");
   const tavanElement = document.getElementById("tavanKatsayi");
   if (katsayiElement && tavanElement) {

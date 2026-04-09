@@ -2,6 +2,7 @@
 import { calculateDoctorKatsayi } from '../../features/doctor/calculator.js';
 import { calculateNurseKatsayi } from '../../features/nurse/calculator.js';
 import { nurseFilterList } from '../../lib/constants.js';
+import { SUREC_KATSAYISI } from '../../lib/constants.js';
 
 
 // Yardımcı fonksiyon: tablo satırı oluştur (doktor/ASÇ ortak)
@@ -56,7 +57,7 @@ export function createTableRow(item, grupAdi = "") {
 }
 
 // Doktor modu için tabloyu oluştur (katsayı hesaplaması yapmaz, sadece görsel)
-export function buildDoctorTable(data, surecCarpan, updateKHTBarFn) {
+export function buildDoctorTable(data, updateKHTBarFn) {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return { toplamCarpim: 1.0 };
 
@@ -166,7 +167,7 @@ export function buildDoctorTable(data, surecCarpan, updateKHTBarFn) {
   tbody.innerHTML = "";
   tbody.appendChild(fragment);
   
-  const finalSonuc = toplamCarpim * surecCarpan;
+  const finalSonuc = toplamCarpim * SUREC_KATSAYISI;
   if (updateKHTBarFn) updateKHTBarFn(data, "doctor");
   return finalSonuc;
 }

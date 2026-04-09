@@ -1,0 +1,45 @@
+/* ============================================
+   TOAST.CSS - Bildirimler
+   ============================================ */
+
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--blue);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  z-index: 10000;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-notification.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-notification.toast-error {
+  background: var(--red);
+}
+
+.toast-notification.toast-warning {
+  background: var(--orange);
+}
+
+.toast-icon {
+  font-size: 0.9rem;
+}
+
+.toast-message {
+  font-size: var(--font-sm);
+}
