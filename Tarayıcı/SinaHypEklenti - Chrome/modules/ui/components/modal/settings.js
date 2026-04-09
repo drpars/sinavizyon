@@ -1,15 +1,35 @@
 // modules/ui/components/modal/settings.js
 // Ayarlar Modalı - Tüm ayarlar hafızada tutulur
 
-import { getCurrentUserType, setCurrentUserType, saveCurrentUserTypeToStorage, getCurrentBirimId, setCurrentBirimId, getCurrentShowAll } from '../../../core/state.js';
-import { getDomAy, getDomYil, getDomBirimId, getDomNufus } from '../../../core/dom.js';
-import { saveNufusForBirim, loadNufusForBirim } from '../../../core/storage.js';
+import { 
+  getCurrentUserType, 
+  setCurrentUserType, 
+  saveCurrentUserTypeToStorage, 
+  getCurrentBirimId, 
+  setCurrentBirimId, 
+  getCurrentShowAll 
+} from '../../../core/state.js';
+
+import { 
+  getDomAy, 
+  getDomYil, 
+  getDomBirimId, 
+  getDomNufus 
+} from '../../../core/dom.js';
+
+import { 
+  saveNufusForBirim, 
+  loadNufusForBirim,
+  loadDataForCurrentBirim, 
+  loadDataForCurrentBirimWithMerge,
+  exportData 
+} from '../../../core/storage.js';
+
 import { applyTheme } from '../../updaters/theme-updater.js';
 import { tavanHesapla } from '../../../lib/calculations.js';
-import { loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge } from '../../../core/storage.js';
 import { updateTable } from '../../updaters/table-updater.js';
 import { showToast } from '../../../utils/notifications.js';
-import { exportData, revokeConsent } from '../../../core/storage.js';
+import { revokeConsent } from '../../../features/consent/index.js';
 import { confirmDialog } from '../dialog.js';
 
 let modalElement = null;

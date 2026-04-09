@@ -1,6 +1,7 @@
 // modules/features/consent/manager.js
-import { showConsentModal } from '../../ui/components/modal.js';
+import { showConsentModal } from '../../ui/components/modal/index.js';
 import { confirmDialog, messageDialog } from '../../ui/components/dialog.js';
+import { updateTable, setUIEnabled } from '../../ui/updaters/index.js';
 
 export async function requestConsent() {
   const userConfirmed = await showConsentModal();
@@ -8,7 +9,7 @@ export async function requestConsent() {
   return userConfirmed;
 }
 
-export async function revokeConsent(updateTableFn, setUIEnabledFn) {
+export async function revokeConsent() {
   const confirmed = await confirmDialog(
     "Rızanızı geri çekerseniz tüm verileriniz silinecek ve eklenti veri toplamayı durduracaktır. Devam etmek istiyor musunuz?",
     "Rıza Geri Çekme"
@@ -16,7 +17,7 @@ export async function revokeConsent(updateTableFn, setUIEnabledFn) {
   if (!confirmed) return;
   
   chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "theme"], () => {
-    updateTableFn([]);
+    updateTable([]);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
     document.getElementById("nufus").value = "";
@@ -25,7 +26,7 @@ export async function revokeConsent(updateTableFn, setUIEnabledFn) {
     const hypBtn = document.getElementById("btnHyp");
     if (hypBtn) hypBtn.disabled = true;
     
-    setUIEnabledFn(false);
+    setUIEnabled(false);
     messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");
   });
 }

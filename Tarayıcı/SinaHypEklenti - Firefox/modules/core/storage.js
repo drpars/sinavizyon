@@ -3,12 +3,7 @@ import { RETENTION_DAYS } from '../lib/constants.js';
 import { updateTable, setUIEnabled } from '../ui/updaters/index.js';
 import { confirmDialog, messageDialog } from '../ui/components/index.js';
 import { getCurrentUserType } from './state.js';
-
-// Mevcut birimId'yi al
-export function getCurrentBirimId() {
-  const input = document.getElementById("birimId");
-  return input?.value?.trim() || "";
-}
+import { getDomBirimId } from './dom.js';
 
 // Storage anahtarını birimId ve userType ile oluştur
 export function getStorageKey(baseKey, birimId, userType) {
@@ -16,7 +11,7 @@ export function getStorageKey(baseKey, birimId, userType) {
   return `${baseKey}_${userType}_${birimId}`;
 }
 
-// Verileri birimId ve userType ile kaydet (ay ve yıl opsiyonel)
+// Verileri birimId ve userType ile kaydet
 export function storeDataWithTimestamp(baseKey, data, userType, birimId, ay = null, yil = null) {
   const timestamp = Date.now();
   const key = getStorageKey(baseKey, birimId, userType);
@@ -26,7 +21,7 @@ export function storeDataWithTimestamp(baseKey, data, userType, birimId, ay = nu
   chrome.storage.local.set({ [key]: value }).catch(console.error);
 }
 
-// Verileri okumak için yardımcı (callback)
+// Verileri okumak için yardımcı
 export function getDataWithTimestamp(baseKey, userType, birimId, callback) {
   const key = getStorageKey(baseKey, birimId, userType);
   chrome.storage.local.get([key], (res) => {
@@ -34,14 +29,13 @@ export function getDataWithTimestamp(baseKey, userType, birimId, callback) {
   });
 }
 
-// Nüfus işlemleri (birim bazlı, userType'den bağımsız - aynı nüfus)
+// Nüfus işlemleri
 export function saveNufusForBirim(birimId, nufus) {
   if (!birimId) return;
   const key = `nufus_${birimId}`;
   chrome.storage.local.set({ [key]: nufus }).catch(console.error);
 }
 
-// Nüfusu birim ID ile yükle (inputu doldurur)
 export function loadNufusForBirim(birimId, tavanHesaplaFn) {
   const nufusInput = document.getElementById("nufus");
   if (!nufusInput) return;
@@ -63,7 +57,7 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
   });
 }
 
-// Doktor modu için basit veri yükleme (merge yok) ay ve yıl eklendi
+// Doktor modu için veri yükleme
 export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onDataLoaded, showAll = false, ay = null, yil = null) {
   if (!birimId) {
     if (updateTableFn) updateTableFn([], userType, showAll, birimId);
@@ -77,7 +71,7 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
   chrome.storage.local.get([key], (res) => {
     let saved = res[key];
     let data = saved?.data || [];
-    // ✅ DÜZELTİLMİŞ FİLTRELEME
+    
     if (ay !== null && yil !== null && saved) {
       const hasMonthYear = saved.ay !== undefined && saved.yil !== undefined;
       if (hasMonthYear) {
@@ -85,8 +79,8 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
           data = [];
         }
       }
-      // hasMonthYear === false ise: eski veri, göster (düzeltmeyelim)
     }
+    
     const hasData = data.length > 0;
     if (hasData) {
       if (updateTableFn) updateTableFn(data, userType, showAll, birimId);
@@ -96,7 +90,6 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
     if (onDataLoaded) onDataLoaded(hasData);
   });
   
-  // Zaman damgaları aynı kalır (ay/yıl filtresine tabi değil)
   const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
   const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {
@@ -107,7 +100,7 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
   });
 }
 
-// ASÇ modunda showAll true ise hem nurse hem doctor verilerini birleştir ay ve yıl eklendi
+// ASÇ modu için veri yükleme (merge'li)
 export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimId, onDataLoaded, showAll = false, ay = null, yil = null) {
   if (!birimId) {
     if (updateTableFn) updateTableFn([], userType, showAll);
@@ -125,12 +118,10 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       let nurseData = res[nurseKey]?.data || [];
       let doctorData = res[doctorKey]?.data || [];
       
-      // ✅ AY/YIL FİLTRELEMESİ (düzeltilmiş)
       if (ay !== null && yil !== null) {
         const nurseRecord = res[nurseKey];
         const doctorRecord = res[doctorKey];
         
-        // Hemşire verisi filtreleme
         if (nurseRecord) {
           const hasMonthYear = nurseRecord.ay !== undefined && nurseRecord.yil !== undefined;
           if (hasMonthYear && (nurseRecord.ay !== ay || nurseRecord.yil !== yil)) {
@@ -140,7 +131,6 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
           nurseData = [];
         }
         
-        // Doktor verisi filtreleme
         if (doctorRecord) {
           const hasMonthYear = doctorRecord.ay !== undefined && doctorRecord.yil !== undefined;
           if (hasMonthYear && (doctorRecord.ay !== ay || doctorRecord.yil !== yil)) {
@@ -151,24 +141,19 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         }
       }
       
-      // ✅ showAll kontrolü - storage'daki değeri kullan
       let effectiveShowAll = showAll;
       const storedShowAll = res[`nurseShowAll_${birimId}`];
       
-      // Eğer storage'da değer varsa onu kullan, yoksa showAll parametresini kullan
       if (storedShowAll !== undefined) {
         effectiveShowAll = storedShowAll;
       }
       
-      // Eğer doktor verisi varsa ve showAll tanımlı değilse, true yap
       if (storedShowAll === undefined && doctorData.length > 0) {
         effectiveShowAll = true;
         chrome.storage.local.set({ [`nurseShowAll_${birimId}`]: true });
       }
       
       const hasData = (nurseData.length + doctorData.length) > 0;
-      
-      console.log(`🔍 ASÇ Veri Yükleme: showAll=${effectiveShowAll}, nurseData=${nurseData.length}, doctorData=${doctorData.length}`);
       
       if (effectiveShowAll) {
         const combinedData = [...nurseData, ...doctorData];
@@ -180,7 +165,6 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       if (onDataLoaded) onDataLoaded(hasData);
     });
     
-    // Zaman damgaları (değişiklik yok)
     const nurseSinaKey = getStorageKey("sinaLastTime", birimId, "nurse");
     const doctorSinaKey = getStorageKey("sinaLastTime", birimId, "doctor");
     chrome.storage.local.get([nurseSinaKey, doctorSinaKey], (res) => {
@@ -193,13 +177,12 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
     return;
   }
   
-  // DOKTOR MODU İÇİN DE AYNI DÜZELTME
+  // Doktor modu
   const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     let saved = res[key];
     let data = saved?.data || [];
     
-    // ✅ DÜZELTİLMİŞ DOKTOR FİLTRELEMESİ
     if (ay !== null && yil !== null && saved) {
       const hasMonthYear = saved.ay !== undefined && saved.yil !== undefined;
       if (hasMonthYear) {
@@ -207,7 +190,6 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
           data = [];
         }
       }
-      // hasMonthYear === false ise: eski veri, göster
     }
     
     const hasData = data.length > 0;
@@ -261,24 +243,23 @@ export function cleanExpiredData(updateTableFn) {
 
 // Veri dışa aktar (userType ile)
 export async function exportData() {
-  const birimId = getCurrentBirimId();
+  const birimId = getDomBirimId();
   if (!birimId) {
     await messageDialog("Önce Birim ID girin!", "Uyarı");
     return;
   }
   
-  const userType = getCurrentUserType(); // userType'ı al
+  const userType = getCurrentUserType();
   
-  // Sürüm numarasını manifest'ten al
   const manifest = chrome.runtime.getManifest();
   const currentVersion = manifest.version;
   
-  const key = getStorageKey("savedResults", birimId, userType); // userType eklendi
+  const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     const exportData = {
       exportDate: new Date().toISOString(),
       version: currentVersion,
-      userType: userType,           // userType eklendi
+      userType: userType,
       birimId: birimId,
       data: res[key]?.data || [],
       metadata: {
@@ -294,27 +275,3 @@ export async function exportData() {
     URL.revokeObjectURL(url);
   });
 }
-
-// Rızayı geri çek
-export async function revokeConsent() {
-  const confirmed = await confirmDialog(
-    "Rızanızı geri çekerseniz tüm verileriniz silinecek ve eklenti veri toplamayı durduracaktır. Devam etmek istiyor musunuz?",
-    "Rıza Geri Çekme"
-  );
-  if (!confirmed) return;
-  
-  chrome.storage.local.remove(["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "theme"], () => {
-    updateTable([]);
-    document.getElementById("sinaTime").textContent = "";
-    document.getElementById("hypTime").textContent = "";
-    document.getElementById("nufus").value = "";
-    document.getElementById("birimId").value = "";
-    
-    const hypBtn = document.getElementById("btnHyp");
-    if (hypBtn) hypBtn.disabled = true;
-    
-    setUIEnabled(false);
-    messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");
-  });
-}
-

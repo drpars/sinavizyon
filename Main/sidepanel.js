@@ -1,24 +1,20 @@
-// sidepanel.js - v1.6.7
+// sidepanel.js - v2.0.2
 // ============================================================
 // SADECE BAŞLATMA VE ORCHESTRATION
 // ============================================================
 
 // ---------- CORE ----------
 import { 
-  buttons, inputs, containers, infoElements, modals, khtMarks,
-  getDomBirimId, getDomUserType, getDomAy, getDomYil,
-  getDomNufus, setDomNufus, setDomBirimId,
-  setDomSinaTime, setDomHypTime, setDomTotalKatsayi, setDomTavanKatsayi,
-  setDomKhtPercentage, setDomKhtBarWidth, setDomKhtDurum, clearDomTableBody,
-  showDomSettingsPanel, toggleDomSettingsPanel, showDomAdvancedSettings, toggleDomAdvancedSettings
+  inputs,
+  getDomBirimId, getDomAy, getDomYil,
+  getDomNufus, setDomNufus, setDomBirimId
 } from './modules/core/dom.js';
 
 import { 
   getCurrentUserType, getCurrentBirimId, getCurrentShowAll,
-  getPendingStorageType, getPendingShowAll, getFontSettingsActive,
   setCurrentUserType, setCurrentBirimId, setCurrentShowAll,
-  setPendingStorageType, setPendingShowAll, setFontSettingsActive,
-  updateState, loadStateFromStorage, saveCurrentUserTypeToStorage,
+  setPendingStorageType, setPendingShowAll,
+  loadStateFromStorage, saveCurrentUserTypeToStorage,
   saveCurrentBirimIdToStorage
 } from './modules/core/state.js';
 
@@ -27,41 +23,38 @@ import {
 } from './modules/features/nurse/index.js';
 
 import { 
-  getCurrentBirimId as getStorageBirimId,
   storeDataWithTimestamp, saveNufusForBirim, loadNufusForBirim,
   loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge,
-  cleanExpiredData, exportData, revokeConsent
+  cleanExpiredData, exportData
 } from './modules/core/storage.js';
 
 import { bindAllEvents } from './modules/core/events.js';
 
 // ---------- UI ----------
 import { 
-  updateTable, applyTheme, applyKvkkVisibility, setUIEnabled,
+  updateTable, applyTheme, setUIEnabled,
   updateHypButtonStateUI, updateUIForUserType,
   applyKvkkVisibilityFromStorage, resetUIAfterDataClear, updateKHTBar
 } from './modules/ui/updaters/index.js';
 
+import { requestConsent, revokeConsent } from './modules/features/consent/index.js';
+
 import { 
-  requestConsent, showFirstTimeUserTypeModal, showWhatsNewModal
+  showFirstTimeUserTypeModal, showWhatsNewModal
 } from './modules/ui/components/index.js';
 
 // ---------- LIB ----------
 import { tavanHesapla } from './modules/lib/calculations.js';
-import { getCurrentYearMonth, getMonthNumber, isDateValid } from './modules/lib/date-utils.js';
 import { migrateFromOldStorage } from './modules/lib/migration.js';
 import { hypToSinaMap } from './modules/lib/constants.js';
-import { buildSinaUrl, HYP_URLS } from './modules/lib/config.js';
-
 
 // ========== HELPER FUNCTIONS ==========
-let spinnerTimeout = null;  // Timeout için global değişken
+let spinnerTimeout = null;
 
 function showLoadingSpinner() {
   const spinner = document.getElementById("loadingSpinner");
   const table = document.getElementById("dataTable");
   
-  // Önceki timeout'u temizle
   if (spinnerTimeout) {
     clearTimeout(spinnerTimeout);
     spinnerTimeout = null;
@@ -73,12 +66,10 @@ function showLoadingSpinner() {
   }
   if (table) table.style.display = "none";
   
-  // Güvenlik: 15 saniye sonra spinner'ı zorla kapat
   spinnerTimeout = setTimeout(() => {
     console.warn("⚠️ Spinner timeout: 15 saniye geçti, zorla kapatılıyor");
     hideLoadingSpinner();
     
-    // Kullanıcıya bilgi ver
     import('./modules/ui/components/index.js').then(({ messageDialog }) => {
       messageDialog("Veri çekme işlemi çok uzun sürüyor. Lütfen daha sonra tekrar deneyin.\n\n⏱️ Bekleme süresi aşıldı (15 saniye).", "Zaman Aşımı");
     });
@@ -89,7 +80,6 @@ function hideLoadingSpinner() {
   const spinner = document.getElementById("loadingSpinner");
   const table = document.getElementById("dataTable");
   
-  // Timeout'u temizle
   if (spinnerTimeout) {
     clearTimeout(spinnerTimeout);
     spinnerTimeout = null;
@@ -132,7 +122,7 @@ function setUserType(type) {
   updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateUI);
 }
 
-// ========== GLOBAL UI REFRESH FONKSİYONU (Ayarlar modal'ı için) ==========
+// ========== GLOBAL UI REFRESH FONKSİYONU ==========
 window.refreshUIForUserType = setUserType;
 
 export function deleteAllData() {
@@ -171,7 +161,6 @@ export function deleteAllData() {
 
 // ========== KAYITLI AYARLARI YÜKLE ==========
 async function loadSavedPeriodSettings() {
-  // Ay
   const savedAy = await new Promise(resolve => 
     chrome.storage.local.get(["lastSelectedAy"], (res) => resolve(res.lastSelectedAy))
   );
@@ -180,7 +169,6 @@ async function loadSavedPeriodSettings() {
     if (aySelect) aySelect.value = savedAy;
   }
   
-  // Yıl
   const savedYil = await new Promise(resolve => 
     chrome.storage.local.get(["lastSelectedYil"], (res) => resolve(res.lastSelectedYil))
   );
@@ -189,7 +177,6 @@ async function loadSavedPeriodSettings() {
     if (yilInput) yilInput.value = savedYil;
   }
   
-  // Birim ID
   const savedBirimId = await new Promise(resolve => 
     chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId))
   );
@@ -208,22 +195,18 @@ async function loadSavedPeriodSettings() {
     }
   }
   
-  // ✅ TEMA
   const savedTheme = await new Promise(resolve => 
     chrome.storage.local.get(["themePreference"], (res) => resolve(res.themePreference || "light"))
   );
   applyTheme(savedTheme);
   
-  // ✅ KULLANICI TİPİ - AL ve UYGULA (setUserType fonksiyonunu kullan!)
   const savedUserType = await new Promise(resolve => 
     chrome.storage.local.get(["userType"], (res) => resolve(res.userType || "doctor"))
   );
   
-  // setUserType fonksiyonu UI'ı tamamen günceller
   if (typeof setUserType === 'function') {
     setUserType(savedUserType);
   } else {
-    // Fallback: manuel güncelle
     setCurrentUserType(savedUserType);
     await saveCurrentUserTypeToStorage();
     
@@ -231,11 +214,9 @@ async function loadSavedPeriodSettings() {
     const currentAy = getDomAy();
     const currentYil = getDomYil();
     
-    // UI'ı güncelle
     updateUIForUserType(savedUserType, birimId, currentAy, currentYil, updateHypButtonStateUI);
   }
   
-  // ✅ YAZI BOYUTU
   const savedFontSize = await new Promise(resolve => 
     chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 16))
   );
@@ -257,6 +238,9 @@ async function loadSavedPeriodSettings() {
 
 // ========== SAYFA YÜKLENİNCE ==========
 document.addEventListener("DOMContentLoaded", async function () {
+  // State'i storage'dan yükle
+  await loadStateFromStorage();
+  
   const aylar = ["OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK"];
   const suAn = new Date();
   const aySelect = document.getElementById("ay");
@@ -322,7 +306,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   const manifest = chrome.runtime.getManifest();
   const currentVersion = manifest.version;
 
-  // ✅ v2.0.0 için ilk açılışta göster
   if (lastVersionSeen !== currentVersion) {
     await showWhatsNewModal(currentVersion);
     await chrome.storage.local.set({ lastVersionSeen: currentVersion });
@@ -341,12 +324,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Sürüm numarası
   try {
-    const manifest = chrome.runtime.getManifest();
     const versionBadge = document.getElementById("versionBadge");
     if (versionBadge && manifest?.version) versionBadge.textContent = `v${manifest.version}`;
   } catch (e) {
     const versionBadge = document.getElementById("versionBadge");
-    if (versionBadge) versionBadge.textContent = "v1.6.7";
+    if (versionBadge) versionBadge.textContent = "v2.0.2";
   }
 
   // Font ayarı
@@ -445,7 +427,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
-  // ✅ KAYITLI DÖNEM AYARLARINI YÜKLE (veri yenilemeden ÖNCE)
+  // Kayıtlı dönem ayarlarını yükle
   await loadSavedPeriodSettings();
 
   // Tüm event handler'ları bağla
@@ -460,7 +442,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
     console.log("📨 Mesaj alındı:", msg.action);
     
-    // ✅ SPINNER KONTROLÜ EKLE
     if (msg.action === "showSpinner") {
       showLoadingSpinner();
       sendResponse({ status: "ok" });
@@ -480,28 +461,28 @@ document.addEventListener("DOMContentLoaded", async function () {
       hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
-      const birimId = getCurrentBirimId();
+      const birimId = getDomBirimId();
       const userType = getCurrentUserType();
-      let currentShowAllValue = getCurrentShowAll();
+      
+      // pendingStorageType state'ten al
+      let pendingStorage = 'nurse';
+      chrome.storage.local.get(['pendingStorageType'], (res) => {
+        pendingStorage = res.pendingStorageType || 'nurse';
+      });
 
       if (!birimId) return;
       let targetUserType = userType;
-      let pendingStorage = getPendingStorageType();
       if (userType === "nurse" && pendingStorage) targetUserType = pendingStorage;
-      const key = `savedResults_${targetUserType}_${birimId}`;
       
-      // ✅ BİRLEŞTİRME YOK: Sadece gelen SİNA verisini kullan
-      const merged = msg.results;  // Hiçbir hyp birleştirmesi yapma
+      const merged = msg.results;
       
       console.log(`📊 dataParsed: ${merged.length} işlem, targetUserType=${targetUserType}`);
 
       if (merged.length > 0) {
-        // ✅ Eski veriyi tamamen temizle
         const eskiKey = `savedResults_${targetUserType}_${birimId}`;
         await new Promise(resolve => chrome.storage.local.remove([eskiKey], resolve));
         console.log(`🗑️ Eski veri temizlendi: ${eskiKey}`);
         
-        // Yeni veriyi kaydet
         storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
         storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
         
@@ -544,7 +525,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         
         await messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
         
-        // ✅ KRİTİK: Mevcut verileri storage'dan TEKRAR YÜKLE (silme!)
         if (userType === "nurse") {
           loadNurseShowAllForBirim(birimId).then((showAll) => {
             loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
@@ -554,7 +534,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         
         if (sendResponse) sendResponse({ status: "ok", data: [] });
-        return;  // İşlemi bitir, aşağıdaki kod çalışmasın
+        return;
       }
 
       if (userType === "nurse" && targetUserType === "doctor") {
@@ -567,7 +547,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           setCurrentShowAll(false);
           updateTable([], userType, false, birimId);
         } else {
-          // ✅ YENİ EKLENEN: SİNA BİRİM (doctor verisi) çekildiyse showAll'ı true yap
           if (targetUserType === "doctor") {
             setCurrentShowAll(true);
             saveNurseShowAllForBirim(birimId, true);
@@ -590,8 +569,10 @@ document.addEventListener("DOMContentLoaded", async function () {
           });
         }
       } else {
+        const currentShowAllValue = getCurrentShowAll();
         updateTable(merged, userType, currentShowAllValue, birimId);
       }
+      
       const hypBtn = document.getElementById("btnHyp");
       if (hypBtn) hypBtn.disabled = false;
       setPendingShowAll(false);
@@ -599,11 +580,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       
       if (sendResponse) sendResponse({ status: "ok", data: merged });
       return true;
+      
     } else if (msg.action === "hypDataParsed") {
       hideLoadingSpinner();
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
-      const birimId = getCurrentBirimId();
+      const birimId = getDomBirimId();
 
       if (!birimId) return;
       const userType = getCurrentUserType();
@@ -611,7 +593,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       const key = `savedResults_${userType}_${birimId}`;
       
       chrome.storage.local.get([key], async (res) => {
-        // Yeni yaklaşım: SİNA verisi yoksa bile doktor verisini kaydet
         let guncelVeri = res[key]?.data || [];
         
         msg.results.forEach((hypItem) => {
@@ -634,9 +615,9 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         }
         
-        // Tabloyu güncelle (mevcut showAll değerine göre)
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
+      
       if (sendResponse && typeof sendResponse === 'function') {
         sendResponse({ status: "ok" });
       }

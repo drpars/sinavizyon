@@ -1,20 +1,22 @@
-// Tüm modal'ların tek bir yerden yönetimi
-import { showFirstTimeModal } from './first-time.js';
-import { showAboutModal } from './about.js';
-import { showChangelogModal } from './changelog.js';
-import { showConsentModal } from './consent.js';
-import { showWhatsNewModal } from './whatsnew.js';
-import { showSettingsModal, closeSettingsModal, applySettings } from './settings.js';
+// modules/ui/components/modal/index.js
+// ============================================================
+// Modal Yönetimi - Ana Entry Point
+// ============================================================
 
-export const modalManager = {
-  firstTime: showFirstTimeModal,
-  about: showAboutModal,
-  changelog: showChangelogModal,
-  consent: showConsentModal,
-  whatsnew: showWhatsNewModal,
-  settings: {
-    open: showSettingsModal,
-    close: closeSettingsModal,
-    apply: applySettings
-  }
-};
+// First-time modal
+export { showFirstTimeUserTypeModal } from './first-time.js';
+
+// About modal
+export { showAboutDialog } from './about.js';
+
+// Changelog modal
+export { showChangelog, closeModal } from './changelog.js';
+
+// Consent modal
+export { showConsentModal, requestConsent } from './consent.js';
+
+// Whatsnew modal
+export { showWhatsNewModal } from './whatsnew.js';
+
+// Settings modal
+export { openSettingsModal, closeSettingsModal } from './settings.js';
