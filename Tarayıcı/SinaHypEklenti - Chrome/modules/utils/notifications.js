@@ -1,80 +1,119 @@
 // modules/utils/notifications.js
-// Bildirim sistemi (toast, alert, banner)
+// Bildirim sistemi (toast, alert, banner) - v2.0.3
 
 let activeToast = null;
+let toastTimeout = null;
 
-function createToastElement(message) {
+function createToastElement(message, type = 'success') {
   const toast = document.createElement("div");
   toast.className = "toast-notification";
-    toast.innerHTML = `
-    <span class="toast-icon">✅</span>
+  
+  let icon = '✅';
+  if (type === 'error') {
+    icon = '❌';
+    toast.classList.add('toast-error');
+  } else if (type === 'warning') {
+    icon = '⚠️';
+    toast.classList.add('toast-warning');
+  }
+  
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
     <span class="toast-message">${message}</span>
   `;
   return toast;
 }
 
-function animateToast(toast, duration) {
-  setTimeout(() => toast.classList.add("show"), 10);
+function clearActiveToast() {
+  // Mevcut timeout'u temizle
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
   
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => {
-      if (toast.parentNode) toast.parentNode.removeChild(toast);
-      if (activeToast === toast) activeToast = null;
-    }, 300);
-  }, duration);
-}
-
-export function showToast(message, duration = 3000) {
-  // Eski toast varsa kaldır
+  // Aktif toast'ı kaldır
   if (activeToast && activeToast.parentNode) {
-    activeToast.classList.remove("show");
+    activeToast.classList.remove('show');
     setTimeout(() => {
       if (activeToast && activeToast.parentNode) {
         activeToast.parentNode.removeChild(activeToast);
       }
       activeToast = null;
-      showToast(message, duration);
-    }, 300);
-    return;
+    }, 200); // CSS transition süresi
+  } else {
+    activeToast = null;
   }
+}
+
+export function showToast(message, duration = 2500) {
+  // Eski toast'ı temizle
+  clearActiveToast();
   
+  // Yeni toast oluştur
   const toast = createToastElement(message);
   document.body.appendChild(toast);
   activeToast = toast;
-  animateToast(toast, duration);
+  
+  // Göster (requestAnimationFrame ile smooth animasyon)
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+  
+  // Belirtilen süre sonra kaldır
+  toastTimeout = setTimeout(() => {
+    if (activeToast === toast) {
+      toast.classList.remove('show');
+      toastTimeout = setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+        if (activeToast === toast) activeToast = null;
+        toastTimeout = null;
+      }, 200);
+    }
+  }, duration);
 }
 
-export function showErrorToast(message, duration = 4000) {
-  const toast = document.createElement("div");
-  toast.className = "toast-notification toast-error";
-  toast.innerHTML = `
-    <span class="toast-icon">❌</span>
-    <span class="toast-message">${message}</span>
-  `;
+export function showErrorToast(message, duration = 3500) {
+  clearActiveToast();
+  
+  const toast = createToastElement(message, 'error');
   document.body.appendChild(toast);
   activeToast = toast;
   
-  setTimeout(() => toast.classList.add("show"), 10);
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+  
+  toastTimeout = setTimeout(() => {
+    if (activeToast === toast) {
+      toast.classList.remove('show');
+      toastTimeout = setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+        if (activeToast === toast) activeToast = null;
+        toastTimeout = null;
+      }, 200);
+    }
   }, duration);
 }
 
 export function showWarningToast(message, duration = 3500) {
-  const toast = document.createElement("div");
-  toast.className = "toast-notification toast-warning";
-  toast.innerHTML = `
-    <span class="toast-icon">⚠️</span>
-    <span class="toast-message">${message}</span>
-  `;
+  clearActiveToast();
+  
+  const toast = createToastElement(message, 'warning');
   document.body.appendChild(toast);
   activeToast = toast;
   
-  setTimeout(() => toast.classList.add("show"), 10);
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+  
+  toastTimeout = setTimeout(() => {
+    if (activeToast === toast) {
+      toast.classList.remove('show');
+      toastTimeout = setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+        if (activeToast === toast) activeToast = null;
+        toastTimeout = null;
+      }, 200);
+    }
   }, duration);
 }

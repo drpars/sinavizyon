@@ -8,16 +8,19 @@
   overflow-y: auto;
   flex-grow: 1;
   padding-bottom: 20px;
-  max-height: calc(100vh - 280px);  /* sabit yükseklik, scrollbar çalışır */
-}
-
-/* Firefox scrollbar */
-.table-container {
+  max-height: calc(100vh - 280px);
+  
+  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: var(--blue) var(--border);
 }
 
-/* Chrome/Edge/Safari scrollbar */
+/* Firefox hover */
+.table-container:hover {
+  scrollbar-color: var(--magenta) var(--border);
+}
+
+/* Chrome/Edge/Safari */
 .table-container::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,10 +34,15 @@
 .table-container::-webkit-scrollbar-thumb {
   background: var(--blue);
   border-radius: 3px;
+  transition: background 0.2s ease;
 }
 
 .table-container::-webkit-scrollbar-thumb:hover {
   background: var(--magenta);
+}
+
+.table-container::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Karanlık temada scrollbar */

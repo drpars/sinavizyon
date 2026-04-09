@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.0.3",
+      "date": "2026-04-09",
+      "changes": [
+        "🔔 **Toast bildirimleri iyileştirildi:** Daha hızlı ve kararlı, geç kaybolma sorunu giderildi.",
+        "🎨 **Scrollbar tasarımı yenilendi:** Chrome ve Firefox'ta ince, şık ve tutarlı görünüm.",
+        "🖌️ **CSS iyileştirmeleri:** Vendor prefix uyarıları giderildi, hover efektleri eklendi.",
+        "🧹 **Kod temizliği:** Kullanılmayan import'lar temizlendi, dosya yapısı sadeleştirildi."
+      ]
+    },
+    {
       "version": "2.0.2",
       "date": "2026-04-09",
       "changes": [

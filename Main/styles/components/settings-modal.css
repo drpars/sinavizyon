@@ -96,22 +96,42 @@
   padding: 16px 20px;
   max-height: 55vh;
   overflow-y: auto;
+  
+  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: var(--blue) var(--border);
 }
 
+/* Firefox hover */
+.settings-modal-body:hover {
+  scrollbar-color: var(--magenta) var(--border);
+}
+
+/* Chrome/Edge/Safari - İnce ve şık scrollbar */
 .settings-modal-body::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .settings-modal-body::-webkit-scrollbar-track {
   background: var(--border);
   border-radius: 3px;
+  margin: 4px 0;  /* Üstten ve alttan boşluk */
 }
 
 .settings-modal-body::-webkit-scrollbar-thumb {
   background: var(--blue);
   border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.settings-modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--magenta);
+}
+
+/* Scrollbar köşesi (sağ alt) */
+.settings-modal-body::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Kartlar */
@@ -327,15 +347,43 @@ body.dark-mode .theme-btn.active {
   background: var(--border);
   outline: none;
   -webkit-appearance: none;
+  appearance: none;  /* ← Standart ekleyelim */
 }
 
 .settings-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;  /* ← Standart ekleyelim */
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: var(--blue);
   cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.settings-slider::-webkit-slider-thumb:hover {
+  background: var(--magenta);
+}
+
+/* Firefox için */
+.settings-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--blue);
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.settings-slider::-moz-range-thumb:hover {
+  background: var(--magenta);
+}
+
+.settings-slider::-moz-range-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
 }
 
 /* Butonlar */

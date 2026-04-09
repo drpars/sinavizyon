@@ -1,7 +1,4 @@
 // modules/ui/components/modal/whatsnew.js
-// ============================================================
-// Yenilikler Modalı (Güncelleme sonrası gösterilir)
-// ============================================================
 
 export async function showWhatsNewModal(version) {
   return new Promise((resolve) => {
@@ -11,7 +8,14 @@ export async function showWhatsNewModal(version) {
     
     let whatsNewItems = [];
     
-    if (version === "2.0.2") {
+    if (version === "2.0.3") {
+      whatsNewItems = [
+        "🔔 Toast bildirimleri iyileştirildi (daha hızlı ve kararlı)",
+        "🎨 Scrollbar tasarımı yenilendi (ince ve şık görünüm)",
+        "🖌️ CSS iyileştirmeleri ve hover efektleri",
+        "🧹 Kod temizliği ve performans artışı"
+      ];
+    } else if (version === "2.0.2") {
       whatsNewItems = [
         "🔧 Kod temizliği ve modüler yapı iyileştirmeleri",
         "🐛 Birim ID çakışması giderildi",
