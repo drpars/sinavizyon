@@ -102,6 +102,11 @@
   color: white;
 }
 
+#consentAcceptBtn,
+#consentRejectBtn {
+  font-size: 0.700rem;
+}
+
 #consentWarning {
   background: var(--red);
   color: white;

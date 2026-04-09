@@ -237,7 +237,7 @@ async function loadSavedPeriodSettings() {
   
   // ✅ YAZI BOYUTU
   const savedFontSize = await new Promise(resolve => 
-    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 12))
+    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 16))
   );
   document.documentElement.style.fontSize = savedFontSize + "px";
   
