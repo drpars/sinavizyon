@@ -48,3 +48,27 @@
   text-align: center;
   min-height: 14px;
 }
+
+.btn-simulator {
+  background: linear-gradient(135deg, var(--green) 0%, #1eb482 100%);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-simulator:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.btn-simulator:active {
+  transform: translateY(0);
+}
+
+/* Doktor modunda görünür, ASÇ modunda gizli */
+body.nurse-mode .btn-simulator {
+  display: none;
+}

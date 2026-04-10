@@ -48,7 +48,7 @@ function createSettingsModal() {
         <button class="settings-modal-close" id="closeSettingsModalBtn">&times;</button>
       </div>
       
-      <div class="settings-modal-body">
+      <div class="settings-modal-body scrollbar-custom">
         <!-- 1. KULLANICI TİPİ -->
         <div class="settings-card">
           <div class="settings-card-header">

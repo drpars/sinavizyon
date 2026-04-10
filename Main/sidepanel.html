@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="styles/components/settings-modal.css">
     <link rel="stylesheet" href="styles/components/toast.css">
     <link rel="stylesheet" href="styles/components/spinner.css">
+    <link rel="stylesheet" href="styles/components/simulator.css">
   </head>
   <body>
     <!-- HEADER -->
@@ -74,10 +75,14 @@
         <button id="btnHyp" class="btn btn-hyp">HYP</button>
         <div id="hypTime" class="time-label"></div>
       </div>
+      <div class="btn-wrapper">
+        <button id="btnSimulator" class="btn btn-simulator">🎯 Ne Yapmalıyım?</button>
+        <div id="simulatorHint" class="time-label">Strateji Önerisi</div>
+      </div>
     </div>
 
     <!-- TABLO -->
-    <div class="table-container">
+    <div class="table-container scrollbar-custom">
       <div id="loadingSpinner" style="display: none;">
         <div class="spinner"></div>
         <div class="spinner-text">Veri çekiliyor, lütfen bekleyin...</div>

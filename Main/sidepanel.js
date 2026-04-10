@@ -43,6 +43,8 @@ import {
   showFirstTimeUserTypeModal, showWhatsNewModal
 } from './modules/ui/components/index.js';
 
+import { showSimulatorModal, closeSimulatorModal } from './modules/ui/components/modal/simulator.js';
+
 // ---------- LIB ----------
 import { tavanHesapla } from './modules/lib/calculations.js';
 import { migrateFromOldStorage } from './modules/lib/migration.js';
@@ -119,11 +121,65 @@ function setUserType(type) {
   const currentAy = getDomAy();
   const currentYil = getDomYil();
   
+  // Simülatör butonu görünürlüğü
+  const simulatorBtn = document.getElementById('btnSimulator');
+  const simulatorWrapper = simulatorBtn?.closest('.btn-wrapper');
+  if (simulatorWrapper) {
+    simulatorWrapper.style.display = type === 'doctor' ? 'flex' : 'none';
+  }
+  
   updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateUI);
 }
 
+// ========== SİMÜLATÖR FONKSİYONU ==========
+function openSimulator() {
+  const birimId = getCurrentBirimId();
+  const userType = getCurrentUserType();
+  
+  if (userType !== 'doctor') {
+    import('./modules/ui/components/index.js').then(({ messageDialog }) => {
+      messageDialog('Bu özellik sadece Aile Hekimi modunda kullanılabilir.', 'Bilgi');
+    });
+    return;
+  }
+  
+  if (!birimId) {
+    import('./modules/ui/components/index.js').then(({ messageDialog }) => {
+      messageDialog('Lütfen önce Birim ID girin!', 'Uyarı');
+    });
+    return;
+  }
+  
+  const key = `savedResults_doctor_${birimId}`;
+  chrome.storage.local.get([key], (res) => {
+    const savedData = res[key]?.data || [];
+    
+    if (savedData.length === 0) {
+      import('./modules/ui/components/index.js').then(({ messageDialog }) => {
+        messageDialog('Henüz veri çekilmemiş. Lütfen önce SİNA butonuna tıklayarak verileri getirin.', 'Bilgi');
+      });
+      return;
+    }
+    
+    const nufusInput = document.getElementById('nufus');
+    const nufus = parseFloat(nufusInput?.value) || 0;
+    const tavanKatsayi = nufus > 0 ? Math.min(1.5, Math.max(1.0, 4000 / nufus)) : 1.0;
+    
+    showSimulatorModal(savedData, tavanKatsayi);
+  });
+}
+
+
 // ========== GLOBAL UI REFRESH FONKSİYONU ==========
-window.refreshUIForUserType = setUserType;
+window.refreshUIForUserType = function(type) {
+  setUserType(type);
+  
+  // Simülatör butonu görünürlüğünü güncelle
+  const simulatorWrapper = document.getElementById('btnSimulator')?.closest('.btn-wrapper');
+  if (simulatorWrapper) {
+    simulatorWrapper.style.display = type === 'doctor' ? 'flex' : 'none';
+  }
+};
 
 export function deleteAllData() {
   import('./modules/ui/components/index.js').then(({ confirmDialog, messageDialog }) => {
@@ -329,6 +385,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   } catch (e) {
     const versionBadge = document.getElementById("versionBadge");
     if (versionBadge) versionBadge.textContent = "v2.0.2";
+  }
+
+  // Simülatör butonu
+  const simulatorBtn = document.getElementById('btnSimulator');
+  if (simulatorBtn) {
+    simulatorBtn.addEventListener('click', openSimulator);
   }
 
   // Font ayarı

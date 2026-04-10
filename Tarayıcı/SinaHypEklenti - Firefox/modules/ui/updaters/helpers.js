@@ -32,15 +32,20 @@ export function clearTimeIndicators() {
 // ========== BUTON DURUM GÜNCELLEMELERİ ==========
 export function updateHypButtonStateUI(hasData, userType = null) {
   const hypBtn = buttons.hyp();
+  const simulatorBtn = document.getElementById('btnSimulator');
+  
   if (!hypBtn) return;
   
   // ASÇ modunda SİNA BİRİM butonu HER ZAMAN aktif
   if (userType === "nurse") {
     hypBtn.disabled = false;
+    if (simulatorBtn) simulatorBtn.disabled = true; // ASÇ modunda pasif
     console.log("🔘 ASÇ modu: SİNA BİRİM butonu aktif edildi");
   } else {
     // Doktor modunda HYP butonu sadece SİNA verisi varsa aktif
     hypBtn.disabled = !hasData;
+    // Simülatör butonu da veri varsa aktif
+    if (simulatorBtn) simulatorBtn.disabled = !hasData;
     console.log("🔘 Doktor modu: HYP butonu aktif:", !hypBtn.disabled);
   }
 }
