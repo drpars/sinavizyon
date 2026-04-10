@@ -1,13 +1,7 @@
 // modules/ui/components/dialog.js
-/**
- * Kullanıcıya onay sorusu sorar
- * @param {string} prompt - Sorulacak metin
- * @param {string} title - Başlık (varsayılan: "Onay")
- * @returns {Promise<boolean>} - true: kabul, false: red
- */
+
 export async function confirmDialog(prompt, title = "Onay") {
   return new Promise((resolve) => {
-    // Modal elementi oluştur (eğer yoksa)
     let modal = document.getElementById("confirmDialog");
     if (!modal) {
       modal = document.createElement("div");
@@ -31,6 +25,7 @@ export async function confirmDialog(prompt, title = "Onay") {
     const yesBtn = document.getElementById("confirmDialogYesBtn");
     const noBtn = document.getElementById("confirmDialogNoBtn");
 
+    // ✅ textContent kullan
     titleElem.textContent = title;
     promptElem.textContent = prompt;
 
@@ -55,12 +50,6 @@ export async function confirmDialog(prompt, title = "Onay") {
   });
 }
 
-/**
- * Kullanıcıya bilgi mesajı gösterir
- * @param {string} text - Gösterilecek metin
- * @param {string} title - Başlık (varsayılan: "Mesaj")
- * @returns {Promise<void>}
- */
 export async function messageDialog(text, title = "Mesaj") {
   return new Promise((resolve) => {
     let modal = document.getElementById("messageDialog");
@@ -71,7 +60,7 @@ export async function messageDialog(text, title = "Mesaj") {
       modal.innerHTML = `
         <div class="consent-modal-content" style="max-width: 350px;">
           <h3 id="messageDialogTitle">Mesaj</h3>
-          <div id="messageDialogText" style="text-align: left; white-space: pre-line;"></div>
+          <div id="messageDialogText" style="text-align: left;"></div>
           <div class="consent-modal-buttons">
             <button id="messageDialogOkBtn" style="background-color: var(--blue); color: white;">Tamam</button>
           </div>
@@ -85,8 +74,10 @@ export async function messageDialog(text, title = "Mesaj") {
     const okBtn = document.getElementById("messageDialogOkBtn");
 
     titleElem.textContent = title;
-    // innerHTML kullanarak \n'leri <br>'e çevirelim
-    textElem.innerHTML = text.replace(/\n/g, '<br>');
+    
+    // ✅ innerHTML yerine textContent + white-space: pre-line
+    textElem.style.whiteSpace = 'pre-line';
+    textElem.textContent = text;
 
     modal.style.display = "flex";
 
@@ -101,4 +92,3 @@ export async function messageDialog(text, title = "Mesaj") {
     okBtn.addEventListener("click", onOk);
   });
 }
-

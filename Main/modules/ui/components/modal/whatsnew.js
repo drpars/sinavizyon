@@ -8,7 +8,13 @@ export async function showWhatsNewModal(version) {
     
     let whatsNewItems = [];
     
-    if (version === "2.0.3") {
+    if (version === "2.0.4") {
+      whatsNewItems = [
+        "🔒 Güvenlik iyileştirmesi (innerHTML → textContent)",
+        "🛡️ XSS saldırılarına karşı koruma",
+        "📱 Firefox manifest uyumluluğu güncellendi"
+      ];
+    } else if (version === "2.0.3") { 
       whatsNewItems = [
         "🔔 Toast bildirimleri iyileştirildi (daha hızlı ve kararlı)",
         "🎨 Scrollbar tasarımı yenilendi (ince ve şık görünüm)",

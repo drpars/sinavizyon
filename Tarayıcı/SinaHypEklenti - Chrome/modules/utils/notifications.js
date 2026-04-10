@@ -1,5 +1,5 @@
 // modules/utils/notifications.js
-// Bildirim sistemi (toast, alert, banner) - v2.0.3
+// Bildirim sistemi (toast, alert, banner) - v2.0.4
 
 let activeToast = null;
 let toastTimeout = null;
@@ -17,21 +17,27 @@ function createToastElement(message, type = 'success') {
     toast.classList.add('toast-warning');
   }
   
-  toast.innerHTML = `
-    <span class="toast-icon">${icon}</span>
-    <span class="toast-message">${message}</span>
-  `;
+  // ✅ innerHTML yerine güvenli DOM manipülasyonu
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'toast-icon';
+  iconSpan.textContent = icon;
+  
+  const messageSpan = document.createElement('span');
+  messageSpan.className = 'toast-message';
+  messageSpan.textContent = message;
+  
+  toast.appendChild(iconSpan);
+  toast.appendChild(messageSpan);
+  
   return toast;
 }
 
 function clearActiveToast() {
-  // Mevcut timeout'u temizle
   if (toastTimeout) {
     clearTimeout(toastTimeout);
     toastTimeout = null;
   }
   
-  // Aktif toast'ı kaldır
   if (activeToast && activeToast.parentNode) {
     activeToast.classList.remove('show');
     setTimeout(() => {
@@ -39,27 +45,23 @@ function clearActiveToast() {
         activeToast.parentNode.removeChild(activeToast);
       }
       activeToast = null;
-    }, 200); // CSS transition süresi
+    }, 200);
   } else {
     activeToast = null;
   }
 }
 
 export function showToast(message, duration = 2500) {
-  // Eski toast'ı temizle
   clearActiveToast();
   
-  // Yeni toast oluştur
   const toast = createToastElement(message);
   document.body.appendChild(toast);
   activeToast = toast;
   
-  // Göster (requestAnimationFrame ile smooth animasyon)
   requestAnimationFrame(() => {
     toast.classList.add('show');
   });
   
-  // Belirtilen süre sonra kaldır
   toastTimeout = setTimeout(() => {
     if (activeToast === toast) {
       toast.classList.remove('show');
