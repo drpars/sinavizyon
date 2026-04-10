@@ -9,53 +9,6 @@
   flex-grow: 1;
   padding-bottom: 20px;
   max-height: calc(100vh - 280px);
-  
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: var(--blue) var(--border);
-}
-
-/* Firefox hover */
-.table-container:hover {
-  scrollbar-color: var(--magenta) var(--border);
-}
-
-/* Chrome/Edge/Safari */
-.table-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: var(--border);
-  border-radius: 3px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: var(--blue);
-  border-radius: 3px;
-  transition: background 0.2s ease;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: var(--magenta);
-}
-
-.table-container::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-/* Karanlık temada scrollbar */
-body.dark-mode .table-container {
-  scrollbar-color: var(--blue) var(--border);
-}
-
-body.dark-mode .table-container::-webkit-scrollbar-track {
-  background: var(--border);
-}
-
-body.dark-mode .table-container::-webkit-scrollbar-thumb {
-  background: var(--blue);
 }
 
 table {
