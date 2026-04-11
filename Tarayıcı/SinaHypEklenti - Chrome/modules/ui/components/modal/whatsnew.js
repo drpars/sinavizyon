@@ -8,13 +8,22 @@ export async function showWhatsNewModal(version) {
     
     let whatsNewItems = [];
     
-    if (version === "2.0.4") {
+    if (version === "2.1.0") {
+      whatsNewItems = [
+        "🎯 Yeni 'Ne Yapmalıyım?' butonu ile Performans Simülasyonu",
+        "💡 Akıllı Öneri Sistemi (en az işlemle hedefe ulaş)",
+        "🎮 İnteraktif slider'lar ile anlık katsayı hesaplama",
+        "📊 Öncelikli sıralama (Taramalar > İzlemler > Kanser)",
+        "🎨 Sade ve modern arayüz, global scrollbar stili",
+        "🐛 SİNA zamanı, spinner ve Birim ID hata düzeltmeleri"
+      ];
+    } else if (version === "2.0.4") {
       whatsNewItems = [
         "🔒 Güvenlik iyileştirmesi (innerHTML → textContent)",
         "🛡️ XSS saldırılarına karşı koruma",
         "📱 Firefox manifest uyumluluğu güncellendi"
       ];
-    } else if (version === "2.0.3") { 
+    } else if (version === "2.0.3") {
       whatsNewItems = [
         "🔔 Toast bildirimleri iyileştirildi (daha hızlı ve kararlı)",
         "🎨 Scrollbar tasarımı yenilendi (ince ve şık görünüm)",
@@ -74,7 +83,7 @@ export async function showWhatsNewModal(version) {
         </div>
         
         <div style="background: var(--bg-dark); border-radius: 12px; padding: 10px; margin-bottom: 16px; text-align: center; border: 1px solid var(--border);">
-          <span style="font-size: 0.7rem;">💡 İpucu: Ayarlar penceresinden ⚙️ tema, yazı boyutu ve kullanıcı tipinizi değiştirebilirsiniz.</span>
+          <span style="font-size: 0.7rem;">💡 İpucu: 'Ne Yapmalıyım?' butonu ile hedefe ulaşmak için strateji alın!</span>
         </div>
         
         <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">

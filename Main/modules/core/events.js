@@ -2,59 +2,61 @@
 import { buttons, inputs } from './dom.js';
 import { 
   getCurrentUserType, getCurrentBirimId, getCurrentShowAll,
-  getPendingStorageType, getPendingShowAll,
   setCurrentUserType, setCurrentBirimId, setCurrentShowAll,
-  setPendingStorageType, setPendingShowAll,
+  setPendingStorageType,
   saveCurrentUserTypeToStorage, saveCurrentBirimIdToStorage,
-  loadNurseShowAllForBirim, saveNurseShowAllForBirim
+  loadNurseShowAllForBirim
 } from './state.js';
 import { buildSinaUrl, HYP_URLS } from '../lib/config.js';
-import { storeDataWithTimestamp, saveNufusForBirim, loadNufusForBirim, exportData, loadDataForCurrentBirimWithMerge } from './storage.js';
+import { saveNufusForBirim, loadNufusForBirim, loadDataForCurrentBirimWithMerge } from './storage.js';
 import { tavanHesapla } from '../lib/calculations.js';
 import { updateTable, applyTheme } from '../ui/updaters/index.js';
 import { applyKvkkVisibility } from '../ui/updaters/kvkk-updater.js';
 import { confirmDialog, messageDialog, showChangelog, closeModal, showAboutDialog } from '../ui/components/index.js';
 import { getMonthNumber, isDateValid, getCurrentYearMonth } from '../lib/date-utils.js';
+import { saveNurseShowAllForBirim } from '../features/nurse/index.js';
 
 // ========== BUTON EVENTLERİ ==========
 export function bindSinaButton(setUserTypeFn, getCurrentAy, getCurrentYil, getDomBirimId) {
-
-console.log("🔍 SİNA butonu tıklandı - DOM değerleri:", {
-  ay: getCurrentAy(),
-  yil: getCurrentYil(),
-  birimId: getDomBirimId()
-});
-
   const btn = buttons.sina();
   if (!btn) return;
   
   btn.addEventListener("click", async () => {
-    // ✅ Spinner göster - hata yakalama ile
+    const ayStr = getCurrentAy();
+    const yil = getCurrentYil();
+    const ayNum = getMonthNumber(ayStr);
+    const birimId = getDomBirimId();
+    
+    console.log("🔍 SİNA butonu tıklandı - DOM değerleri:", {
+      ay: ayStr,
+      yil: yil,
+      birimId: birimId
+    });
+    
+    // ✅ ÖNCE KONTROLLERİ YAP
+    if (!ayStr || !yil) {
+      await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
+      return;
+    }
+    
+    if (!isDateValid(yil, ayNum, true)) {
+      const current = getCurrentYearMonth();
+      await messageDialog(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
+      return;
+    }
+    
+    if (!birimId) {
+      await messageDialog("Lütfen Birim ID girin!", "Uyarı");
+      return;
+    }
+    
+    // ✅ KONTROLLER GEÇİLDİ, SPINNER'I GÖSTER
     try {
       chrome.runtime.sendMessage({ action: "showSpinner" });
     } catch (e) {
       console.log("Spinner mesajı gönderilemedi (normal, sidepanel kapalı olabilir)");
     }
 
-    const ayStr = getCurrentAy();
-    const yil = getCurrentYil();
-    const ayNum = getMonthNumber(ayStr);
-    const birimId = getDomBirimId();
-    
-    if (!ayStr || !yil) {
-      await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
-      return;
-    }
-    if (!isDateValid(yil, ayNum, true)) {
-      const current = getCurrentYearMonth();
-      await messageDialog(`SİNA butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
-      return;
-    }
-    if (!birimId) {
-      await messageDialog("Lütfen Birim ID girin!", "Uyarı");
-      return;
-    }
-    
     let url;
     const userType = getCurrentUserType();
     if (userType === "nurse") {
@@ -77,14 +79,22 @@ export function bindHypButton(getCurrentAy, getCurrentYil, getDomBirimId) {
     const ayNum = getMonthNumber(ayStr);
     const birimId = getDomBirimId();
     
+    // ✅ ORTAK KONTROLLER (HER MOD İÇİN)
     if (!ayStr || !yil) {
       await messageDialog("Lütfen Ay ve Yıl seçin!", "Uyarı");
       return;
     }
     
+    if (!birimId) {
+      await messageDialog("Lütfen Birim ID girin!", "Uyarı");
+      return;
+    }
+    
     let url;
     const userType = getCurrentUserType();
+    
     if (userType === "nurse") {
+      // ASÇ modu - SİNA BİRİM
       if (!isDateValid(yil, ayNum, true)) {
         const current = getCurrentYearMonth();
         await messageDialog(`SİNA BİRİM butonu sadece cari dönem ve öncesi, ${current.year} yılı ${current.month+1}. ay ve öncesi için çalışır.`, "Uyarı");
@@ -95,6 +105,7 @@ export function bindHypButton(getCurrentAy, getCurrentYil, getDomBirimId) {
       saveNurseShowAllForBirim(birimId, true);
       setPendingStorageType("doctor");
     } else {
+      // Doktor modu - HYP
       if (!isDateValid(yil, ayNum, false)) {
         const current = getCurrentYearMonth();
         await messageDialog(`HYP butonu sadece cari dönem, ${current.year} yılı ${current.month+1}. ay için çalışır.`, "Uyarı");
@@ -102,6 +113,14 @@ export function bindHypButton(getCurrentAy, getCurrentYil, getDomBirimId) {
       }
       url = HYP_URLS.DASHBOARD;
     }
+    
+    // ✅ TÜM KONTROLLER GEÇİLDİ - SPINNER'I GÖSTER
+    try {
+      chrome.runtime.sendMessage({ action: "showSpinner" });
+    } catch (e) {
+      console.log("Spinner mesajı gönderilemedi");
+    }
+    
     chrome.tabs.create({ url });
   });
 }
@@ -211,7 +230,7 @@ export function bindThemeChange() {
   }
 }
 
-export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tavanHesaplaFn, updateHypButtonStateFn, aySelect, yilInput) {
+export function bindBirimIdChange(loadNufusForBirimFn, tavanHesaplaFn, updateHypButtonStateFn, aySelect, yilInput) {
   const input = inputs.birimId();
   if (!input) return;
   
@@ -232,13 +251,12 @@ export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tava
       
       const currentAy = aySelect?.value || "";
       const currentYil = parseInt(yilInput?.value || "0");
-      const userType = getCurrentUserType();  // ← getCurrentUserType import edilmeli
+      const userType = getCurrentUserType();
       
       if (userType === "nurse") {
         loadNurseShowAllForBirim(newBirimId).then((showAll) => {
           setCurrentShowAll(showAll);
           import('./storage.js').then(({ loadDataForCurrentBirimWithMerge }) => {
-            // ✅ userType parametresini ekle
             loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, (hasData) => {
               updateHypButtonStateFn(hasData, userType);
             }, showAll, currentAy, currentYil);
@@ -247,7 +265,6 @@ export function bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tava
       } else {
         setCurrentShowAll(false);
         import('./storage.js').then(({ loadDataForCurrentBirimWithMerge }) => {
-          // ✅ userType parametresini ekle
           loadDataForCurrentBirimWithMerge(updateTable, userType, newBirimId, (hasData) => {
             updateHypButtonStateFn(hasData, userType);
           }, false, currentAy, currentYil);
@@ -370,7 +387,7 @@ export function bindAllEvents(
   bindMonthYearChange(reloadDataByMonthFn, aySelect, yilInput);
   bindUserTypeChange(setUserTypeFn);
   bindThemeChange();
-  bindBirimIdChange(reloadDataByMonthFn, loadNufusForBirimFn, tavanHesaplaFn, updateHypButtonStateFn, aySelect, yilInput);
+  bindBirimIdChange(loadNufusForBirimFn, tavanHesaplaFn, updateHypButtonStateFn, aySelect, yilInput);
   bindNufusChange(reloadDataByMonthFn);
   bindModalClose();
   bindKvkkFooterToggle();

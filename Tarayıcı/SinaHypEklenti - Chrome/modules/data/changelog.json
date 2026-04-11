@@ -1,6 +1,19 @@
 {
   "changelogData": [
     {
+      "version": "2.1.0",
+      "date": "2026-04-11",
+      "changes": [
+        "🎯 **Yeni Özellik:** 'Ne Yapmalıyım?' butonu ile Performans Simülasyonu",
+        "💡 **Akıllı Öneri Sistemi:** En az işlemle tavan katsayısına ulaşma stratejisi",
+        "🎮 **İnteraktif Simülasyon:** Değerleri değiştir, anında sonucu gör",
+        "📊 **Öncelikli Sıralama:** Taramalar > İzlemler > Kanser şeklinde akıllı sıralama",
+        "🎨 **Görsel İyileştirmeler:** Sade ve kullanıcı dostu arayüz, global scrollbar stili",
+        "🐛 **Hata Düzeltmeleri:** SİNA zamanı gösterimi, spinner durumları, Birim ID kontrolleri",
+        "⚡ **Performans:** Gereksiz import'lar temizlendi, kod optimizasyonu"
+      ]
+    },
+    {
       "version": "2.0.4",
       "date": "2026-04-10",
       "changes": [

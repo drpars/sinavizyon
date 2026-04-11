@@ -136,6 +136,7 @@ function openSimulator() {
   const birimId = getCurrentBirimId();
   const userType = getCurrentUserType();
   
+  // 1. Kullanıcı tipi kontrolü
   if (userType !== 'doctor') {
     import('./modules/ui/components/index.js').then(({ messageDialog }) => {
       messageDialog('Bu özellik sadece Aile Hekimi modunda kullanılabilir.', 'Bilgi');
@@ -143,6 +144,7 @@ function openSimulator() {
     return;
   }
   
+  // 2. Birim ID kontrolü
   if (!birimId) {
     import('./modules/ui/components/index.js').then(({ messageDialog }) => {
       messageDialog('Lütfen önce Birim ID girin!', 'Uyarı');
@@ -150,21 +152,41 @@ function openSimulator() {
     return;
   }
   
+  // 3. Nüfus kontrolü (YENİ!)
+  const nufusInput = document.getElementById('nufus');
+  const nufus = parseFloat(nufusInput?.value) || 0;
+  
+  if (nufus <= 0) {
+    import('./modules/ui/components/index.js').then(({ messageDialog }) => {
+      messageDialog(
+        'Tavan katsayısı hesaplamak için Nüfus bilgisi gereklidir.\n\n' +
+        'Lütfen önce Nüfus değerini girin.',
+        '⚠️ Eksik Bilgi'
+      );
+    });
+    return;
+  }
+  
+  // 4. Veri kontrolü
   const key = `savedResults_doctor_${birimId}`;
   chrome.storage.local.get([key], (res) => {
     const savedData = res[key]?.data || [];
     
     if (savedData.length === 0) {
       import('./modules/ui/components/index.js').then(({ messageDialog }) => {
-        messageDialog('Henüz veri çekilmemiş. Lütfen önce SİNA butonuna tıklayarak verileri getirin.', 'Bilgi');
+        messageDialog(
+          'Henüz veri çekilmemiş.\n\n' +
+          'Lütfen önce SİNA butonuna tıklayarak verileri getirin.',
+          '📭 Veri Bulunamadı'
+        );
       });
       return;
     }
     
-    const nufusInput = document.getElementById('nufus');
-    const nufus = parseFloat(nufusInput?.value) || 0;
+    // 5. Tavan katsayısını hesapla
     const tavanKatsayi = nufus > 0 ? Math.min(1.5, Math.max(1.0, 4000 / nufus)) : 1.0;
     
+    // 6. Simülasyon modalını aç
     showSimulatorModal(savedData, tavanKatsayi);
   });
 }
@@ -314,11 +336,19 @@ document.addEventListener("DOMContentLoaded", async function () {
       loadNurseShowAllForBirim(birimId).then((showAll) => {
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, (hasData) => {
           updateHypButtonStateUI(hasData, userType);
+          
+          // ✅ Simülatör butonunu güncelle
+          const simulatorBtn = document.getElementById("btnSimulator");
+          if (simulatorBtn) simulatorBtn.disabled = !hasData;
         }, showAll, selectedAy, selectedYil);
       });
     } else {
       loadDataForCurrentBirim(updateTable, userType, birimId, (hasData) => {
         updateHypButtonStateUI(hasData, userType);
+        
+        // ✅ Simülatör butonunu güncelle
+        const simulatorBtn = document.getElementById("btnSimulator");
+        if (simulatorBtn) simulatorBtn.disabled = !hasData;
       }, false, selectedAy, selectedYil);
     }
   }
@@ -548,10 +578,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         storeDataWithTimestamp("savedResults", merged, targetUserType, birimId, ayStr, yil);
         storeDataWithTimestamp("sinaLastTime", simdi, targetUserType, birimId);
         
-        if (targetUserType === "nurse") {
-          const sinaTimeSpan = document.getElementById("sinaTime");
-          if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
-        }
+        // ✅ Her durumda (hem doktor hem ASÇ) SİNA zamanını göster
+        const sinaTimeSpan = document.getElementById("sinaTime");
+        if (sinaTimeSpan) sinaTimeSpan.textContent = simdi;
       }
 
       if (merged.length === 0) {
@@ -636,7 +665,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
       
       const hypBtn = document.getElementById("btnHyp");
+      const simulatorBtn = document.getElementById("btnSimulator");
       if (hypBtn) hypBtn.disabled = false;
+      if (simulatorBtn && userType === "doctor") {
+        simulatorBtn.disabled = false;
+      }
+
       setPendingShowAll(false);
       setPendingStorageType("nurse");
       
@@ -680,6 +714,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll);
       });
       
+      const simulatorBtn = document.getElementById("btnSimulator");
+      if (simulatorBtn && userType === "doctor") {
+        simulatorBtn.disabled = false;
+      }
+
       if (sendResponse && typeof sendResponse === 'function') {
         sendResponse({ status: "ok" });
       }

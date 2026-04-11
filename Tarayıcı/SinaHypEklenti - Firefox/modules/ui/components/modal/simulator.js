@@ -6,10 +6,7 @@
 import { 
   calculateCurrentKatsayi, 
   calculateSmartStrategy, 
-  analyzeAllItems,
-  simulateSingleChange,
-  getMaxYapilanForIslem,
-  getNeededForMax
+  analyzeAllItems
 } from '../../../features/doctor/strategy.js';
 
 let currentData = [];
@@ -33,19 +30,8 @@ function createSimulatorModal() {
       </div>
       
       <div class="simulator-modal-body scrollbar-custom">
-        <!-- Mevcut Durum Kartı -->
-        <div class="simulator-status-card">
-          <div class="status-row">
-            <span class="status-label">📊 Mevcut Katsayı</span>
-            <span class="status-value" id="simCurrentKatsayi">1.00000</span>
-          </div>
-          <div class="status-row">
-            <span class="status-label">🎯 Tavan Katsayı</span>
-            <span class="status-value" id="simTavanKatsayi">1.00000</span>
-          </div>
-        </div>
         
-        <!-- Akıllı Öneri Kartı -->
+        <!-- 1. AKILLI ÖNERİ (En Üstte - Sabit Değil, İçerik Değişir) -->
         <div class="simulator-suggestion-card" id="simSuggestionCard">
           <div class="suggestion-header">
             <span>💡 AKILLI ÖNERİ</span>
@@ -56,15 +42,7 @@ function createSimulatorModal() {
           </div>
         </div>
         
-        <!-- Simülasyon Slider'ları -->
-        <div class="simulator-sliders-container">
-          <h3 class="sliders-title">🎮 Değerleri değiştir, anında gör!</h3>
-          <div class="sliders-list scrollbar-custom" id="simSlidersList">
-            <!-- Dinamik slider'lar -->
-          </div>
-        </div>
-        
-        <!-- Sonuç Kartı -->
+        <!-- 2. SİMÜLASYON SONUCU (Sabit - Sticky) -->
         <div class="simulator-result-card" id="simResultCard">
           <div class="result-header">
             <span>🏆 SİMÜLASYON SONUCU</span>
@@ -73,6 +51,15 @@ function createSimulatorModal() {
             <!-- Dinamik içerik -->
           </div>
         </div>
+        
+        <!-- 3. SLIDER'LAR (En Altta - Scroll Edilebilir) -->
+        <div class="simulator-sliders-container">
+          <h3 class="sliders-title">🎮 Değerleri değiştir, anında gör!</h3>
+          <div class="sliders-list scrollbar-custom" id="simSlidersList">
+            <!-- Dinamik slider'lar -->
+          </div>
+        </div>
+        
       </div>
       
       <div class="simulator-modal-footer">
@@ -429,7 +416,6 @@ function updateResultCard() {
   });
   
   const simKatsayi = calculateCurrentKatsayi(simData);
-  const currentKatsayi = calculateCurrentKatsayi(currentData);
   const reached = simKatsayi >= currentTavanKatsayi;
   const totalEkYapilan = Array.from(sliderStates.entries()).reduce((sum, [islem, value]) => {
     const original = currentData.find(d => d.ad === islem);
