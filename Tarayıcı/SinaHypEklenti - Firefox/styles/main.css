@@ -92,22 +92,34 @@ input[type="number"] {
   display: none;
 }
 
-/* 1. TÜM ELEMENTLERDE KAYDIRMA ÇUBUĞU YAPISINI SIFIRLA */
+/* ============================================
+   GLOBAL SCROLLBAR STİLİ (OKSUZ, İNCE, TEMALI)
+   ============================================ */
+
+/* 1. FIREFOX İÇİN (SADECE FIREFOX'TA ÇALIŞIR) */
+@-moz-document url-prefix() {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue) var(--border);
+  }
+}
+
+/* 2. CHROME İÇİN SCROLLBAR YAPISI (scrollbar-width KULLANMA!) */
 ::-webkit-scrollbar {
   width: 6px !important;
   height: 6px !important;
 }
 
-/* 2. OKLARI FİZİKSEL OLARAK 0 PİKSELE İNDİR (GİZLEMEK YETMEZ, YOK ET) */
+/* 3. OKLARI FİZİKSEL OLARAK YOK ET */
 ::-webkit-scrollbar-button:single-button,
 ::-webkit-scrollbar-button {
-  display: block !important; /* Önce görünür yap */
-  width: 0 !important;       /* Ama genişliğini yok et */
-  height: 0 !important;      /* Ama yüksekliğini yok et */
+  display: block !important;
+  width: 0 !important;
+  height: 0 !important;
   background: transparent !important;
 }
 
-/* 3. SENİN TASARIMIN (Çubuk ve Yol) */
+/* 4. KAYDIRMA YOLU VE TUTAMAK */
 ::-webkit-scrollbar-track {
   background: var(--border) !important;
   border-radius: 10px !important;
@@ -116,17 +128,27 @@ input[type="number"] {
 ::-webkit-scrollbar-thumb {
   background: var(--blue) !important;
   border-radius: 10px !important;
+  border: none !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--magenta) !important;
 }
 
-/* 4. CHROME'UN 'OVERLAY' OKLARINI ÖLDÜRMEK İÇİN EKSTRA SEÇİCİLER */
+/* 5. CHROME'UN 'OVERLAY' OKLARINI ÖLDÜR */
 ::-webkit-scrollbar-button:vertical:start,
 ::-webkit-scrollbar-button:vertical:end,
 ::-webkit-scrollbar-button:horizontal:start,
 ::-webkit-scrollbar-button:horizontal:end {
   width: 0 !important;
   height: 0 !important;
+}
+
+/* 6. EKSTRA TEMİZLİK */
+::-webkit-scrollbar-track-piece {
+  background-color: transparent !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent !important;
 }
