@@ -276,15 +276,28 @@
 }
 
 .slider-item.priority-tarama {
-  border-left: 3px solid var(--green);
+  border-left: 3px solid #1976d2;  /* Mavi */
 }
 
 .slider-item.priority-izlem {
-  border-left: 3px solid var(--blue);
+  border-left: 3px solid #1eb482;  /* Yeşil */
 }
 
 .slider-item.priority-kanser {
-  border-left: 3px solid var(--orange);
+  border-left: 3px solid #ed921b;  /* Turuncu */
+}
+
+/* Koyu tema */
+body.dark-mode .slider-item.priority-tarama {
+  border-left-color: var(--blue);
+}
+
+body.dark-mode .slider-item.priority-izlem {
+  border-left-color: var(--green);
+}
+
+body.dark-mode .slider-item.priority-kanser {
+  border-left-color: var(--orange);
 }
 
 .slider-header {

@@ -47,11 +47,14 @@ function getPriorityGroup(islemAdi) {
   
   const index = PRIORITY_ORDER.findIndex(item => ad.includes(item));
   
-  if (index === -1) return { group: 'Diğer', priority: 99 };
+  if (index === -1) return { group: 'Tarama', priority: 1, groupEn: 'tarama' };
   
-  if (index < 4) return { group: 'Tarama', priority: 1 };
-  if (index < 8) return { group: 'İzlem', priority: 2 };
-  return { group: 'Kanser', priority: 3 };
+  let group, groupEn;
+  if (index < 4) { group = 'Tarama'; groupEn = 'tarama'; }
+  else if (index < 8) { group = 'İzlem'; groupEn = 'izlem'; }
+  else { group = 'Kanser'; groupEn = 'kanser'; }
+  
+  return { group, groupEn, priority: index < 4 ? 1 : index < 8 ? 2 : 3 };
 }
 
 // Mevcut toplam katsayıyı hesapla (sadece aktif işlemler)

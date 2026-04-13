@@ -94,14 +94,14 @@ export function buildDoctorTable(data, updateKHTBarFn) {
     let grupRengi = "";
     if (document.body.classList.contains("dark-mode")) {
       if (grupAdi === "KANSER TARAMALARI") grupRengi = "var(--orange)";
-      else if (grupAdi === "DİĞER / PASİF") grupRengi = "#78909c";
-      else if (grupAdi === "İZLEMLER") grupRengi = "var(--blue)";
-      else grupRengi = "var(--blue)";
+      else if (grupAdi === "DİĞER / PASİF") grupRengi = "#565f89";
+      else if (grupAdi === "İZLEMLER") grupRengi = "var(--green)";
+      else grupRengi = "var(--blue)";  // TARAMALAR
     } else {
       if (grupAdi === "KANSER TARAMALARI") grupRengi = "#ed921b";
       else if (grupAdi === "DİĞER / PASİF") grupRengi = "#78909c";
       else if (grupAdi === "İZLEMLER") grupRengi = "#1eb482";
-      else grupRengi = "#1976d2";
+      else grupRengi = "#1976d2";  // TARAMALAR - Mavi
     }
     headerCell.style.backgroundColor = grupRengi;
     headerCell.style.color = "#ffffff";

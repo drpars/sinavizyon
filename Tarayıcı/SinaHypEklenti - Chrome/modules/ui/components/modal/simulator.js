@@ -286,7 +286,13 @@ function updateSlidersList() {
     sliderItem.className = 'slider-item';
     sliderItem.dataset.islem = item.ad;
     
-    const groupClass = `priority-${item.group.toLowerCase()}`;
+    const groupEnglish = item.group
+      .replace('İ', 'I')   // Türkçe İ'yi I'ya çevir
+      .replace('ı', 'i')   // ı'yı i'ye çevir (gerekirse)
+      .toLowerCase();
+    
+    const groupClass = `priority-${groupEnglish}`;
+    
     sliderItem.classList.add(groupClass);
     
     sliderItem.innerHTML = `
