@@ -1,6 +1,18 @@
 {
   "changelogData": [
     {
+      "version": "2.1.1",
+      "date": "2026-04-14",
+      "changes": [
+        "🐛 **ASÇ modu veri birleştirme düzeltildi:** SİNA ve SİNA BİRİM verileri artık kaybolmuyor.",
+        "🐛 **Doktor modu HYP güncelleme düzeltildi:** SİNA çekildiğinde HYP verileri korunuyor.",
+        "🐛 **Türkçe karakter sorunu çözüldü:** İşlem isimlerindeki İ/ı karakterleri artık sorun çıkarmıyor.",
+        "🐛 **Modlar arası geçiş düzeltildi:** ASÇ ↔ Doktor geçişlerinde veriler korunuyor.",
+        "🔧 **pendingStorageType asenkron sorunu giderildi:** Veri çekme işlemleri daha kararlı.",
+        "🧹 **Kod temizliği:** Mükerrer tablo güncellemeleri kaldırıldı, performans arttı."
+      ]
+    },
+    {
       "version": "2.1.0",
       "date": "2026-04-11",
       "changes": [
@@ -9,8 +21,7 @@
         "🎮 **İnteraktif Simülasyon:** Değerleri değiştir, anında sonucu gör",
         "📊 **Öncelikli Sıralama:** Taramalar > İzlemler > Kanser şeklinde akıllı sıralama",
         "🎨 **Görsel İyileştirmeler:** Sade ve kullanıcı dostu arayüz, global scrollbar stili",
-        "🐛 **Hata Düzeltmeleri:** SİNA zamanı gösterimi, spinner durumları, Birim ID kontrolleri",
-        "⚡ **Performans:** Gereksiz import'lar temizlendi, kod optimizasyonu"
+        "🐛 **Hata Düzeltmeleri:** SİNA zamanı gösterimi, spinner durumları, Birim ID kontrolleri"
       ]
     },
     {

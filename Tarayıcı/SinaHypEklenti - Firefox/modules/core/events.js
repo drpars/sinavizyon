@@ -62,6 +62,7 @@ export function bindSinaButton(setUserTypeFn, getCurrentAy, getCurrentYil, getDo
     if (userType === "nurse") {
       url = buildSinaUrl("nurse", ayStr, birimId, yil);
       setPendingStorageType("nurse");
+      chrome.storage.local.set({ pendingStorageType: 'nurse' });  // ← EKLE
     } else {
       url = buildSinaUrl("doctor", ayStr, birimId, yil);
     }
@@ -104,6 +105,8 @@ export function bindHypButton(getCurrentAy, getCurrentYil, getDomBirimId) {
       setCurrentShowAll(true);
       saveNurseShowAllForBirim(birimId, true);
       setPendingStorageType("doctor");
+      // ✅ DOĞRUDAN STORAGE'A DA YAZ (GARANTİ)
+      chrome.storage.local.set({ pendingStorageType: 'doctor' });
     } else {
       // Doktor modu - HYP
       if (!isDateValid(yil, ayNum, false)) {

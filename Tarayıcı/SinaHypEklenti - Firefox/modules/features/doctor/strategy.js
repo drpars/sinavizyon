@@ -3,9 +3,20 @@
 // Performans Simülasyonu ve Strateji Hesaplama
 // ============================================================
 
-import { katsayiMap, SUREC_KATSAYISI } from '../../lib/constants.js';
+import { 
+  katsayiMapNormalized, 
+  SUREC_KATSAYISI, 
+  PRIORITY_ORDER_NORMALIZED,
+  PASIF_ISLEMLER_NORMALIZED 
+} from '../../lib/constants.js';
 import { getEffectiveYapilan } from '../../lib/calculations.js';
 import { calculateDoctorKatsayi } from './calculator.js';
+import { normalizeText } from '../../utils/text-utils.js';
+
+
+
+
+
 
 // Öncelik sıralaması - Taramalar > İzlemler > Kanser
 const PRIORITY_ORDER = [
@@ -32,20 +43,20 @@ const PASIF_ISLEMLER = ['İNME', 'BÖBREK', 'BOBREK', 'KORONERARTER', 'KORONER']
 
 // İşlem adlarını normalize et
 function normalizeIslemAdi(ad) {
-  return ad.toUpperCase().trim();
+  return normalizeText(ad);
 }
 
 // İşlemin aktif olup olmadığını kontrol et (pasif değilse aktif)
 function isAktifIslem(islemAdi) {
-  const ad = normalizeIslemAdi(islemAdi);
-  return !PASIF_ISLEMLER.some(pasif => ad.includes(pasif));
+  const ad = normalizeText(islemAdi);
+  return !PASIF_ISLEMLER_NORMALIZED.some(pasif => ad.includes(pasif));
 }
 
 // İşlemin hangi öncelik grubunda olduğunu bul
 function getPriorityGroup(islemAdi) {
-  const ad = normalizeIslemAdi(islemAdi);
+  const ad = normalizeText(islemAdi);
   
-  const index = PRIORITY_ORDER.findIndex(item => ad.includes(item));
+  const index = PRIORITY_ORDER_NORMALIZED.findIndex(item => ad.includes(item));
   
   if (index === -1) return { group: 'Tarama', priority: 1, groupEn: 'tarama' };
   
@@ -95,13 +106,13 @@ export function simulateSingleChange(data, islemAdi, newYapilan) {
 
 // Bir işlem için maksimum katsayıya ulaşmak için gereken yapılan sayısı
 export function getMaxYapilanForIslem(item) {
-  const ad = normalizeIslemAdi(item.ad);
+  const ad = normalizeText(item.ad);
   const gereken = parseFloat(item.gereken) || 0;
   
   let azamiOran = 90; // Varsayılan
   
-  for (let [anahtar, k] of katsayiMap.entries()) {
-    if (ad.includes(anahtar.toUpperCase().trim())) {
+  for (let [anahtar, k] of katsayiMapNormalized.entries()) {
+    if (ad.includes(anahtar)) {
       azamiOran = k.azamiOran;
       break;
     }
@@ -199,17 +210,16 @@ export function calculateSmartStrategy(data, tavanKatsayi) {
 
 // Kombinasyon stratejisi - birden fazla işlemi maksimuma çek
 function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi) {
-  // ✅ PRIORITY_ORDER'daki sıraya göre sırala
+  // Sadece aktif işlemleri al ve PRIORITY_ORDER_NORMALIZED'a göre sırala
   const sortedItems = [...data]
     .filter(item => isAktifIslem(item.ad))
     .sort((a, b) => {
-      const adA = normalizeIslemAdi(a.ad);
-      const adB = normalizeIslemAdi(b.ad);
+      const adA = normalizeText(a.ad);
+      const adB = normalizeText(b.ad);
       
-      const indexA = PRIORITY_ORDER.findIndex(p => adA.includes(p));
-      const indexB = PRIORITY_ORDER.findIndex(p => adB.includes(p));
+      const indexA = PRIORITY_ORDER_NORMALIZED.findIndex(p => adA.includes(p));
+      const indexB = PRIORITY_ORDER_NORMALIZED.findIndex(p => adB.includes(p));
       
-      // Bulunamayanlar en sonda
       const orderA = indexA >= 0 ? indexA : 999;
       const orderB = indexB >= 0 ? indexB : 999;
       
@@ -270,17 +280,15 @@ export function analyzeAllItems(data) {
       const maxYapilan = getMaxYapilanForIslem(item);
       const needed = Math.max(0, maxYapilan - etkiliYapilan);
       const priority = getPriorityGroup(item.ad);
-      
-      // ✅ currentOran'ı etkiliYapilan ile hesapla
       const currentOran = gereken > 0 ? (etkiliYapilan / gereken) * 100 : 0;
       
-      const ad = normalizeIslemAdi(item.ad);
-      const orderIndex = PRIORITY_ORDER.findIndex(p => ad.includes(p));
+      const ad = normalizeText(item.ad);
+      const orderIndex = PRIORITY_ORDER_NORMALIZED.findIndex(p => ad.includes(p));
       
       return {
         ad: item.ad,
         gereken: gereken,
-        yapilan: etkiliYapilan,  // ← Etkili yapılan'ı göster
+        yapilan: etkiliYapilan,
         devreden: devreden,
         maxYapilan: maxYapilan,
         needed: needed,
@@ -288,6 +296,7 @@ export function analyzeAllItems(data) {
         isComplete: needed === 0,
         priority: priority.priority,
         group: priority.group,
+        groupEn: priority.groupEn,
         orderIndex: orderIndex >= 0 ? orderIndex : 999
       };
     })

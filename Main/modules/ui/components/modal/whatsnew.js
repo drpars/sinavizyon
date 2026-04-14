@@ -8,7 +8,16 @@ export async function showWhatsNewModal(version) {
     
     let whatsNewItems = [];
     
-    if (version === "2.1.0") {
+    if (version === "2.1.1") {
+      whatsNewItems = [
+        "🐛 ASÇ modu veri birleştirme düzeltildi (SİNA + SİNA BİRİM)",
+        "🐛 Doktor modu HYP güncelleme düzeltildi",
+        "🐛 Türkçe karakter sorunu çözüldü (İ/ı karakterleri)",
+        "🐛 Modlar arası geçişte veri kaybı giderildi",
+        "🔧 Veri çekme işlemleri daha kararlı hale getirildi",
+        "🧹 Kod temizliği ve performans iyileştirmeleri"
+      ];
+    } else if (version === "2.1.0") {
       whatsNewItems = [
         "🎯 Yeni 'Ne Yapmalıyım?' butonu ile Performans Simülasyonu",
         "💡 Akıllı Öneri Sistemi (en az işlemle hedefe ulaş)",

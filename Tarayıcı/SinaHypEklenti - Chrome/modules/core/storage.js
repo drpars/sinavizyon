@@ -143,39 +143,37 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         }
       }
       
-      // ✅ Birleştirirken mükerrer kayıtları önle (normalizeText ile)
-      const combinedData = [...nurseData];
-      
+      // ✅ Mükerrer kontrolü ile birleştir
+      const mergedData = [...nurseData];
       doctorData.forEach(doctorItem => {
         const doctorAd = normalizeText(doctorItem.ad);
         const existsInNurse = nurseData.some(nurseItem => 
           normalizeText(nurseItem.ad) === doctorAd
         );
-        
         if (!existsInNurse) {
-          combinedData.push(doctorItem);
+          mergedData.push(doctorItem);
         }
       });
-
-      let effectiveShowAll = showAll;
+      
+      const hasBoth = nurseData.length > 0 && doctorData.length > 0;
       const storedShowAll = res[`nurseShowAll_${birimId}`];
+      let effectiveShowAll = showAll;
       
       if (storedShowAll !== undefined) {
         effectiveShowAll = storedShowAll;
       }
       
-      if (storedShowAll === undefined && doctorData.length > 0) {
+      if (hasBoth || (storedShowAll === undefined && doctorData.length > 0)) {
         effectiveShowAll = true;
-        chrome.storage.local.set({ [`nurseShowAll_${birimId}`]: true });
       }
       
       const hasData = (nurseData.length + doctorData.length) > 0;
       
       if (effectiveShowAll) {
-        const combinedData = [...nurseData, ...doctorData];
-        if (updateTableFn) updateTableFn(combinedData, userType, effectiveShowAll, birimId);
+        if (updateTableFn) updateTableFn(mergedData, userType, effectiveShowAll, birimId);
       } else {
-        if (updateTableFn) updateTableFn(nurseData, userType, effectiveShowAll, birimId);
+        const dataToShow = nurseData.length > 0 ? nurseData : doctorData;
+        if (updateTableFn) updateTableFn(dataToShow, userType, false, birimId);
       }
       
       if (onDataLoaded) onDataLoaded(hasData);

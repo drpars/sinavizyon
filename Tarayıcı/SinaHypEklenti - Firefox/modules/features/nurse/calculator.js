@@ -1,6 +1,7 @@
 // modules/features/nurse/calculator.js - doğru versiyon
-import { katsayiMapNurse } from '../../lib/constants.js';
+import { katsayiMapNurse, katsayiMapNurseNormalized } from '../../lib/constants.js';
 import { getEffectiveYapilan } from '../../lib/calculations.js';
+import { normalizeText } from '../../utils/text-utils.js';
 
 // Cache Map
 const katsayiCache = new Map();
@@ -12,13 +13,15 @@ export function calculateNurseKatsayi(islemAdi, gereken, yapilan, devreden) {
     return katsayiCache.get(cacheKey);
   }
   
-  const ad = islemAdi.toUpperCase().trim();
+  const ad = normalizeText(islemAdi);
   const etkiliYapilan = getEffectiveYapilan(gereken, yapilan, devreden);
   const oranYuzde = gereken > 0 ? (etkiliYapilan / gereken) * 100 : 0;
   
   let sonuc = 1.0;
-  for (let [anahtar, k] of katsayiMapNurse.entries()) {
-    if (ad.includes(anahtar.toUpperCase().trim())) {
+  
+  // ✅ Normalize map'i kullan
+  for (let [anahtar, k] of katsayiMapNurseNormalized.entries()) {
+    if (ad.includes(anahtar)) {
       if (oranYuzde < k.asgariOran) {
         sonuc = k.asgariKatsayi;
         break;
@@ -51,9 +54,10 @@ export function calculateNurseKHT(data) {
   let toplamEtkiliYapilan = 0;
   
   data.forEach(item => {
-    const ad = (item.ad || '').toUpperCase();
-    const isVital = ad.includes('VİTAL BULGU ASÇ');
-    const isYasli = ad.includes('YAŞLI SAĞLIĞI İZLEMİ ASÇ');
+    // ✅ normalizeText kullan
+    const ad = normalizeText(item.ad || '');
+    const isVital = ad.includes('VITAL BULGU ASC');
+    const isYasli = ad.includes('YASLI SAGLIGI IZLEMI ASC');
     
     if (isVital || isYasli) {
       const hedef = parseInt(item.gereken) || 0;

@@ -1,4 +1,7 @@
 // modules/lib/constants.js
+
+import { normalizeText } from '../utils/text-utils.js';
+
 export const katsayiMap = new Map([
   ["DİYABET TARAMASI", { asgariOran: 40, azamiOran: 90, asgariKatsayi: 0.994, azamiKatsayi: 1.05 }],
   ["DİYABET İZLEM", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.98871, azamiKatsayi: 1.0249 }],
@@ -43,3 +46,53 @@ export const nurseFilterList = [
 
 export const RETENTION_DAYS = 90;
 export const SUREC_KATSAYISI = 1.03;
+
+// ============================================================
+// NORMALİZE EDİLMİŞ SABİTLER (Türkçe karakter sorunu için)
+// ============================================================
+
+// Pasif işlemler (normalize edilmiş)
+export const PASIF_ISLEMLER_NORMALIZED = [
+  'INME',
+  'BOREK',
+  'BOBREK',
+  'KORONERARTER',
+  'KORONER'
+];
+
+// Doktor katsayı map'i için normalize anahtarlar
+export const katsayiMapNormalized = new Map();
+for (let [anahtar, deger] of katsayiMap.entries()) {
+  katsayiMapNormalized.set(normalizeText(anahtar), deger);
+}
+
+// ASÇ katsayı map'i için normalize anahtarlar
+export const katsayiMapNurseNormalized = new Map();
+for (let [anahtar, deger] of katsayiMapNurse.entries()) {
+  katsayiMapNurseNormalized.set(normalizeText(anahtar), deger);
+}
+
+// ASÇ filtre listesi (normalize edilmiş)
+export const nurseFilterListNormalized = nurseFilterList.map(f => normalizeText(f));
+
+// HYP'den SİNA'ya dönüşüm map'i (normalize edilmiş)
+export const hypToSinaMapNormalized = new Map();
+for (let [hypKey, sinaKey] of Object.entries(hypToSinaMap)) {
+  hypToSinaMapNormalized.set(normalizeText(hypKey), normalizeText(sinaKey));
+}
+
+// Öncelik sıralaması (normalize edilmiş) - strategy.js için
+export const PRIORITY_ORDER_NORMALIZED = [
+  'HIPERTANSIYON TARAMASI',
+  'OBEZITE TARAMASI',
+  'DIYABET TARAMASI',
+  'KVR TARAMASI',
+  'HIPERTANSIYON IZLEM',
+  'DIYABET IZLEM',
+  'KVR IZLEM',
+  'OBEZITE IZLEM',
+  'KANSER KOLOREKTAL',
+  'KANSER MAMOGRAFI',
+  'KANSER SERVIKS'
+];
+

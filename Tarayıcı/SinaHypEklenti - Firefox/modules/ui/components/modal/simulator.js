@@ -8,6 +8,7 @@ import {
   calculateSmartStrategy, 
   analyzeAllItems
 } from '../../../features/doctor/strategy.js';
+import { normalizeText } from '../../../utils/text-utils.js';
 
 let currentData = [];
 let currentTavanKatsayi = 1.0;
@@ -286,13 +287,15 @@ function updateSlidersList() {
     sliderItem.className = 'slider-item';
     sliderItem.dataset.islem = item.ad;
     
-    const groupEnglish = item.group
-      .replace('İ', 'I')   // Türkçe İ'yi I'ya çevir
-      .replace('ı', 'i')   // ı'yı i'ye çevir (gerekirse)
-      .toLowerCase();
+    let groupEn = item.groupEn;
+    if (!groupEn) {
+      groupEn = item.group
+        .replace(/İ/g, 'I')
+        .replace(/ı/g, 'i')
+        .toLowerCase();
+    }
     
-    const groupClass = `priority-${groupEnglish}`;
-    
+    const groupClass = `priority-${groupEn}`;
     sliderItem.classList.add(groupClass);
     
     sliderItem.innerHTML = `
