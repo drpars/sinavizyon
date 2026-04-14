@@ -4,6 +4,7 @@ import { updateTable, setUIEnabled } from '../ui/updaters/index.js';
 import { confirmDialog, messageDialog } from '../ui/components/index.js';
 import { getCurrentUserType } from './state.js';
 import { getDomBirimId } from './dom.js';
+import { normalizeText } from '../utils/text-utils.js';
 
 // Storage anahtarını birimId ve userType ile oluştur
 export function getStorageKey(baseKey, birimId, userType) {
@@ -118,6 +119,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       let nurseData = res[nurseKey]?.data || [];
       let doctorData = res[doctorKey]?.data || [];
       
+      // ✅ AY/YIL FİLTRELEMESİ
       if (ay !== null && yil !== null) {
         const nurseRecord = res[nurseKey];
         const doctorRecord = res[doctorKey];
@@ -141,6 +143,20 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         }
       }
       
+      // ✅ Birleştirirken mükerrer kayıtları önle (normalizeText ile)
+      const combinedData = [...nurseData];
+      
+      doctorData.forEach(doctorItem => {
+        const doctorAd = normalizeText(doctorItem.ad);
+        const existsInNurse = nurseData.some(nurseItem => 
+          normalizeText(nurseItem.ad) === doctorAd
+        );
+        
+        if (!existsInNurse) {
+          combinedData.push(doctorItem);
+        }
+      });
+
       let effectiveShowAll = showAll;
       const storedShowAll = res[`nurseShowAll_${birimId}`];
       

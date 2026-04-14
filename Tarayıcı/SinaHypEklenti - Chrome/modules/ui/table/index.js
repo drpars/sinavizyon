@@ -2,7 +2,12 @@
 import { calculateDoctorKatsayi } from '../../features/doctor/calculator.js';
 import { calculateNurseKatsayi } from '../../features/nurse/calculator.js';
 import { nurseFilterList } from '../../lib/constants.js';
-import { SUREC_KATSAYISI } from '../../lib/constants.js';
+import { 
+  nurseFilterListNormalized, 
+  PASIF_ISLEMLER_NORMALIZED,
+  SUREC_KATSAYISI 
+} from '../../lib/constants.js';
+import { normalizeText } from '../../utils/text-utils.js';
 
 
 // Yardımcı fonksiyon: tablo satırı oluştur (doktor/ASÇ ortak)
@@ -61,7 +66,6 @@ export function buildDoctorTable(data, updateKHTBarFn) {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return { toplamCarpim: 1.0 };
 
-  // ✅ Document fragment oluştur
   const fragment = document.createDocumentFragment();
   
   let toplamCarpim = 1.0;
@@ -73,11 +77,12 @@ export function buildDoctorTable(data, updateKHTBarFn) {
   };
 
   data.forEach((item) => {
-    const ad = item.ad.toUpperCase();
-    const isPasif = ["İNME", "BÖBREK", "BOBREK", "KORONERARTER"].some((p) => ad.includes(p));
+    const ad = normalizeText(item.ad);
+    const isPasif = PASIF_ISLEMLER_NORMALIZED.some((p) => ad.includes(p));
+    
     if (isPasif) gruplar["DİĞER / PASİF"].push(item);
     else if (ad.includes("TARAMASI") && !ad.includes("KANSER")) gruplar["TARAMALAR"].push(item);
-    else if (ad.includes("İZLEM")) gruplar["İZLEMLER"].push(item);
+    else if (ad.includes("IZLEM")) gruplar["İZLEMLER"].push(item);
     else if (ad.includes("KANSER")) gruplar["KANSER TARAMALARI"].push(item);
     else gruplar["TARAMALAR"].push(item);
   });
@@ -185,12 +190,12 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
   const otherNurseItems = [];
 
   data.forEach(item => {
-    const ad = item.ad.toUpperCase();
-    if (ad.includes("VİTAL BULGU ASÇ TEKİL")) {
+    const ad = normalizeText(item.ad);
+    if (ad.includes(normalizeText("VİTAL BULGU ASÇ TEKİL"))) {
       vitalTekilItems.push(item);
-    } else if (ad.includes("VİTAL BULGU ASÇ")) {
+    } else if (ad.includes(normalizeText("VİTAL BULGU ASÇ"))) {
       vitalNormalItems.push(item);
-    } else if (nurseFilterList.some(filter => ad.includes(filter.toUpperCase()))) {
+    } else if (nurseFilterListNormalized.some(filter => ad.includes(filter))) {
       otherNurseItems.push(item);
     }
   });
@@ -243,11 +248,9 @@ export function buildNurseTable(data, showAll, updateKHTBarFn) {
   });
 
   // ========== DOKTOR İŞLEMLERİ (showAll true ise) ==========
-  // ✅ DÜZELTİLDİ: nurseFilterList zaten VİTAL BULGU'ları içeriyor, ekstra kontrol gerekmez
   const doctorItems = showAll ? data.filter(item => {
-    const ad = item.ad.toUpperCase();
-    // nurseFilterList'te olmayanlar doktor işlemidir
-    return !nurseFilterList.some(filter => ad.includes(filter.toUpperCase()));
+    const ad = normalizeText(item.ad);
+    return !nurseFilterListNormalized.some(filter => ad.includes(filter));
   }) : [];
   
   console.log("📊 DOKTOR İşlemleri:", { doctorItemsCount: doctorItems.length });

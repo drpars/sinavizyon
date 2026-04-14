@@ -1,26 +1,27 @@
 // modules/features/doctor/calculator.js
-import { katsayiMap } from '../../lib/constants.js';
+import { katsayiMap, katsayiMapNormalized, SUREC_KATSAYISI } from '../../lib/constants.js';
 import { getEffectiveYapilan } from '../../lib/calculations.js';
+import { normalizeText } from '../../utils/text-utils.js';
 
 // Cache Map
 const katsayiCache = new Map();
 
 export function calculateDoctorKatsayi(islemAdi, gereken, yapilan, devreden) {
-  // Cache key oluştur
   const cacheKey = `${islemAdi}|${gereken}|${yapilan}|${devreden}`;
   
-  // Cache'te varsa döndür
   if (katsayiCache.has(cacheKey)) {
     return katsayiCache.get(cacheKey);
   }
   
-  const ad = islemAdi.toUpperCase().trim();
+  const ad = normalizeText(islemAdi);
   const etkiliYapilan = getEffectiveYapilan(gereken, yapilan, devreden);
   const oranYuzde = gereken > 0 ? (etkiliYapilan / gereken) * 100 : 0;
   
   let sonuc = 1.0;
-  for (let [anahtar, k] of katsayiMap.entries()) {
-    if (ad.includes(anahtar.toUpperCase().trim())) {
+  
+  // ✅ Normalize map'i kullan
+  for (let [anahtar, k] of katsayiMapNormalized.entries()) {
+    if (ad.includes(anahtar)) {
       if (oranYuzde < k.asgariOran) {
         sonuc = k.asgariKatsayi;
         break;
@@ -35,7 +36,6 @@ export function calculateDoctorKatsayi(islemAdi, gereken, yapilan, devreden) {
     }
   }
   
-  // Cache'e kaydet (maksimum 1000 entry ile sınırla)
   if (katsayiCache.size > 1000) {
     const firstKey = katsayiCache.keys().next().value;
     katsayiCache.delete(firstKey);
@@ -54,11 +54,12 @@ export function calculateDoctorKHT(data) {
   let toplamEtkiliYapilan = 0;
   
   data.forEach(item => {
-    const ad = (item.ad || '').toUpperCase();
-    const isDiabet = ad.includes('DİYABET') && ad.includes('TARAMASI');
-    const isHipertansiyon = ad.includes('HİPERTANSİYON') && ad.includes('TARAMASI');
-    const isKvr = (ad.includes('KVR') || ad.includes('KVH') || ad.includes('KARDİYOVASKÜLER')) && ad.includes('TARAMASI');
-    const isObezite = ad.includes('OBEZİTE') && ad.includes('TARAMASI');
+    // ✅ normalizeText kullan
+    const ad = normalizeText(item.ad || '');
+    const isDiabet = ad.includes('DIYABET') && ad.includes('TARAMASI');
+    const isHipertansiyon = ad.includes('HIPERTANSIYON') && ad.includes('TARAMASI');
+    const isKvr = (ad.includes('KVR') || ad.includes('KVH') || ad.includes('KARDIYOVASKULER')) && ad.includes('TARAMASI');
+    const isObezite = ad.includes('OBEZITE') && ad.includes('TARAMASI');
     
     if (isDiabet || isHipertansiyon || isKvr || isObezite) {
       const hedef = parseInt(item.gereken) || 0;
