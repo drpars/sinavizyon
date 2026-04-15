@@ -45,15 +45,11 @@ export async function showAboutDialog() {
         </div>
         
         <div style="margin-bottom: 20px;">
-          <p style="font-size: 0.65rem; opacity: 0.6; margin-bottom: 8px;">Yapay zeka destekleri</p>
-          <div style="display: flex; justify-content: center; gap: 20px;">
+          <p style="font-size: 0.65rem; opacity: 0.6; margin-bottom: 8px;">Yapay zeka desteği</p>
+          <div style="display: flex; justify-content: center;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <img src="icons/deepseek-logo.png" style="height: 18px;">
               <span style="font-size: 0.7rem; font-weight: bold;">DeepSeek AI</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <img src="icons/gemini-logo.png" style="height: 18px;">
-              <span style="font-size: 0.7rem; font-weight: bold;">Gemini AI</span>
             </div>
           </div>
         </div>

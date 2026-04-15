@@ -525,3 +525,130 @@ body.dark-mode .slider-item.priority-kanser {
   opacity: 0.85;
   transform: translateY(-1px);
 }
+
+/* === KART BAŞLIKLARINI TIKLANABİLİR YAP === */
+.suggestion-header,
+.result-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  margin: -4px;
+  padding: 4px;
+}
+
+.suggestion-header:hover,
+.result-header:hover {
+  background-color: rgba(122, 162, 247, 0.1);
+}
+
+/* Varsayılan olarak detay içerikleri gizle */
+.suggestion-content,
+.result-content {
+  display: none;
+}
+
+/* Compact halde gösterilecek özet içerik */
+.suggestion-compact,
+.result-compact {
+  display: block;
+  padding: 8px 0;
+}
+
+/* Açık durumda detay içerikleri göster, özeti gizle */
+.simulator-suggestion-card.expanded .suggestion-content {
+  display: block;
+  margin-top: 8px;  /* Eskiden olan boşluk */
+}
+
+.simulator-suggestion-card.expanded .suggestion-compact {
+  display: none;
+}
+
+.simulator-suggestion-card,
+.simulator-result-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.simulator-suggestion-card:hover,
+.simulator-result-card:hover {
+  opacity: 0.95;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Butonun üzerine gelince kart hover'ı görünmesin */
+.suggestion-apply-btn {
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.suggestion-apply-btn:hover {
+  opacity: 0.85;
+}
+
+
+.simulator-result-card.expanded .result-content {
+  display: block;
+  margin-top: 12px;  /* Eskiden olan boşluk */
+}
+
+.simulator-result-card.expanded .result-compact {
+  display: none;
+}
+
+/* Compact halde başlık tamamen gizlensin */
+.simulator-result-card .result-header {
+  display: none;
+}
+
+/* Expanded halde başlık görünsün */
+.simulator-result-card.expanded .result-header {
+  display: block;
+}
+
+/* Modal body min-height */
+.simulator-modal-body {
+  min-height: 400px;
+}
+
+/* Compact özet stilleri */
+.result-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  gap: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.result-compact-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+  font-family: monospace;
+  color: var(--blue);
+}
+
+.result-compact-status {
+  font-size: 0.8rem;
+}
+
+.result-compact-status.success {
+  color: var(--green);
+}
+
+.result-compact-status.warning {
+  color: var(--orange);
+}
+
+.suggestion-compact {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.suggestion-compact-success {
+  color: var(--green);
+}

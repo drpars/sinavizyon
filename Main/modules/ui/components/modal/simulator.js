@@ -38,6 +38,11 @@ function createSimulatorModal() {
             <span>💡 AKILLI ÖNERİ</span>
             <button class="suggestion-apply-btn" id="applySuggestionBtn">Öneriyi Uygula</button>
           </div>
+          <!-- ✅ Compact (özet) içerik -->
+          <div class="suggestion-compact" id="simSuggestionCompact">
+            <!-- Dinamik özet -->
+          </div>
+          <!-- Detay içerik -->
           <div class="suggestion-content" id="simSuggestionContent">
             <!-- Dinamik içerik -->
           </div>
@@ -48,6 +53,11 @@ function createSimulatorModal() {
           <div class="result-header">
             <span>🏆 SİMÜLASYON SONUCU</span>
           </div>
+          <!-- Compact (özet) içerik -->
+          <div class="result-compact" id="simResultCompact">
+            <!-- Dinamik özet -->
+          </div>
+          <!-- Detay içerik -->
           <div class="result-content" id="simResultContent">
             <!-- Dinamik içerik -->
           </div>
@@ -122,13 +132,91 @@ function bindSimulatorEvents() {
   
   resetBtn?.addEventListener('click', () => {
     sliderStates.clear();
-    updateSlidersList();  // ✅ Sıfırlayınca yeniden oluştur
+    updateSlidersList();
     updateStatusCard();
     updateSuggestionCard();
     updateResultCard();
+    
+    // Sıfırlanınca kartları varsayılan (kapalı) haline getir
+    document.getElementById('simSuggestionCard')?.classList.remove('expanded');
+    document.getElementById('simResultCard')?.classList.remove('expanded');
   });
   
-  applySuggestionBtn?.addEventListener('click', applySmartSuggestion);
+  applySuggestionBtn?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Butona tıklayınca kartın açılıp kapanmasını engelle
+    applySmartSuggestion();
+  });
+  
+  // ✅ YENİ: Kart Başlıklarına Tıklama Olayları
+  const suggestionHeader = document.querySelector('#simSuggestionCard .suggestion-header');
+  const resultHeader = document.querySelector('#simResultCard .result-header');
+  
+  if (suggestionHeader) {
+    suggestionHeader.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = document.getElementById('simSuggestionCard');
+      const resultCard = document.getElementById('simResultCard');
+      
+      // Akıllı Öneri kartını aç/kapat
+      card.classList.toggle('expanded');
+      
+      // Sonuç kartını kapat (opsiyonel - UX tercihi)
+      // resultCard.classList.remove('expanded');
+    });
+  }
+  
+  if (resultHeader) {
+    resultHeader.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = document.getElementById('simResultCard');
+      const suggestionCard = document.getElementById('simSuggestionCard');
+      
+      // Sonuç kartını aç/kapat
+      card.classList.toggle('expanded');
+      
+      // Akıllı Öneri kartını kapat (opsiyonel)
+      // suggestionCard.classList.remove('expanded');
+    });
+  }
+  
+  // ✅ YENİ: Kartın tamamına tıklama (sadece başlık değil!)
+  const suggestionCard = document.getElementById('simSuggestionCard');
+  const resultCard = document.getElementById('simResultCard');
+  
+  if (suggestionCard) {
+    // Butona tıklanınca kart açılmasın
+    const applyBtn = document.getElementById('applySuggestionBtn');
+    applyBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applySmartSuggestion();
+    });
+    
+    // Kartın geri kalanına tıklanınca aç/kapat
+    suggestionCard.addEventListener('click', (e) => {
+      // Butona tıklanmışsa işlem yapma
+      if (e.target === applyBtn || applyBtn?.contains(e.target)) {
+        return;
+      }
+      suggestionCard.classList.toggle('expanded');
+    });
+  }
+  
+  if (resultCard) {
+    // Kartın tamamına tıklanınca aç/kapat
+    resultCard.addEventListener('click', () => {
+      resultCard.classList.toggle('expanded');
+    });
+  }
+  
+  // Dışarı tıklanınca kartları kapat
+  document.addEventListener('click', (e) => {
+    if (simulatorModal.style.display !== 'flex') return;
+    
+    if (!suggestionCard?.contains(e.target) && !resultCard?.contains(e.target)) {
+      suggestionCard?.classList.remove('expanded');
+      resultCard?.classList.remove('expanded');
+    }
+  });
 }
 
 // Akıllı öneriyi uygula
@@ -188,18 +276,28 @@ function updateStatusCard() {
 function updateSuggestionCard() {
   const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi);
   const contentEl = document.getElementById('simSuggestionContent');
+  const compactEl = document.getElementById('simSuggestionCompact');
   const cardEl = document.getElementById('simSuggestionCard');
   
-  if (!contentEl) return;
+  if (!contentEl || !compactEl) return;
   
+  // ✅ Compact özet içeriği güncelle
   if (strategy.reached && strategy.message) {
-    contentEl.innerHTML = `
-      <div class="suggestion-success">
-        <span class="success-icon">🎉</span>
-        <span class="success-text">${strategy.message}</span>
-      </div>
-    `;
-    if (cardEl) cardEl.style.display = 'block';
+    compactEl.innerHTML = `<span class="suggestion-compact-success">🎉 Tavan katsayısına ulaşıldı!</span>`;
+  } else if (strategy.type === 'single' && strategy.strategy) {
+    const s = strategy.strategy;
+    compactEl.innerHTML = `💡 +${s.needed} ${s.islem}`;
+  } else if (strategy.type === 'combination' && strategy.strategy.steps) {
+    const totalNeeded = strategy.strategy.totalNeeded;
+    const stepsCount = strategy.strategy.steps.length;
+    compactEl.innerHTML = `💡 +${totalNeeded} toplam (${stepsCount} işlem)`;
+  } else {
+    compactEl.innerHTML = `💡 Öneri hesaplanıyor...`;
+  }
+  
+  // Detay içeriği güncelle (mevcut kod aynı)
+  if (strategy.reached && strategy.message) {
+    contentEl.innerHTML = `...`;
     return;
   }
   
@@ -265,6 +363,8 @@ function updateSuggestionCard() {
   }
   
   if (cardEl) cardEl.style.display = 'block';
+  // Kartı varsayılan olarak kapalı tut
+  cardEl?.classList.remove('expanded');
 }
 
 // Slider listesini oluştur
@@ -412,16 +512,13 @@ function getGroupIcon(group) {
 // Sonuç kartını güncelle
 function updateResultCard() {
   const contentEl = document.getElementById('simResultContent');
-  if (!contentEl) return;
+  const compactEl = document.getElementById('simResultCompact');
+  if (!contentEl || !compactEl) return;
   
-  // Slider'lardaki değerlerle simüle edilmiş data'yı oluştur
   let simData = JSON.parse(JSON.stringify(currentData));
-  
   sliderStates.forEach((value, islemAdi) => {
     const item = simData.find(d => d.ad === islemAdi);
-    if (item) {
-      item.yapilan = value;
-    }
+    if (item) item.yapilan = value;
   });
   
   const simKatsayi = calculateCurrentKatsayi(simData);
@@ -431,6 +528,12 @@ function updateResultCard() {
     return sum + Math.max(0, value - (original?.yapilan || 0));
   }, 0);
   
+  // ✅ Compact özet içeriği - SADECE KATSAYI
+  compactEl.innerHTML = `
+    <span class="result-compact-value">🏆 ${simKatsayi.toFixed(5)}</span>
+  `;
+  
+  // Detay içeriği güncelle
   contentEl.innerHTML = `
     <div class="result-main ${reached ? 'success' : ''}">
       <div class="result-katsayi">
@@ -451,6 +554,8 @@ function updateResultCard() {
       ` : ''}
     </div>
   `;
+  
+  document.getElementById('simResultCard')?.classList.remove('expanded');
 }
 
 // ESC tuşu ile kapat
