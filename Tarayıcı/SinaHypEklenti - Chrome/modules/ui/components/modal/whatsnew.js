@@ -13,7 +13,6 @@ export async function showWhatsNewModal(version) {
         "🧹 v2.1.x'den geçişte eski veriler temizlenir (temiz başlangıç)",
         "🐛 SİNA tekrar çekildiğinde büyük olan yapilan değeri korunur",
         "🎨 WhatsNew modalı koyu tema ile uyumlu hale geldi",
-        "📌 Tablo başlık satırı sabitlendi (kaydırırken hep görünür)",
         "🎮 Simülasyon kartları tıkla-aç/kapat özelliği (daha fazla slider görünür)"
       ];
     } else if (version === "2.1.1") {
