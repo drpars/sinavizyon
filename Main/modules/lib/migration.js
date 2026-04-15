@@ -1,94 +1,44 @@
-// modules/lib/migration.js
-export function migrateFromOldStorage() {
-  chrome.storage.local.get(["storageVersion"], (res) => {
+// modules/lib/migration.js - v2.1.2 eklentisi
+
+import { messageDialog } from '../ui/components/index.js';
+
+// Mevcut migrateFromOldStorage fonksiyonunun yanına ekle
+export function migrateFrom_v2_1_x_to_v2_1_2() {
+  chrome.storage.local.get(['storageVersion'], (res) => {
     const oldVersion = res.storageVersion;
     
-    if (oldVersion && oldVersion >= "1.6.7") {
-      console.log(`ℹ️ Storage zaten güncel (v${oldVersion})`);
-      return;
+    // v2.1.0 veya v2.1.1'den geliyorsa
+    if (oldVersion === '2.1.0' || oldVersion === '2.1.1') {
+      console.log('🧹 v2.1.x verileri tamamen temizleniyor...');
+      
+      chrome.storage.local.get(null, (items) => {
+        const keysToRemove = Object.keys(items).filter(key => 
+          key.startsWith('savedResults_') ||
+          key.startsWith('sinaLastTime_') ||
+          key.startsWith('hypLastTime_')
+        );
+        
+        if (keysToRemove.length > 0) {
+          chrome.storage.local.remove(keysToRemove, () => {
+            console.log(`✅ ${keysToRemove.length} adet veri temizlendi.`);
+            chrome.storage.local.set({ storageVersion: '2.1.2' });
+            
+            // Kullanıcıya bilgi mesajı göster
+            showMigrationMessage();
+          });
+        } else {
+          chrome.storage.local.set({ storageVersion: '2.1.2' });
+        }
+      });
     }
-    
-    console.log(`🔄 Storage sürümü: ${oldVersion || "yok"} → 1.6.7 migration başlıyor...`);
-    
-    chrome.storage.local.get(null, (allItems) => {
-      let hasMigrated = false;
-      const userType = "doctor";
-      
-      // Nüfus migration
-      if (allItems.nufus && typeof allItems.nufus === "string") {
-        const birimId = allItems.birimId || "default";
-        const newKey = `nufus_${birimId}`;
-        if (!allItems[newKey]) {
-          chrome.storage.local.set({ [newKey]: allItems.nufus });
-          console.log(`✅ Migrated nufus → ${newKey}`);
-          hasMigrated = true;
-        }
-      }
-      
-      // savedResults migration
-      const oldSavedKeys = Object.keys(allItems).filter(k => 
-        k.startsWith("savedResults_") && !k.includes("_doctor_") && !k.includes("_nurse_")
-      );
-      
-      for (const oldKey of oldSavedKeys) {
-        const data = allItems[oldKey];
-        if (data) {
-          const birimId = oldKey.replace("savedResults_", "");
-          const newKey = `savedResults_${userType}_${birimId}`;
-          if (!allItems[newKey]) {
-            const timestamp = Date.now();
-            const valueToStore = Array.isArray(data) ? { data, timestamp } : data;
-            chrome.storage.local.set({ [newKey]: valueToStore });
-            console.log(`✅ Migrated ${oldKey} → ${newKey}`);
-            chrome.storage.local.remove(oldKey);
-            hasMigrated = true;
-          }
-        }
-      }
-      
-      // sinaLastTime migration
-      const oldSinaKeys = Object.keys(allItems).filter(k => 
-        k.startsWith("sinaLastTime_") && !k.includes("_doctor_") && !k.includes("_nurse_")
-      );
-      for (const oldKey of oldSinaKeys) {
-        const data = allItems[oldKey];
-        if (data) {
-          const birimId = oldKey.replace("sinaLastTime_", "");
-          const newKey = `sinaLastTime_${userType}_${birimId}`;
-          if (!allItems[newKey]) {
-            chrome.storage.local.set({ [newKey]: data });
-            console.log(`✅ Migrated ${oldKey} → ${newKey}`);
-            chrome.storage.local.remove(oldKey);
-            hasMigrated = true;
-          }
-        }
-      }
-      
-      // hypLastTime migration
-      const oldHypKeys = Object.keys(allItems).filter(k => 
-        k.startsWith("hypLastTime_") && !k.includes("_doctor_") && !k.includes("_nurse_")
-      );
-      for (const oldKey of oldHypKeys) {
-        const data = allItems[oldKey];
-        if (data) {
-          const birimId = oldKey.replace("hypLastTime_", "");
-          const newKey = `hypLastTime_${userType}_${birimId}`;
-          if (!allItems[newKey]) {
-            chrome.storage.local.set({ [newKey]: data });
-            console.log(`✅ Migrated ${oldKey} → ${newKey}`);
-            chrome.storage.local.remove(oldKey);
-            hasMigrated = true;
-          }
-        }
-      }
-      
-      chrome.storage.local.set({ storageVersion: "1.6.7" });
-      
-      if (hasMigrated) {
-        console.log("🎉 1.6.7 migration tamamlandı! (reload gerekmez)");
-      } else {
-        console.log("ℹ️ 1.6.7 migration gerekli değil, veriler zaten doğru formatta.");
-      }
-    });
   });
+}
+
+function showMigrationMessage() {
+  messageDialog(
+    '📢 v2.1.2 Güncellemesi\n\n' +
+    'Verileriniz, yeni sürüme uyum için temizlendi.\n\n' +
+    'Lütfen SİNA ve HYP butonlarını kullanarak verilerinizi yeniden çekin.',
+    '⚠️ Bilgilendirme'
+  );
 }

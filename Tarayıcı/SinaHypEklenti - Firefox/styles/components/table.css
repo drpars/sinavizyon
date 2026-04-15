@@ -11,6 +11,20 @@
   max-height: calc(100vh - 280px);
 }
 
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--bg-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+thead th {
+  background-color: var(--bg-dark);
+  border-bottom: 2px solid var(--border);
+  padding: 0.5rem 0.25rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

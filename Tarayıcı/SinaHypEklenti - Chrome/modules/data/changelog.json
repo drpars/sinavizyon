@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.1.2",
+      "date": "2026-04-15",
+      "changes": [
+        "🧹 **Veri temizliği:** v2.1.0/v2.1.1'den geçişte eski veriler temizlenir, temiz başlangıç.",
+        "🐛 **yapilan birleştirme düzeltildi:** SİNA tekrar çekildiğinde büyük olan yapilan değeri korunur.",
+        "🎨 **WhatsNew modal tema düzeltmesi:** Koyu tema kullananlar için modal doğru tema ile açılır.",
+        "📌 **Tablo başlık satırı sabitlendi:** Aşağı kaydırırken başlıklar her zaman görünür."
+      ]
+    },
+    {
       "version": "2.1.1",
       "date": "2026-04-14",
       "changes": [

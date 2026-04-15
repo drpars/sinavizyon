@@ -157,28 +157,33 @@ function mergeSinaData(existingData, newData) {
   if (!existingData || existingData.length === 0) {
     return newData;
   }
-
+  
   // Mevcut yapilan ve devreden değerlerini bir Map'e kaydet
   const yapilanMap = new Map();
   const devredenMap = new Map();
-
-  existingData.forEach((item) => {
+  
+  existingData.forEach(item => {
     const key = normalizeText(item.ad);
     yapilanMap.set(key, item.yapilan);
     devredenMap.set(key, item.devreden);
   });
-
-  // Yeni veriyi oluştur, yapilan ve devreden'i koru
-  return newData.map((item) => {
+  
+  // Yeni veriyi oluştur
+  return newData.map(item => {
     const key = normalizeText(item.ad);
     const existingYapilan = yapilanMap.get(key);
     const existingDevreden = devredenMap.get(key);
-
+    const newYapilan = item.yapilan;
+    
+    // ✅ Büyük olan yapilan'ı al (yapılan işlem geri alınamaz!)
+    const finalYapilan = (existingYapilan !== undefined && parseFloat(existingYapilan) > parseFloat(newYapilan)) 
+      ? existingYapilan 
+      : newYapilan;
+    
     return {
       ...item,
-      yapilan: existingYapilan !== undefined ? existingYapilan : item.yapilan,
-      devreden:
-        existingDevreden !== undefined ? existingDevreden : item.devreden,
+      yapilan: finalYapilan,
+      devreden: existingDevreden !== undefined ? existingDevreden : item.devreden
     };
   });
 }
@@ -407,20 +412,19 @@ document.addEventListener("DOMContentLoaded", async function () {
   // State'i storage'dan yükle
   await loadStateFromStorage();
 
-  const aylar = [
-    "OCAK",
-    "SUBAT",
-    "MART",
-    "NISAN",
-    "MAYIS",
-    "HAZIRAN",
-    "TEMMUZ",
-    "AGUSTOS",
-    "EYLUL",
-    "EKIM",
-    "KASIM",
-    "ARALIK",
-  ];
+  // Tema yükleme
+  const themeSelect = inputs.theme();
+  if (themeSelect) {
+    const savedTheme = await new Promise(resolve => 
+      chrome.storage.local.get(["themePreference"], (res) => 
+        resolve(res.themePreference || "light")
+      )
+    );
+    applyTheme(savedTheme);
+    themeSelect.value = savedTheme;
+  }
+
+  const aylar = [ "OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK" ];
   const suAn = new Date();
   const aySelect = document.getElementById("ay");
   const yilInput = document.getElementById("yil");
@@ -510,17 +514,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   migrateFromOldStorage();
 
   // Güncelleme sonrası yenilikler
-  const lastVersionSeen = await new Promise((resolve) =>
-    chrome.storage.local.get(["lastVersionSeen"], (res) =>
-      resolve(res.lastVersionSeen),
-    ),
+  const lastVersionSeen = await new Promise(resolve => 
+    chrome.storage.local.get(["lastVersionSeen"], (res) => resolve(res.lastVersionSeen))
   );
 
   const manifest = chrome.runtime.getManifest();
   const currentVersion = manifest.version;
 
   if (lastVersionSeen !== currentVersion) {
-    await showWhatsNewModal(currentVersion);
+    await showWhatsNewModal(currentVersion);  // ← Artık doğru tema ile açılır!
     await chrome.storage.local.set({ lastVersionSeen: currentVersion });
   }
 
@@ -627,16 +629,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // KVKK görünürlük
   applyKvkkVisibilityFromStorage();
-
-  // Tema yükleme
-  const themeSelect = inputs.theme();
-  if (themeSelect) {
-    chrome.storage.local.get(["themePreference"], (res) => {
-      const savedTheme = res.themePreference || "light";
-      themeSelect.value = savedTheme;
-      applyTheme(savedTheme);
-    });
-  }
 
   // Ayarlar butonu
   const settingsBtn = document.getElementById("btnSettings");
