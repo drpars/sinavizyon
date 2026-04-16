@@ -154,149 +154,156 @@ input[type="number"] {
 }
 
 /* ============================================
-   DAR EKRAN MODU (Dikey Yükseklik < 800px)
+   MAIN.CSS - Ana Değişkenler ve Temel Stilller
    ============================================ */
-@media (max-height: 800px) {
-  body {
-    padding: 8px;
-  }
 
-  #totalScoreCard {
-    padding: 8px;
-    margin-bottom: 8px;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
-  .kht-header {
-    margin-bottom: 4px;
-  }
+:root {
+  --bg: #f8fbfd;
+  --bg-dark: #ffffff;
+  --fg: #333333;
+  --blue: #1976d2;
+  --magenta: #673ab7;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --orange: #ed921b;
+  --border: #e1e8ef;
+  --soft-green: #e9fdf6;
+  --soft-red: #fff1f2;
+  --header-izlem: #1eb482;
+  --header-kanser: #ed921b;
+  
+  --font-xs: 0.75rem;    /* 12px (minimum) */
+  --font-sm: 0.8125rem;  /* 13px */
+  --font-base: 0.875rem; /* 14px */
+  --font-md: 0.9375rem;  /* 15px */
+  --font-lg: 1rem;       /* 16px */
+  --font-xl: 1.125rem;   /* 18px */
+}
 
-  .kht-bar-container {
-    margin-bottom: 10px;
-  }
+body.dark-mode {
+  --bg: #1a1b26;
+  --bg-dark: #16161e;
+  --fg: #c0caf5;
+  --blue: #7aa2f7;
+  --magenta: #bb9af7;
+  --green: #9ece6a;
+  --red: #f7768e;
+  --orange: #e0af68;
+  --border: #414868;
+  --soft-green: #2a3b2c;
+  --soft-red: #3e2a2a;
+  --header-izlem: #7aa2f7;
+  --header-kanser: #e0af68;
+}
 
-  .score-row {
-    gap: 8px;
-    margin-top: 4px;
-  }
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: var(--font-base);
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
-  .score-box {
-    padding: 0.25rem;
-  }
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
 
-  .score-label {
-    font-size: 0.55rem;
-  }
+input:focus,
+select:focus {
+  border-color: var(--blue);
+  outline: none;
+  box-shadow: 0 0 4px rgba(122, 162, 247, 0.4);
+}
 
-  .score-value {
-    font-size: 0.9rem;
-    margin-bottom: 2px;
-  }
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  #totalKatsayi {
-    font-size: 1rem;
-  }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
-  .btn-group {
-    gap: 8px;
-    margin: 8px 0;
-  }
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 
-  .btn {
-    padding: 8px;
-  }
+.hidden {
+  display: none;
+}
 
-  .table-container {
-    max-height: calc(100vh - 260px);
-  }
+/* ============================================
+   GLOBAL SCROLLBAR STİLİ (OKSUZ, İNCE, TEMALI)
+   ============================================ */
 
-  th, td {
-    padding: 0.25rem 0.15rem;
+/* 1. FIREFOX İÇİN (SADECE FIREFOX'TA ÇALIŞIR) */
+@-moz-document url-prefix() {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue) var(--border);
   }
+}
 
-  .category-header {
-    padding: 4px;
-  }
+/* 2. CHROME İÇİN SCROLLBAR YAPISI (scrollbar-width KULLANMA!) */
+::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
 
-  /* Ayarlar Modalı Dar Ekran */
-  .settings-modal-container {
-    max-height: 90vh;
-  }
+/* 3. OKLARI FİZİKSEL OLARAK YOK ET */
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button {
+  display: block !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
 
-  .settings-modal-header {
-    padding: 12px 16px;
-  }
+/* 4. KAYDIRMA YOLU VE TUTAMAK */
+::-webkit-scrollbar-track {
+  background: var(--border) !important;
+  border-radius: 10px !important;
+}
 
-  .settings-modal-body {
-    padding: 12px 16px;
-    max-height: 70vh;
-  }
+::-webkit-scrollbar-thumb {
+  background: var(--blue) !important;
+  border-radius: 10px !important;
+  border: none !important;
+}
 
-  .settings-card {
-    margin-bottom: 14px;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--magenta) !important;
+}
 
-  .settings-card-header {
-    padding: 6px 10px;
-  }
+/* 5. CHROME'UN 'OVERLAY' OKLARINI ÖLDÜR */
+::-webkit-scrollbar-button:vertical:start,
+::-webkit-scrollbar-button:vertical:end,
+::-webkit-scrollbar-button:horizontal:start,
+::-webkit-scrollbar-button:horizontal:end {
+  width: 0 !important;
+  height: 0 !important;
+}
 
-  .settings-card-body {
-    padding: 8px 10px;
-  }
+/* 6. EKSTRA TEMİZLİK */
+::-webkit-scrollbar-track-piece {
+  background-color: transparent !important;
+}
 
-  .settings-row {
-    margin-bottom: 8px;
-  }
-
-  /* Simülasyon Modalı Dar Ekran */
-  .simulator-modal-container {
-    max-height: 95vh;
-  }
-
-  .simulator-modal-header {
-    padding: 12px 16px;
-  }
-
-  .simulator-modal-body {
-    padding: 12px 16px;
-    min-height: auto;
-  }
-
-  .simulator-status-card {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .simulator-suggestion-card {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .sliders-list {
-    max-height: 200px;
-    gap: 12px;
-  }
-
-  .slider-item {
-    padding: 8px;
-  }
-
-  .slider-control {
-    margin: 6px 0;
-  }
-
-  .simulator-result-card {
-    padding: 12px;
-  }
-
-  .result-compact-value {
-    font-size: 1.2rem;
-  }
-
-  .simulator-modal-footer {
-    padding: 8px 16px;
-  }
-
-  .simulator-footer-btn {
-    padding: 8px;
-  }
+::-webkit-scrollbar-corner {
+  background: transparent !important;
 }
