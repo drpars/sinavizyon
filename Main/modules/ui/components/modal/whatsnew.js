@@ -8,7 +8,14 @@ export async function showWhatsNewModal(version) {
     
     let whatsNewItems = [];
     
-    if (version === "2.1.2") {
+
+    if (version === "2.1.3") {
+      whatsNewItems = [
+        "🧠 Stratejik Zeka (AI) güncellemesi",
+        "🎯 Tavan katsayısını aşan gereksiz eforları önerme",
+        "🧹 Kod temizliği ve performans iyileştirmeleri"
+      ];
+    } else if (version === "2.1.2") {
       whatsNewItems = [
         "🧹 v2.1.x'den geçişte eski veriler temizlenir (temiz başlangıç)",
         "🐛 SİNA tekrar çekildiğinde büyük olan yapilan değeri korunur",

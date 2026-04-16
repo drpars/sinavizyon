@@ -652,3 +652,15 @@ body.dark-mode .slider-item.priority-kanser {
 .suggestion-compact-success {
   color: var(--green);
 }
+
+.simulator-result-card.compact-success {
+  background: var(--soft-green) !important;
+  border-color: var(--green) !important;
+  transition: all 0.3s ease;
+}
+
+.simulator-result-card.compact-success .result-compact-value {
+  color: var(--green) !important;
+  font-weight: bold;
+}
+

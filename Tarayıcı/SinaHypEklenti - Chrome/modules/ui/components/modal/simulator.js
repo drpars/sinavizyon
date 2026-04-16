@@ -513,6 +513,8 @@ function getGroupIcon(group) {
 function updateResultCard() {
   const contentEl = document.getElementById('simResultContent');
   const compactEl = document.getElementById('simResultCompact');
+  const resultCard = document.getElementById('simResultCard');
+  
   if (!contentEl || !compactEl) return;
   
   let simData = JSON.parse(JSON.stringify(currentData));
@@ -532,6 +534,13 @@ function updateResultCard() {
   compactEl.innerHTML = `
     <span class="result-compact-value">🏆 ${simKatsayi.toFixed(5)}</span>
   `;
+  
+  // ✅ Compact karta yeşil arka plan sınıfını ekle/kaldır
+  if (reached) {
+    resultCard?.classList.add('compact-success');
+  } else {
+    resultCard?.classList.remove('compact-success');
+  }
   
   // Detay içeriği güncelle
   contentEl.innerHTML = `
@@ -555,7 +564,7 @@ function updateResultCard() {
     </div>
   `;
   
-  document.getElementById('simResultCard')?.classList.remove('expanded');
+  resultCard?.classList.remove('expanded');
 }
 
 // ESC tuşu ile kapat

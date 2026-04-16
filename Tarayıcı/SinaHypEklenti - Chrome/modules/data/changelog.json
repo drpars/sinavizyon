@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.1.3",
+      "date": "2026-04-16",
+      "changes": [
+        "🧠 **Stratejik Zeka (AI) Güncellemesi:** Akıllı öneri algoritması tamamen yenilendi.",
+        "⚖️ **Zorluk Bazlı Önceliklendirme:** En kolay işlemler (Hipertansiyon, Obezite) artık öncelikli.",
+        "🎯 **Hedef Optimizasyonu:** Tavan katsayısını gereksiz yere aşan stratejiler artık önerilmez.",
+        "🧹 **Kod Temizliği:** Kullanılmayan eski sabitler ve fonksiyonlar temizlendi."
+      ]
+    },
+    {
       "version": "2.1.2",
       "date": "2026-04-15",
       "changes": [

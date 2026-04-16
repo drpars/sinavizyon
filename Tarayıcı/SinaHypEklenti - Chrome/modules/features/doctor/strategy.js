@@ -47,32 +47,6 @@ function getZorlukPuani(islemAdi) {
   return 5; // Listede yoksa orta zorluk (5) varsay
 }
 
-
-
-
-// Öncelik sıralaması - Taramalar > İzlemler > Kanser
-const PRIORITY_ORDER = [
-  // 1. Öncelik: Taramalar (en yüksek katsayı potansiyeli)
-  'HİPERTANSİYON TARAMASI',
-  'OBEZİTE TARAMASI',
-  'DİYABET TARAMASI',
-  'KVR TARAMASI',
-  
-  // 2. Öncelik: İzlemler
-  'HİPERTANSİYON İZLEM',
-  'DİYABET İZLEM',
-  'KVR İZLEM',
-  'OBEZİTE İZLEM',
-
-  // 3. Öncelik: Kanser Taramaları
-  'KANSER KOLOREKTAL',
-  'KANSER MAMOGRAFİ',
-  'KANSER SERVİKS'
-];
-
-// Pasif işlemler (katsayı hesaplamasına dahil edilmez)
-const PASIF_ISLEMLER = ['İNME', 'BÖBREK', 'BOBREK', 'KORONERARTER', 'KORONER'];
-
 // İşlem adlarını normalize et
 function normalizeIslemAdi(ad) {
   return normalizeText(ad);
@@ -166,6 +140,49 @@ export function getNeededForMax(item) {
   return Math.max(0, maxYapilan - etkiliYapilan);
 }
 
+/**
+ * Bir işlemi, tavan katsayısına ulaşmak için GEREKEN MİNİMUM yapılan sayısına çeker.
+ * Maksimuma çekmek yerine, sadece hedefe ulaştıracak kadarını hesaplar.
+ * @param {Array} data Tüm veri
+ * @param {object} item Hedef işlem
+ * @param {number} tavanKatsayi Ulaşılması gereken tavan
+ * @param {number} currentKatsayi Mevcut başarı katsayısı
+ * @returns {object} { needed: 0, targetYapilan: 0, newKatsayi: 0 }
+ */
+function findMinimalYapilanForTavan(data, item, tavanKatsayi, currentKatsayi) {
+  const currentYapilan = parseFloat(item.yapilan) || 0;
+  const maxYapilan = getMaxYapilanForIslem(item);
+  
+  // Eğer mevcut haliyle zaten hedefe ulaşılıyorsa veya maksimum bile yetmiyorsa
+  if (currentKatsayi >= tavanKatsayi) {
+    return { needed: 0, targetYapilan: currentYapilan, newKatsayi: currentKatsayi };
+  }
+
+  let low = currentYapilan;
+  let high = maxYapilan;
+  let bestYapilan = maxYapilan; // Varsayılan olarak maksimumu al
+
+  // Binary Search ile tam hedefi bul
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const simResult = simulateSingleChange(data, item.ad, mid);
+    
+    if (simResult.katsayi >= tavanKatsayi) {
+      bestYapilan = mid; // Hedefe ulaştı, daha da azaltmayı dene
+      high = mid - 1;
+    } else {
+      low = mid + 1; // Yetmedi, artırmak gerek
+    }
+  }
+
+  const finalSim = simulateSingleChange(data, item.ad, bestYapilan);
+  return {
+    needed: Math.max(0, bestYapilan - currentYapilan),
+    targetYapilan: bestYapilan,
+    newKatsayi: finalSim.katsayi
+  };
+}
+
 // Akıllı öneri - en az işlemle tavan katsayısına ulaş
 export function calculateSmartStrategy(data, tavanKatsayi) {
   const currentKatsayi = calculateCurrentKatsayi(data);
@@ -190,20 +207,26 @@ export function calculateSmartStrategy(data, tavanKatsayi) {
     const needed = getNeededForMax(item);
     if (needed === 0) continue;
     
-    const maxYapilan = getMaxYapilanForIslem(item);
-    const simResult = simulateSingleChange(data, item.ad, maxYapilan);
+    // ESKİ: const maxYapilan = getMaxYapilanForIslem(item);
+    // ESKİ: const simResult = simulateSingleChange(data, item.ad, maxYapilan);
+    
+    // YENİ: Minimal hedefi bul
+    const optimal = findMinimalYapilanForTavan(data, item, tavanKatsayi, currentKatsayi);
+    
+    if (optimal.needed === 0) continue; // Bu işlemle hedefe ulaşılamıyorsa atla
+
     const priority = getPriorityGroup(item.ad);
     
     strategies.push({
       type: 'single',
       islem: item.ad,
       currentYapilan: parseFloat(item.yapilan) || 0,
-      targetYapilan: maxYapilan,
-      needed: needed,
+      targetYapilan: optimal.targetYapilan,
+      needed: optimal.needed,
       gereken: parseFloat(item.gereken) || 0,
-      newKatsayi: simResult.katsayi,
-      improvement: simResult.katsayi - currentKatsayi,
-      reached: simResult.katsayi >= tavanKatsayi,
+      newKatsayi: optimal.newKatsayi,
+      improvement: optimal.newKatsayi - currentKatsayi,
+      reached: optimal.newKatsayi >= tavanKatsayi,
       priority: priority.priority,
       group: priority.group
     });
@@ -267,24 +290,20 @@ function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi) {
   for (const item of sortedItems) {
     if (simKatsayi >= tavanKatsayi) break;
     
-    const needed = getNeededForMax(item);
-    if (needed === 0) continue;
+    // YENİ: Kalan fark için bu işlemden ne kadar gerektiğini hesapla
+    const optimal = findMinimalYapilanForTavan(simData, item, tavanKatsayi, simKatsayi);
     
-    const maxYapilan = getMaxYapilanForIslem(item);
-    const result = simulateSingleChange(simData, item.ad, maxYapilan);
-    
-    const orderIndex = PRIORITY_ORDER.findIndex(p => 
-      normalizeIslemAdi(item.ad).includes(p)
-    );
+    if (optimal.needed === 0) continue;
+
+    const result = simulateSingleChange(simData, item.ad, optimal.targetYapilan);
     
     steps.push({
       islem: item.ad,
       currentYapilan: parseFloat(item.yapilan) || 0,
-      targetYapilan: maxYapilan,
-      needed: needed,
+      targetYapilan: optimal.targetYapilan,
+      needed: optimal.needed,
       gereken: parseFloat(item.gereken) || 0,
-      newKatsayi: result.katsayi,
-      orderIndex: orderIndex >= 0 ? orderIndex : 999
+      newKatsayi: result.katsayi
     });
     
     simData = result.data;
