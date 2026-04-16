@@ -152,3 +152,151 @@ input[type="number"] {
 ::-webkit-scrollbar-corner {
   background: transparent !important;
 }
+
+/* ============================================
+   DAR EKRAN MODU (Dikey Yükseklik < 800px)
+   ============================================ */
+@media (max-height: 800px) {
+  body {
+    padding: 8px;
+  }
+
+  #totalScoreCard {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .kht-header {
+    margin-bottom: 4px;
+  }
+
+  .kht-bar-container {
+    margin-bottom: 10px;
+  }
+
+  .score-row {
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .score-box {
+    padding: 0.25rem;
+  }
+
+  .score-label {
+    font-size: 0.55rem;
+  }
+
+  .score-value {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+  }
+
+  #totalKatsayi {
+    font-size: 1rem;
+  }
+
+  .btn-group {
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  .btn {
+    padding: 8px;
+  }
+
+  .table-container {
+    max-height: calc(100vh - 260px);
+  }
+
+  th, td {
+    padding: 0.25rem 0.15rem;
+  }
+
+  .category-header {
+    padding: 4px;
+  }
+
+  /* Ayarlar Modalı Dar Ekran */
+  .settings-modal-container {
+    max-height: 90vh;
+  }
+
+  .settings-modal-header {
+    padding: 12px 16px;
+  }
+
+  .settings-modal-body {
+    padding: 12px 16px;
+    max-height: 70vh;
+  }
+
+  .settings-card {
+    margin-bottom: 14px;
+  }
+
+  .settings-card-header {
+    padding: 6px 10px;
+  }
+
+  .settings-card-body {
+    padding: 8px 10px;
+  }
+
+  .settings-row {
+    margin-bottom: 8px;
+  }
+
+  /* Simülasyon Modalı Dar Ekran */
+  .simulator-modal-container {
+    max-height: 95vh;
+  }
+
+  .simulator-modal-header {
+    padding: 12px 16px;
+  }
+
+  .simulator-modal-body {
+    padding: 12px 16px;
+    min-height: auto;
+  }
+
+  .simulator-status-card {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .simulator-suggestion-card {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .sliders-list {
+    max-height: 200px;
+    gap: 12px;
+  }
+
+  .slider-item {
+    padding: 8px;
+  }
+
+  .slider-control {
+    margin: 6px 0;
+  }
+
+  .simulator-result-card {
+    padding: 12px;
+  }
+
+  .result-compact-value {
+    font-size: 1.2rem;
+  }
+
+  .simulator-modal-footer {
+    padding: 8px 16px;
+  }
+
+  .simulator-footer-btn {
+    padding: 8px;
+  }
+}

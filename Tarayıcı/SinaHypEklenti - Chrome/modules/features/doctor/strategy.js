@@ -14,6 +14,38 @@ import { calculateDoctorKatsayi } from './calculator.js';
 import { normalizeText } from '../../utils/text-utils.js';
 
 
+// ============================================================
+// ZORLUK KATSAYILARI (v2.1.3)
+// ============================================================
+const ZORLUK_LISTESI = new Map([
+  ["DİYABET TARAMASI", 3],
+  ["HİPERTANSİYON TARAMASI", 1],
+  ["OBEZİTE TARAMASI", 1],
+  ["KVR TARAMASI", 4],
+  ["KVR İZLEMİ", 2],
+  ["DİYABET İZLEMİ", 6],
+  ["HİPERTANSİYON İZLEM", 3],
+  ["YAŞLI SAĞLIĞI İZLEMİ", 5],
+  ["OBEZİTE İZLEMİ", 8],
+  ["KANSER KOLOREKTAL TARAMASI", 7],
+  ["KANSER MAMOGRAFİ TARAMASI", 10],
+  ["KANSER SERVİKS TARAMASI", 10]
+]);
+
+/**
+ * Bir işlemin zorluk puanını döndürür.
+ * @param {string} islemAdi İşlemin adı
+ * @returns {number} Zorluk puanı (1-10, bulunamazsa 5)
+ */
+function getZorlukPuani(islemAdi) {
+  const normalizedAd = normalizeText(islemAdi);
+  for (const [key, value] of ZORLUK_LISTESI.entries()) {
+    if (normalizedAd.includes(normalizeText(key))) {
+      return value;
+    }
+  }
+  return 5; // Listede yoksa orta zorluk (5) varsay
+}
 
 
 
@@ -181,8 +213,13 @@ export function calculateSmartStrategy(data, tavanKatsayi) {
   const singleSuccess = strategies.filter(s => s.reached);
   
   if (singleSuccess.length > 0) {
-    // En az işlemle ulaşanı bul
-    singleSuccess.sort((a, b) => a.needed - b.needed);
+    // En az işlemle ve EN KOLAY olanı bul
+    singleSuccess.sort((a, b) => {
+      // 1. Öncelik: Daha az işlem
+      if (a.needed !== b.needed) return a.needed - b.needed;
+      // 2. Öncelik: Daha kolay işlem
+      return getZorlukPuani(a.islem) - getZorlukPuani(b.islem);
+    });
     const best = singleSuccess[0];
     
     return {
@@ -210,20 +247,17 @@ export function calculateSmartStrategy(data, tavanKatsayi) {
 
 // Kombinasyon stratejisi - birden fazla işlemi maksimuma çek
 function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi) {
-  // Sadece aktif işlemleri al ve PRIORITY_ORDER_NORMALIZED'a göre sırala
+  // Sadece aktif işlemleri al ve ZORLUK PUANINA göre sırala (En kolaydan en zora)
   const sortedItems = [...data]
     .filter(item => isAktifIslem(item.ad))
     .sort((a, b) => {
-      const adA = normalizeText(a.ad);
-      const adB = normalizeText(b.ad);
+      // 1. Öncelik: Zorluk Puanı (Düşük olan daha kolay, önce gelsin)
+      const zorlukA = getZorlukPuani(a.ad);
+      const zorlukB = getZorlukPuani(b.ad);
+      if (zorlukA !== zorlukB) return zorlukA - zorlukB;
       
-      const indexA = PRIORITY_ORDER_NORMALIZED.findIndex(p => adA.includes(p));
-      const indexB = PRIORITY_ORDER_NORMALIZED.findIndex(p => adB.includes(p));
-      
-      const orderA = indexA >= 0 ? indexA : 999;
-      const orderB = indexB >= 0 ? indexB : 999;
-      
-      return orderA - orderB;
+      // 2. Öncelik: Aynı zorlukta, daha az işlem gerektiren önce gelsin
+      return getNeededForMax(a) - getNeededForMax(b);
     });
   
   const steps = [];
