@@ -8,8 +8,14 @@ export async function showWhatsNewModal(version) {
     
     let whatsNewItems = [];
     
-
-    if (version === "2.1.3") {
+      if (version === "2.1.4") {
+        whatsNewItems = [
+          "🐛 Akıllı öneride tamamlanmış işlemler artık önerilmez",
+          "📊 Slider kartları zorluk puanına göre sıralanır",
+          "🧠 Hibrit Zorluk Puanı (statik + dinamik analiz)",
+          "⚖️ Devreden bulunan işlemler daha kolay kabul edilir"
+        ];
+      } else if (version === "2.1.3") {
       whatsNewItems = [
         "🧠 Stratejik Zeka (AI) güncellemesi",
         "🎯 Tavan katsayısını aşan gereksiz eforları önerme",

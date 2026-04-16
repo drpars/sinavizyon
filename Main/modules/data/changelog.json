@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.1.4",
+      "date": "2026-04-16",
+      "changes": [
+        "🐛 **Hata Düzeltmesi:** Akıllı öneride tamamlanmış işlemler artık önerilmez.",
+        "📊 **Slider sıralaması iyileştirildi:** Kartlar artık zorluk puanına göre sıralanır.",
+        "🧠 **Hibrit Zorluk Puanı:** Statik liste + dinamik durum analizi ile daha akıllı öneriler.",
+        "⚖️ **Devreden etkisi:** Devreden bulunan işlemler daha kolay kabul edilir."
+      ]
+    },
+    {
       "version": "2.1.3",
       "date": "2026-04-16",
       "changes": [

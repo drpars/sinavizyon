@@ -15,7 +15,7 @@ import { normalizeText } from '../../utils/text-utils.js';
 
 
 // ============================================================
-// ZORLUK KATSAYILARI (v2.1.3)
+// ZORLUK KATSAYILARI (v2.1.4 - Hibrit: Statik + Dinamik)
 // ============================================================
 const ZORLUK_LISTESI = new Map([
   ["DİYABET TARAMASI", 3],
@@ -33,18 +33,49 @@ const ZORLUK_LISTESI = new Map([
 ]);
 
 /**
- * Bir işlemin zorluk puanını döndürür.
+ * Hibrit Zorluk Puanı Hesaplama (Statik Liste + Dinamik Durum)
  * @param {string} islemAdi İşlemin adı
- * @returns {number} Zorluk puanı (1-10, bulunamazsa 5)
+ * @param {object} itemOpsiyonel İşlem verisi (dinamik hesaplama için)
+ * @returns {number} Zorluk puanı (1-10)
  */
-function getZorlukPuani(islemAdi) {
+function getZorlukPuani(islemAdi, item = null) {
+  // 1. Temel Zorluk (statik listeden)
   const normalizedAd = normalizeText(islemAdi);
+  let baseZorluk = 5; // Varsayılan orta zorluk
+  
   for (const [key, value] of ZORLUK_LISTESI.entries()) {
     if (normalizedAd.includes(normalizeText(key))) {
-      return value;
+      baseZorluk = value;
+      break;
     }
   }
-  return 5; // Listede yoksa orta zorluk (5) varsay
+  
+  // 2. Eğer item verisi varsa, dinamik ayarlama yap
+  if (item) {
+    const gereken = parseFloat(item.gereken) || 1;
+    const yapilan = parseFloat(item.yapilan) || 0;
+    const devreden = parseFloat(item.devreden) || 0;
+    const etkiliYapilan = getEffectiveYapilan(gereken, yapilan, devreden);
+    
+    // Tamamlanma oranı (%0 - %100)
+    const tamamlanmaOrani = (etkiliYapilan / gereken) * 100;
+    
+    // Oran düşükse zorluk artar (çarpan > 1), yüksekse azalır (çarpan < 1)
+    // Formül: %0'da 1.5x, %50'de 1.0x, %100'de 0.5x
+    const durumCarpari = 1.5 - (tamamlanmaOrani / 100);
+    
+    // Devreden varsa biraz kolaylaştır (-0.5 puan etkisi)
+    const devredenIndirimi = devreden > 0 ? -0.5 : 0;
+    
+    // Final puanı hesapla
+    let finalPuani = (baseZorluk * durumCarpari) + devredenIndirimi;
+    
+    // 1-10 arası sınırla
+    return Math.max(1, Math.min(10, Math.round(finalPuani)));
+  }
+  
+  // 3. Item verisi yoksa, sadece statik puanı döndür
+  return baseZorluk;
 }
 
 // İşlem adlarını normalize et
@@ -238,10 +269,11 @@ export function calculateSmartStrategy(data, tavanKatsayi) {
   if (singleSuccess.length > 0) {
     // En az işlemle ve EN KOLAY olanı bul
     singleSuccess.sort((a, b) => {
-      // 1. Öncelik: Daha az işlem
       if (a.needed !== b.needed) return a.needed - b.needed;
-      // 2. Öncelik: Daha kolay işlem
-      return getZorlukPuani(a.islem) - getZorlukPuani(b.islem);
+      // ✅ Hibrit zorluk puanını kullan (item verisiyle birlikte)
+      const itemA = data.find(d => d.ad === a.islem);
+      const itemB = data.find(d => d.ad === b.islem);
+      return getZorlukPuani(a.islem, itemA) - getZorlukPuani(b.islem, itemB);
     });
     const best = singleSuccess[0];
     
@@ -270,16 +302,18 @@ export function calculateSmartStrategy(data, tavanKatsayi) {
 
 // Kombinasyon stratejisi - birden fazla işlemi maksimuma çek
 function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi) {
-  // Sadece aktif işlemleri al ve ZORLUK PUANINA göre sırala (En kolaydan en zora)
+  // Sadece aktif işlemleri al, ZORLUK PUANINA göre sırala ve TAMAMLANMAMIŞ olanları filtrele
   const sortedItems = [...data]
     .filter(item => isAktifIslem(item.ad))
+    .filter(item => {
+      const needed = getNeededForMax(item);
+      return needed > 0;
+    })
     .sort((a, b) => {
-      // 1. Öncelik: Zorluk Puanı (Düşük olan daha kolay, önce gelsin)
-      const zorlukA = getZorlukPuani(a.ad);
-      const zorlukB = getZorlukPuani(b.ad);
+      // ✅ Hibrit zorluk puanını kullan (item verisiyle birlikte)
+      const zorlukA = getZorlukPuani(a.ad, a);
+      const zorlukB = getZorlukPuani(b.ad, b);
       if (zorlukA !== zorlukB) return zorlukA - zorlukB;
-      
-      // 2. Öncelik: Aynı zorlukta, daha az işlem gerektiren önce gelsin
       return getNeededForMax(a) - getNeededForMax(b);
     });
   
@@ -290,7 +324,7 @@ function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi) {
   for (const item of sortedItems) {
     if (simKatsayi >= tavanKatsayi) break;
     
-    // YENİ: Kalan fark için bu işlemden ne kadar gerektiğini hesapla
+    // Kalan fark için bu işlemden ne kadar gerektiğini hesapla
     const optimal = findMinimalYapilanForTavan(simData, item, tavanKatsayi, simKatsayi);
     
     if (optimal.needed === 0) continue;
@@ -350,9 +384,16 @@ export function analyzeAllItems(data) {
         priority: priority.priority,
         group: priority.group,
         groupEn: priority.groupEn,
-        orderIndex: orderIndex >= 0 ? orderIndex : 999
+        orderIndex: orderIndex >= 0 ? orderIndex : 999,
+        zorlukPuani: getZorlukPuani(item.ad, item)
       };
     })
     .filter(item => !item.isComplete)
-    .sort((a, b) => a.orderIndex - b.orderIndex);
+    .sort((a, b) => {
+      // ✅ Hibrit zorluk puanına göre sırala
+      if (a.zorlukPuani !== b.zorlukPuani) {
+        return a.zorlukPuani - b.zorlukPuani;
+      }
+      return a.needed - b.needed;
+    });
 }
