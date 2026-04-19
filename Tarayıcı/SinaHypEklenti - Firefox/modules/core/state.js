@@ -20,17 +20,17 @@ let storageBatchTimeout = null;
 
 function batchSetStorage(items) {
   storageBatchQueue.push(items);
-  
+
   if (storageBatchTimeout) clearTimeout(storageBatchTimeout);
-  
+
   storageBatchTimeout = setTimeout(() => {
     if (storageBatchQueue.length === 0) return;
-    
+
     const merged = {};
     for (const items of storageBatchQueue) {
       Object.assign(merged, items);
     }
-    
+
     chrome.storage.local.set(merged).catch(console.error);
     storageBatchQueue = [];
     storageBatchTimeout = null;
@@ -101,7 +101,7 @@ export function updateState(newState, silent = false) {
   if (newState.pendingStorageType !== undefined) pendingStorageType = newState.pendingStorageType;
   if (newState.pendingShowAll !== undefined) pendingShowAll = newState.pendingShowAll;
   if (newState.fontSettingsActive !== undefined) fontSettingsActive = newState.fontSettingsActive;
-  
+
   if (!silent) notifyListeners();
 }
 
@@ -132,9 +132,9 @@ function notifyListeners() {
     currentShowAll,
     pendingStorageType,
     pendingShowAll,
-    fontSettingsActive
+    fontSettingsActive,
   };
-  listeners.forEach(listener => listener(state));
+  listeners.forEach((listener) => listener(state));
 }
 
 // ---------- STORAGE'DAN STATE YÜKLEME ----------
@@ -147,7 +147,7 @@ export async function loadStateFromStorage() {
       resolve({
         currentUserType,
         currentBirimId,
-        fontSettingsActive
+        fontSettingsActive,
       });
     });
   });

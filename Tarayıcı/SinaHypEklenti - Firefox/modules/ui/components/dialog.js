@@ -74,9 +74,9 @@ export async function messageDialog(text, title = "Mesaj") {
     const okBtn = document.getElementById("messageDialogOkBtn");
 
     titleElem.textContent = title;
-    
+
     // ✅ innerHTML yerine textContent + white-space: pre-line
-    textElem.style.whiteSpace = 'pre-line';
+    textElem.style.whiteSpace = "pre-line";
     textElem.textContent = text;
 
     modal.style.display = "flex";

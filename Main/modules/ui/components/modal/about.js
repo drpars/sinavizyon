@@ -11,7 +11,7 @@ export async function showAboutDialog() {
   } catch (e) {
     console.warn("Manifest okunamadı, varsayılan versiyon kullanılıyor:", e);
   }
-  
+
   return new Promise((resolve) => {
     const modal = document.createElement("div");
     modal.id = "aboutDialog";
@@ -71,14 +71,18 @@ export async function showAboutDialog() {
       `;
       document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(modal);
     modal.style.display = "flex";
-    
+
     const okBtn = document.getElementById("aboutOkBtn");
-    okBtn.addEventListener("click", () => {
-      modal.remove();
-      resolve();
-    }, { once: true });
+    okBtn.addEventListener(
+      "click",
+      () => {
+        modal.remove();
+        resolve();
+      },
+      { once: true }
+    );
   });
 }

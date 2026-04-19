@@ -1,11 +1,12 @@
 // modules/ui/updaters/helpers.js
-import { buttons, inputs, containers, infoElements, setDomSinaTime, setDomHypTime } from '../../core/dom.js';
-import { getCurrentUserType as getStateUserType } from '../../core/state.js';
-import { updateKHTBar } from './kht-updater.js';
-import { updateTable } from './table-updater.js';
-import { tavanHesapla } from '../../lib/calculations.js';
-import { loadNufusForBirim, loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge } from '../../core/storage.js';
-import { loadNurseShowAllForBirim } from '../../features/nurse/index.js';
+import { updateKHTBar } from "./kht-updater.js";
+import { updateTable } from "./table-updater.js";
+
+import { buttons, containers, infoElements, setDomHypTime, setDomSinaTime } from "../../core/dom.js";
+import { getCurrentUserType as getStateUserType } from "../../core/state.js";
+import { loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge, loadNufusForBirim } from "../../core/storage.js";
+import { loadNurseShowAllForBirim } from "../../features/nurse/index.js";
+import { tavanHesapla } from "../../lib/calculations.js";
 
 // ========== TABLO GÜNCELLEMELERİ ==========
 export function clearTable() {
@@ -16,7 +17,7 @@ export function clearTable() {
 export function resetKatsayiValues() {
   const katsayiElement = infoElements.totalKatsayi();
   if (katsayiElement) katsayiElement.textContent = "1.00000";
-  
+
   const tavanElement = infoElements.tavanKatsayi();
   if (tavanElement && getStateUserType() === "nurse") {
     tavanElement.textContent = "1.00000";
@@ -32,10 +33,10 @@ export function clearTimeIndicators() {
 // ========== BUTON DURUM GÜNCELLEMELERİ ==========
 export function updateHypButtonStateUI(hasData, userType = null) {
   const hypBtn = buttons.hyp();
-  const simulatorBtn = document.getElementById('btnSimulator');
-  
+  const simulatorBtn = document.getElementById("btnSimulator");
+
   if (!hypBtn) return;
-  
+
   // ASÇ modunda SİNA BİRİM butonu HER ZAMAN aktif
   if (userType === "nurse") {
     hypBtn.disabled = false;
@@ -56,7 +57,7 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
   const nufusRow = document.getElementById("nufus")?.closest(".row");
   const sinaBtn = buttons.sina();
   const hypBtn = buttons.hyp();
-  
+
   if (type === "nurse") {
     // ASÇ MODU
     if (tavanKart) tavanKart.style.display = "none";
@@ -64,22 +65,38 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
     if (sinaBtn) sinaBtn.textContent = "SİNA";
     if (hypBtn) hypBtn.textContent = "SİNA BİRİM";
     if (sinaBtn) sinaBtn.disabled = false;
-    
+
     // ✅ SİNA BİRİM butonunu her zaman aktif yap
     if (hypBtn) hypBtn.disabled = false;
-    
+
     if (birimId) {
       loadNurseShowAllForBirim(birimId).then((showAll) => {
-        loadDataForCurrentBirimWithMerge(updateTable, type, birimId, (hasData) => {
-          // ASÇ modunda buton her zaman aktif olduğu için updateHypButtonStateFn çağrısına gerek yok
-          // ama callback'i çağırarak dışarıdaki state'i güncelleyelim
-          if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
-        }, showAll, currentAy, currentYil);
+        loadDataForCurrentBirimWithMerge(
+          updateTable,
+          type,
+          birimId,
+          (hasData) => {
+            // ASÇ modunda buton her zaman aktif olduğu için updateHypButtonStateFn çağrısına gerek yok
+            // ama callback'i çağırarak dışarıdaki state'i güncelleyelim
+            if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
+          },
+          showAll,
+          currentAy,
+          currentYil
+        );
       });
     } else {
-      loadDataForCurrentBirimWithMerge(updateTable, type, birimId, (hasData) => {
-        if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
-      }, false, currentAy, currentYil);
+      loadDataForCurrentBirimWithMerge(
+        updateTable,
+        type,
+        birimId,
+        (hasData) => {
+          if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
+        },
+        false,
+        currentAy,
+        currentYil
+      );
     }
   } else {
     // DOKTOR MODU
@@ -88,13 +105,21 @@ export function updateUIForUserType(type, birimId, currentAy, currentYil, update
     if (sinaBtn) sinaBtn.textContent = "SİNA";
     if (hypBtn) hypBtn.textContent = "HYP";
     if (sinaBtn) sinaBtn.disabled = false;
-    
+
     if (birimId) {
       loadNufusForBirim(birimId, tavanHesapla);
     }
-    loadDataForCurrentBirim(updateTable, type, birimId, (hasData) => {
-      if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
-    }, false, currentAy, currentYil);
+    loadDataForCurrentBirim(
+      updateTable,
+      type,
+      birimId,
+      (hasData) => {
+        if (updateHypButtonStateFn) updateHypButtonStateFn(hasData, type);
+      },
+      false,
+      currentAy,
+      currentYil
+    );
   }
 }
 
@@ -105,7 +130,7 @@ export function applyKvkkVisibilityFromStorage() {
     const footer = document.getElementById("kvkkFooter");
     const toggleBtn = document.getElementById("btnToggleKvkk");
     const hide = res.kvkkHidden === true;
-    
+
     if (kvkkSettingsNote) kvkkSettingsNote.style.display = hide ? "none" : "block";
     if (footer) footer.style.display = hide ? "none" : "flex";
     if (toggleBtn) {

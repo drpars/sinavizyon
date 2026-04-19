@@ -66,7 +66,7 @@ export const modals = {
 };
 
 // ---------- KHT BAR MARKALARI ----------
-export const khtMarks = () => document.querySelectorAll('.kht-bar-marks span');
+export const khtMarks = () => document.querySelectorAll(".kht-bar-marks span");
 
 // ---------- YARDIMCI FONKSİYONLAR (ÇAKIŞMAYAN İSİMLER) ----------
 export function getDomBirimId() {

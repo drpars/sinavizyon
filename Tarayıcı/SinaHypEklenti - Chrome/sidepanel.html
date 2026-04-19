@@ -3,27 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <!-- ANA STILLER -->
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/main.css" />
     <!-- KOMPONENTLER -->
-    <link rel="stylesheet" href="styles/components/header.css">
-    <link rel="stylesheet" href="styles/components/buttons.css">
-    <link rel="stylesheet" href="styles/components/cards.css">
-    <link rel="stylesheet" href="styles/components/table.css">
-    <link rel="stylesheet" href="styles/components/modal.css">
-    <link rel="stylesheet" href="styles/components/settings-modal.css">
-    <link rel="stylesheet" href="styles/components/toast.css">
-    <link rel="stylesheet" href="styles/components/spinner.css">
-    <link rel="stylesheet" href="styles/components/simulator.css">
+    <link rel="stylesheet" href="styles/components/header.css" />
+    <link rel="stylesheet" href="styles/components/buttons.css" />
+    <link rel="stylesheet" href="styles/components/cards.css" />
+    <link rel="stylesheet" href="styles/components/table.css" />
+    <link rel="stylesheet" href="styles/components/modal.css" />
+    <link rel="stylesheet" href="styles/components/settings-modal.css" />
+    <link rel="stylesheet" href="styles/components/toast.css" />
+    <link rel="stylesheet" href="styles/components/spinner.css" />
+    <link rel="stylesheet" href="styles/components/simulator.css" />
   </head>
   <body>
     <!-- HEADER -->
     <div class="header-container">
       <button id="btnAbout" class="header-icon-btn" title="Hakkında">
-        <img src="icons/about.png" style="width: 18px; height: 18px; opacity: 0.8;">
+        <img src="icons/about.png" style="width: 18px; height: 18px; opacity: 0.8" />
       </button>
-      <div class="title">
-        SİNA VİZYON<span id="versionBadge" class="version-badge"></span>
-      </div>
+      <div class="title">SİNA VİZYON<span id="versionBadge" class="version-badge"></span></div>
       <button id="btnSettings" class="header-icon-btn" title="Ayarlar">⚙️</button>
     </div>
 
@@ -83,7 +81,7 @@
 
     <!-- TABLO -->
     <div class="table-container scrollbar-custom">
-      <div id="loadingSpinner" style="display: none;">
+      <div id="loadingSpinner" style="display: none">
         <div class="spinner"></div>
         <div class="spinner-text">Veri çekiliyor, lütfen bekleyin...</div>
       </div>
@@ -120,8 +118,7 @@
       <div class="consent-modal-content">
         <h3>🔒 KVKK Aydınlatma ve Rıza</h3>
         <p>
-          Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini
-          yerel olarak saklar.<br /><br />
+          Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini yerel olarak saklar.<br /><br />
           ✓ Verileriniz yalnızca sizin cihazınızda tutulur<br />
           ✓ Hiçbir sunucuya gönderilmez<br />
           ✓ İstediğiniz zaman silebilir veya dışa aktarabilirsiniz<br />
@@ -135,7 +132,7 @@
     </div>
     <script type="module" src="sidepanel.js"></script>
     <!-- GİZLİ GELİŞMİŞ AYARLAR (DOM'da var ama görünmez) -->
-    <div style="display: none;">
+    <div style="display: none">
       <select id="ay">
         <option value="OCAK">OCAK</option>
         <option value="SUBAT">SUBAT</option>
@@ -150,9 +147,9 @@
         <option value="KASIM">KASIM</option>
         <option value="ARALIK">ARALIK</option>
       </select>
-      <input type="number" id="yil" value="2026">
-      <input type="text" id="birimId" placeholder="Birim ID">
-      <input type="number" id="nufus" placeholder="Nüfus">
+      <input type="number" id="yil" value="2026" />
+      <input type="text" id="birimId" placeholder="Birim ID" />
+      <input type="number" id="nufus" placeholder="Nüfus" />
       <select id="userTypeSelect">
         <option value="doctor">Aile Hekimi</option>
         <option value="nurse">ASÇ</option>

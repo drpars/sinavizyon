@@ -8,16 +8,16 @@ export function showConsentModal() {
     const modal = document.getElementById("consentModal");
     const acceptBtn = document.getElementById("consentAcceptBtn");
     const rejectBtn = document.getElementById("consentRejectBtn");
-    
+
     if (!modal || !acceptBtn || !rejectBtn) {
       const userConfirmed = confirm(
         "🔒 KVKK Aydınlatma ve Rıza\n\n" +
-        "Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini yerel olarak saklar.\n\n" +
-        "✓ Verileriniz yalnızca sizin cihazınızda tutulur\n" +
-        "✓ Hiçbir sunucuya gönderilmez\n" +
-        "✓ İstediğiniz zaman silebilir veya dışa aktarabilirsiniz\n" +
-        "✓ Veriler 90 gün sonra otomatik silinir\n\n" +
-        "Bu koşulları kabul ediyor musunuz?"
+          "Bu eklenti, SİNA ve HYP sistemlerinden aldığınız performans verilerini yerel olarak saklar.\n\n" +
+          "✓ Verileriniz yalnızca sizin cihazınızda tutulur\n" +
+          "✓ Hiçbir sunucuya gönderilmez\n" +
+          "✓ İstediğiniz zaman silebilir veya dışa aktarabilirsiniz\n" +
+          "✓ Veriler 90 gün sonra otomatik silinir\n\n" +
+          "Bu koşulları kabul ediyor musunuz?"
       );
       resolve(userConfirmed);
       return;

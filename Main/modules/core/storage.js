@@ -1,10 +1,10 @@
 // modules/core/storage.js
-import { RETENTION_DAYS } from '../lib/constants.js';
-import { updateTable, setUIEnabled } from '../ui/updaters/index.js';
-import { confirmDialog, messageDialog } from '../ui/components/index.js';
-import { getCurrentUserType } from './state.js';
-import { getDomBirimId } from './dom.js';
-import { normalizeText } from '../utils/text-utils.js';
+import { getDomBirimId } from "./dom.js";
+import { getCurrentUserType } from "./state.js";
+
+import { RETENTION_DAYS } from "../lib/constants.js";
+import { messageDialog } from "../ui/components/index.js";
+import { normalizeText } from "../utils/text-utils.js";
 
 // Storage anahtarını birimId ve userType ile oluştur
 export function getStorageKey(baseKey, birimId, userType) {
@@ -59,7 +59,15 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
 }
 
 // Doktor modu için veri yükleme
-export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onDataLoaded, showAll = false, ay = null, yil = null) {
+export function loadDataForCurrentBirim(
+  updateTableFn,
+  userType,
+  birimId,
+  onDataLoaded,
+  showAll = false,
+  ay = null,
+  yil = null
+) {
   if (!birimId) {
     if (updateTableFn) updateTableFn([], userType, showAll, birimId);
     document.getElementById("sinaTime").textContent = "";
@@ -67,12 +75,12 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
     if (onDataLoaded) onDataLoaded(false);
     return;
   }
-  
+
   const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     let saved = res[key];
     let data = saved?.data || [];
-    
+
     if (ay !== null && yil !== null && saved) {
       const hasMonthYear = saved.ay !== undefined && saved.yil !== undefined;
       if (hasMonthYear) {
@@ -81,7 +89,7 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
         }
       }
     }
-    
+
     const hasData = data.length > 0;
     if (hasData) {
       if (updateTableFn) updateTableFn(data, userType, showAll, birimId);
@@ -90,7 +98,7 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
-  
+
   const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
   const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {
@@ -102,7 +110,15 @@ export function loadDataForCurrentBirim(updateTableFn, userType, birimId, onData
 }
 
 // ASÇ modu için veri yükleme (merge'li)
-export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimId, onDataLoaded, showAll = false, ay = null, yil = null) {
+export function loadDataForCurrentBirimWithMerge(
+  updateTableFn,
+  userType,
+  birimId,
+  onDataLoaded,
+  showAll = false,
+  ay = null,
+  yil = null
+) {
   if (!birimId) {
     if (updateTableFn) updateTableFn([], userType, showAll);
     document.getElementById("sinaTime").textContent = "";
@@ -110,20 +126,20 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
     if (onDataLoaded) onDataLoaded(false);
     return;
   }
-  
+
   if (userType === "nurse") {
     const nurseKey = getStorageKey("savedResults", birimId, "nurse");
     const doctorKey = getStorageKey("savedResults", birimId, "doctor");
-    
+
     chrome.storage.local.get([nurseKey, doctorKey, `nurseShowAll_${birimId}`], (res) => {
       let nurseData = res[nurseKey]?.data || [];
       let doctorData = res[doctorKey]?.data || [];
-      
+
       // ✅ AY/YIL FİLTRELEMESİ
       if (ay !== null && yil !== null) {
         const nurseRecord = res[nurseKey];
         const doctorRecord = res[doctorKey];
-        
+
         if (nurseRecord) {
           const hasMonthYear = nurseRecord.ay !== undefined && nurseRecord.yil !== undefined;
           if (hasMonthYear && (nurseRecord.ay !== ay || nurseRecord.yil !== yil)) {
@@ -132,7 +148,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         } else {
           nurseData = [];
         }
-        
+
         if (doctorRecord) {
           const hasMonthYear = doctorRecord.ay !== undefined && doctorRecord.yil !== undefined;
           if (hasMonthYear && (doctorRecord.ay !== ay || doctorRecord.yil !== yil)) {
@@ -142,43 +158,41 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
           doctorData = [];
         }
       }
-      
+
       // ✅ Mükerrer kontrolü ile birleştir
       const mergedData = [...nurseData];
-      doctorData.forEach(doctorItem => {
+      doctorData.forEach((doctorItem) => {
         const doctorAd = normalizeText(doctorItem.ad);
-        const existsInNurse = nurseData.some(nurseItem => 
-          normalizeText(nurseItem.ad) === doctorAd
-        );
+        const existsInNurse = nurseData.some((nurseItem) => normalizeText(nurseItem.ad) === doctorAd);
         if (!existsInNurse) {
           mergedData.push(doctorItem);
         }
       });
-      
+
       const hasBoth = nurseData.length > 0 && doctorData.length > 0;
       const storedShowAll = res[`nurseShowAll_${birimId}`];
       let effectiveShowAll = showAll;
-      
+
       if (storedShowAll !== undefined) {
         effectiveShowAll = storedShowAll;
       }
-      
+
       if (hasBoth || (storedShowAll === undefined && doctorData.length > 0)) {
         effectiveShowAll = true;
       }
-      
-      const hasData = (nurseData.length + doctorData.length) > 0;
-      
+
+      const hasData = nurseData.length + doctorData.length > 0;
+
       if (effectiveShowAll) {
         if (updateTableFn) updateTableFn(mergedData, userType, effectiveShowAll, birimId);
       } else {
         const dataToShow = nurseData.length > 0 ? nurseData : doctorData;
         if (updateTableFn) updateTableFn(dataToShow, userType, false, birimId);
       }
-      
+
       if (onDataLoaded) onDataLoaded(hasData);
     });
-    
+
     const nurseSinaKey = getStorageKey("sinaLastTime", birimId, "nurse");
     const doctorSinaKey = getStorageKey("sinaLastTime", birimId, "doctor");
     chrome.storage.local.get([nurseSinaKey, doctorSinaKey], (res) => {
@@ -187,16 +201,16 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
       if (sinaTimeSpan) sinaTimeSpan.textContent = res[nurseSinaKey]?.data || "";
       if (hypTimeSpan) hypTimeSpan.textContent = res[doctorSinaKey]?.data || "";
     });
-    
+
     return;
   }
-  
+
   // Doktor modu
   const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     let saved = res[key];
     let data = saved?.data || [];
-    
+
     if (ay !== null && yil !== null && saved) {
       const hasMonthYear = saved.ay !== undefined && saved.yil !== undefined;
       if (hasMonthYear) {
@@ -205,7 +219,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
         }
       }
     }
-    
+
     const hasData = data.length > 0;
     if (hasData) {
       if (updateTableFn) updateTableFn(data, userType, showAll);
@@ -214,7 +228,7 @@ export function loadDataForCurrentBirimWithMerge(updateTableFn, userType, birimI
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
-  
+
   const sinaKey = getStorageKey("sinaLastTime", birimId, userType);
   const hypKey = getStorageKey("hypLastTime", birimId, userType);
   chrome.storage.local.get([sinaKey, hypKey], (res) => {
@@ -243,7 +257,7 @@ export function cleanExpiredData(updateTableFn) {
     if (keysToRemove.length > 0) {
       chrome.storage.local.remove(keysToRemove, () => {
         console.log("Süresi dolan veriler temizlendi:", keysToRemove);
-        if (keysToRemove.some(k => k.startsWith("savedResults_"))) {
+        if (keysToRemove.some((k) => k.startsWith("savedResults_"))) {
           if (updateTableFn) updateTableFn([]);
           const sinaTimeSpan = document.getElementById("sinaTime");
           const hypTimeSpan = document.getElementById("hypTime");
@@ -262,12 +276,12 @@ export async function exportData() {
     await messageDialog("Önce Birim ID girin!", "Uyarı");
     return;
   }
-  
+
   const userType = getCurrentUserType();
-  
+
   const manifest = chrome.runtime.getManifest();
   const currentVersion = manifest.version;
-  
+
   const key = getStorageKey("savedResults", birimId, userType);
   chrome.storage.local.get([key], (res) => {
     const exportData = {
@@ -277,8 +291,8 @@ export async function exportData() {
       birimId: birimId,
       data: res[key]?.data || [],
       metadata: {
-        exportTool: "SINA-HYP Eklentisi"
-      }
+        exportTool: "SINA-HYP Eklentisi",
+      },
     };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);

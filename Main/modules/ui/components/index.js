@@ -1,5 +1,5 @@
 // modules/ui/components/index.js
-export { confirmDialog, messageDialog } from './dialog.js';
+export { confirmDialog, messageDialog } from "./dialog.js";
 
 // Modal'ları yeni yapıdan export et
 export {
@@ -11,5 +11,5 @@ export {
   requestConsent,
   showWhatsNewModal,
   openSettingsModal,
-  closeSettingsModal
-} from './modal/index.js';
+  closeSettingsModal,
+} from "./modal/index.js";

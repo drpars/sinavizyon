@@ -1,6 +1,5 @@
 // modules/lib/constants.js
-
-import { normalizeText } from '../utils/text-utils.js';
+import { normalizeText } from "../utils/text-utils.js";
 
 export const katsayiMap = new Map([
   ["DİYABET TARAMASI", { asgariOran: 40, azamiOran: 90, asgariKatsayi: 0.994, azamiKatsayi: 1.05 }],
@@ -38,11 +37,7 @@ export const katsayiMapNurse = new Map([
   ["YAŞLI SAĞLIĞI İZLEMİ ASÇ", { asgariOran: 50, azamiOran: 90, asgariKatsayi: 0.97, azamiKatsayi: 1.13 }],
 ]);
 
-export const nurseFilterList = [
-  "YAŞLI SAĞLIĞI İZLEMİ ASÇ",
-  "VİTAL BULGU ASÇ",
-  "VİTAL BULGU ASÇ TEKİL"
-];
+export const nurseFilterList = ["YAŞLI SAĞLIĞI İZLEMİ ASÇ", "VİTAL BULGU ASÇ", "VİTAL BULGU ASÇ TEKİL"];
 
 export const RETENTION_DAYS = 90;
 export const SUREC_KATSAYISI = 1.03;
@@ -52,13 +47,7 @@ export const SUREC_KATSAYISI = 1.03;
 // ============================================================
 
 // Pasif işlemler (normalize edilmiş)
-export const PASIF_ISLEMLER_NORMALIZED = [
-  'INME',
-  'BOREK',
-  'BOBREK',
-  'KORONERARTER',
-  'KORONER'
-];
+export const PASIF_ISLEMLER_NORMALIZED = ["INME", "BOREK", "BOBREK", "KORONERARTER", "KORONER"];
 
 // Doktor katsayı map'i için normalize anahtarlar
 export const katsayiMapNormalized = new Map();
@@ -73,7 +62,7 @@ for (let [anahtar, deger] of katsayiMapNurse.entries()) {
 }
 
 // ASÇ filtre listesi (normalize edilmiş)
-export const nurseFilterListNormalized = nurseFilterList.map(f => normalizeText(f));
+export const nurseFilterListNormalized = nurseFilterList.map((f) => normalizeText(f));
 
 // HYP'den SİNA'ya dönüşüm map'i (normalize edilmiş)
 export const hypToSinaMapNormalized = new Map();
@@ -83,16 +72,15 @@ for (let [hypKey, sinaKey] of Object.entries(hypToSinaMap)) {
 
 // Öncelik sıralaması (normalize edilmiş) - strategy.js için
 export const PRIORITY_ORDER_NORMALIZED = [
-  'HIPERTANSIYON TARAMASI',
-  'OBEZITE TARAMASI',
-  'DIYABET TARAMASI',
-  'KVR TARAMASI',
-  'HIPERTANSIYON IZLEM',
-  'DIYABET IZLEM',
-  'KVR IZLEM',
-  'OBEZITE IZLEM',
-  'KANSER KOLOREKTAL',
-  'KANSER MAMOGRAFI',
-  'KANSER SERVIKS'
+  "HIPERTANSIYON TARAMASI",
+  "OBEZITE TARAMASI",
+  "DIYABET TARAMASI",
+  "KVR TARAMASI",
+  "HIPERTANSIYON IZLEM",
+  "DIYABET IZLEM",
+  "KVR IZLEM",
+  "OBEZITE IZLEM",
+  "KANSER KOLOREKTAL",
+  "KANSER MAMOGRAFI",
+  "KANSER SERVIKS",
 ];
-

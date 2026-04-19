@@ -2,59 +2,49 @@
 // ============================================================
 // SADECE BAŞLATMA VE ORCHESTRATION
 // ============================================================
-
 // ---------- CORE ----------
-import { 
-  inputs,
-  getDomBirimId, getDomAy, getDomYil,
-  getDomNufus, setDomNufus, setDomBirimId
-} from './modules/core/dom.js';
-
-import { 
-  getCurrentUserType, getCurrentBirimId, getCurrentShowAll,
-  setCurrentUserType, setCurrentBirimId, setCurrentShowAll,
-  setPendingStorageType, setPendingShowAll,
-  loadStateFromStorage, saveCurrentUserTypeToStorage,
-  saveCurrentBirimIdToStorage
-} from './modules/core/state.js';
-
-import { 
-  loadNurseShowAllForBirim, saveNurseShowAllForBirim 
-} from './modules/features/nurse/index.js';
-
-import { 
-  storeDataWithTimestamp, saveNufusForBirim, loadNufusForBirim,
-  loadDataForCurrentBirim, loadDataForCurrentBirimWithMerge,
-  cleanExpiredData, exportData
-} from './modules/core/storage.js';
-
-import { bindAllEvents } from './modules/core/events.js';
-
-// ---------- UI ----------
-import { 
-  updateTable, applyTheme, setUIEnabled,
-  updateHypButtonStateUI, updateUIForUserType,
-  applyKvkkVisibilityFromStorage, resetUIAfterDataClear, updateKHTBar
-} from './modules/ui/updaters/index.js';
-
-import { requestConsent, revokeConsent } from './modules/features/consent/index.js';
-
-import { 
-  showFirstTimeUserTypeModal, showWhatsNewModal
-} from './modules/ui/components/index.js';
-
-import { showSimulatorModal, closeSimulatorModal } from './modules/ui/components/modal/simulator.js';
-
+import { getDomAy, getDomBirimId, getDomYil, inputs, setDomBirimId, setDomNufus } from "./modules/core/dom.js";
+import { bindAllEvents } from "./modules/core/events.js";
+import {
+  getCurrentBirimId,
+  getCurrentShowAll,
+  getCurrentUserType,
+  loadStateFromStorage,
+  saveCurrentUserTypeToStorage,
+  setCurrentBirimId,
+  setCurrentShowAll,
+  setCurrentUserType,
+  setPendingShowAll,
+  setPendingStorageType,
+} from "./modules/core/state.js";
+import {
+  cleanExpiredData,
+  loadDataForCurrentBirim,
+  loadDataForCurrentBirimWithMerge,
+  loadNufusForBirim,
+  storeDataWithTimestamp,
+} from "./modules/core/storage.js";
+import { requestConsent, revokeConsent } from "./modules/features/consent/index.js";
+import { loadNurseShowAllForBirim, saveNurseShowAllForBirim } from "./modules/features/nurse/index.js";
 // ---------- LIB ----------
-import { tavanHesapla } from './modules/lib/calculations.js';
-import { migrateFromOldStorage } from './modules/lib/migration.js';
-import { hypToSinaMap } from './modules/lib/constants.js';
-import { hypToSinaMapNormalized } from './modules/lib/constants.js';
-
-
+import { tavanHesapla } from "./modules/lib/calculations.js";
+import { hypToSinaMapNormalized } from "./modules/lib/constants.js";
+import { migrateFromOldStorage } from "./modules/lib/migration.js";
+import { showFirstTimeUserTypeModal, showWhatsNewModal } from "./modules/ui/components/index.js";
+import { showSimulatorModal } from "./modules/ui/components/modal/simulator.js";
+// ---------- UI ----------
+import {
+  applyKvkkVisibilityFromStorage,
+  applyTheme,
+  resetUIAfterDataClear,
+  setUIEnabled,
+  updateHypButtonStateUI,
+  updateKHTBar,
+  updateTable,
+  updateUIForUserType,
+} from "./modules/ui/updaters/index.js";
 // ---------- UTILS ----------
-import { normalizeText } from './modules/utils/text-utils.js';
-
+import { normalizeText } from "./modules/utils/text-utils.js";
 
 // ========== HELPER FUNCTIONS ==========
 let spinnerTimeout = null;
@@ -81,7 +71,7 @@ function showLoadingSpinner() {
     import("./modules/ui/components/index.js").then(({ messageDialog }) => {
       messageDialog(
         "Veri çekme işlemi çok uzun sürüyor. Lütfen daha sonra tekrar deneyin.\n\n⏱️ Bekleme süresi aşıldı (15 saniye).",
-        "Zaman Aşımı",
+        "Zaman Aşımı"
       );
     });
   }, 15000);
@@ -137,13 +127,7 @@ function setUserType(type) {
     simulatorWrapper.style.display = type === "doctor" ? "flex" : "none";
   }
 
-  updateUIForUserType(
-    type,
-    birimId,
-    currentAy,
-    currentYil,
-    updateHypButtonStateUI,
-  );
+  updateUIForUserType(type, birimId, currentAy, currentYil, updateHypButtonStateUI);
 }
 
 /**
@@ -157,33 +141,34 @@ function mergeSinaData(existingData, newData) {
   if (!existingData || existingData.length === 0) {
     return newData;
   }
-  
+
   // Mevcut yapilan ve devreden değerlerini bir Map'e kaydet
   const yapilanMap = new Map();
   const devredenMap = new Map();
-  
-  existingData.forEach(item => {
+
+  existingData.forEach((item) => {
     const key = normalizeText(item.ad);
     yapilanMap.set(key, item.yapilan);
     devredenMap.set(key, item.devreden);
   });
-  
+
   // Yeni veriyi oluştur
-  return newData.map(item => {
+  return newData.map((item) => {
     const key = normalizeText(item.ad);
     const existingYapilan = yapilanMap.get(key);
     const existingDevreden = devredenMap.get(key);
     const newYapilan = item.yapilan;
-    
+
     // ✅ Büyük olan yapilan'ı al (yapılan işlem geri alınamaz!)
-    const finalYapilan = (existingYapilan !== undefined && parseFloat(existingYapilan) > parseFloat(newYapilan)) 
-      ? existingYapilan 
-      : newYapilan;
-    
+    const finalYapilan =
+      existingYapilan !== undefined && parseFloat(existingYapilan) > parseFloat(newYapilan)
+        ? existingYapilan
+        : newYapilan;
+
     return {
       ...item,
       yapilan: finalYapilan,
-      devreden: existingDevreden !== undefined ? existingDevreden : item.devreden
+      devreden: existingDevreden !== undefined ? existingDevreden : item.devreden,
     };
   });
 }
@@ -196,10 +181,7 @@ function openSimulator() {
   // 1. Kullanıcı tipi kontrolü
   if (userType !== "doctor") {
     import("./modules/ui/components/index.js").then(({ messageDialog }) => {
-      messageDialog(
-        "Bu özellik sadece Aile Hekimi modunda kullanılabilir.",
-        "Bilgi",
-      );
+      messageDialog("Bu özellik sadece Aile Hekimi modunda kullanılabilir.", "Bilgi");
     });
     return;
   }
@@ -219,9 +201,8 @@ function openSimulator() {
   if (nufus <= 0) {
     import("./modules/ui/components/index.js").then(({ messageDialog }) => {
       messageDialog(
-        "Tavan katsayısı hesaplamak için Nüfus bilgisi gereklidir.\n\n" +
-          "Lütfen önce Nüfus değerini girin.",
-        "⚠️ Eksik Bilgi",
+        "Tavan katsayısı hesaplamak için Nüfus bilgisi gereklidir.\n\n" + "Lütfen önce Nüfus değerini girin.",
+        "Eksik Bilgi"
       );
     });
     return;
@@ -235,17 +216,15 @@ function openSimulator() {
     if (savedData.length === 0) {
       import("./modules/ui/components/index.js").then(({ messageDialog }) => {
         messageDialog(
-          "Henüz veri çekilmemiş.\n\n" +
-            "Lütfen önce SİNA butonuna tıklayarak verileri getirin.",
-          "📭 Veri Bulunamadı",
+          "Henüz veri çekilmemiş.\n\n" + "Lütfen önce SİNA butonuna tıklayarak verileri getirin.",
+          "Veri Bulunamadı"
         );
       });
       return;
     }
 
     // 5. Tavan katsayısını hesapla
-    const tavanKatsayi =
-      nufus > 0 ? Math.min(1.5, Math.max(1.0, 4000 / nufus)) : 1.0;
+    const tavanKatsayi = nufus > 0 ? Math.min(1.5, Math.max(1.0, 4000 / nufus)) : 1.0;
 
     // 6. Simülasyon modalını aç
     showSimulatorModal(savedData, tavanKatsayi);
@@ -257,67 +236,50 @@ window.refreshUIForUserType = function (type) {
   setUserType(type);
 
   // Simülatör butonu görünürlüğünü güncelle
-  const simulatorWrapper = document
-    .getElementById("btnSimulator")
-    ?.closest(".btn-wrapper");
+  const simulatorWrapper = document.getElementById("btnSimulator")?.closest(".btn-wrapper");
   if (simulatorWrapper) {
     simulatorWrapper.style.display = type === "doctor" ? "flex" : "none";
   }
 };
 
 export function deleteAllData() {
-  import("./modules/ui/components/index.js").then(
-    ({ confirmDialog, messageDialog }) => {
-      confirmDialog(
-        "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
-        "Veri Silme Onayı",
-      ).then((confirmed) => {
-        if (!confirmed) return;
-        const prefixes = [
-          "savedResults_",
-          "sinaLastTime_",
-          "hypLastTime_",
-          "nufus_",
-          "nurseShowAll_",
-        ];
-        chrome.storage.local.get(null, (items) => {
-          const keysToRemove = Object.keys(items).filter((key) =>
-            prefixes.some((p) => key.startsWith(p)),
-          );
-          if (items.birimId !== undefined) keysToRemove.push("birimId");
-          const userTypeBeforeDelete = items.userType || "doctor";
-          if (keysToRemove.length > 0) {
-            chrome.storage.local.remove(keysToRemove, () => {
-              resetUIAfterDataClear();
-              setDomNufus("");
-              setDomBirimId("");
-              setCurrentBirimId("");
-              setCurrentShowAll(false);
+  import("./modules/ui/components/index.js").then(({ confirmDialog, messageDialog }) => {
+    confirmDialog(
+      "TÜM BİRİMLERİN tüm verileri kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+      "Veri Silme Onayı"
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      const prefixes = ["savedResults_", "sinaLastTime_", "hypLastTime_", "nufus_", "nurseShowAll_"];
+      chrome.storage.local.get(null, (items) => {
+        const keysToRemove = Object.keys(items).filter((key) => prefixes.some((p) => key.startsWith(p)));
+        if (items.birimId !== undefined) keysToRemove.push("birimId");
+        const userTypeBeforeDelete = items.userType || "doctor";
+        if (keysToRemove.length > 0) {
+          chrome.storage.local.remove(keysToRemove, () => {
+            resetUIAfterDataClear();
+            setDomNufus("");
+            setDomBirimId("");
+            setCurrentBirimId("");
+            setCurrentShowAll(false);
 
-              const userTypeSelect = inputs.userType();
-              if (userTypeSelect) userTypeSelect.value = userTypeBeforeDelete;
-              setUserType(userTypeBeforeDelete);
+            const userTypeSelect = inputs.userType();
+            if (userTypeSelect) userTypeSelect.value = userTypeBeforeDelete;
+            setUserType(userTypeBeforeDelete);
 
-              messageDialog(
-                "Tüm birimlere ait veriler başarıyla silindi.",
-                "İşlem Tamam",
-              );
-            });
-          } else {
-            messageDialog("Silinecek veri bulunamadı.", "Bilgi");
-          }
-        });
+            messageDialog("Tüm birimlere ait veriler başarıyla silindi.", "İşlem Tamam");
+          });
+        } else {
+          messageDialog("Silinecek veri bulunamadı.", "Bilgi");
+        }
       });
-    },
-  );
+    });
+  });
 }
 
 // ========== KAYITLI AYARLARI YÜKLE ==========
 async function loadSavedPeriodSettings() {
   const savedAy = await new Promise((resolve) =>
-    chrome.storage.local.get(["lastSelectedAy"], (res) =>
-      resolve(res.lastSelectedAy),
-    ),
+    chrome.storage.local.get(["lastSelectedAy"], (res) => resolve(res.lastSelectedAy))
   );
   if (savedAy) {
     const aySelect = document.getElementById("ay");
@@ -325,9 +287,7 @@ async function loadSavedPeriodSettings() {
   }
 
   const savedYil = await new Promise((resolve) =>
-    chrome.storage.local.get(["lastSelectedYil"], (res) =>
-      resolve(res.lastSelectedYil),
-    ),
+    chrome.storage.local.get(["lastSelectedYil"], (res) => resolve(res.lastSelectedYil))
   );
   if (savedYil) {
     const yilInput = document.getElementById("yil");
@@ -335,7 +295,7 @@ async function loadSavedPeriodSettings() {
   }
 
   const savedBirimId = await new Promise((resolve) =>
-    chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId)),
+    chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId))
   );
   if (savedBirimId) {
     const birimIdInput = document.getElementById("birimId");
@@ -343,9 +303,7 @@ async function loadSavedPeriodSettings() {
     setCurrentBirimId(savedBirimId);
 
     const savedNufus = await new Promise((resolve) =>
-      chrome.storage.local.get([`nufus_${savedBirimId}`], (res) =>
-        resolve(res[`nufus_${savedBirimId}`]),
-      ),
+      chrome.storage.local.get([`nufus_${savedBirimId}`], (res) => resolve(res[`nufus_${savedBirimId}`]))
     );
     if (savedNufus) {
       const nufusInput = document.getElementById("nufus");
@@ -355,41 +313,29 @@ async function loadSavedPeriodSettings() {
   }
 
   const savedTheme = await new Promise((resolve) =>
-    chrome.storage.local.get(["themePreference"], (res) =>
-      resolve(res.themePreference || "light"),
-    ),
+    chrome.storage.local.get(["themePreference"], (res) => resolve(res.themePreference || "light"))
   );
   applyTheme(savedTheme);
 
   const savedUserType = await new Promise((resolve) =>
-    chrome.storage.local.get(["userType"], (res) =>
-      resolve(res.userType || "doctor"),
-    ),
+    chrome.storage.local.get(["userType"], (res) => resolve(res.userType || "doctor"))
   );
 
   if (typeof setUserType === "function") {
     setUserType(savedUserType);
   } else {
     setCurrentUserType(savedUserType);
-    await saveCurrentUserTypeToStorage();
+    saveCurrentUserTypeToStorage();
 
     const birimId = getCurrentBirimId();
     const currentAy = getDomAy();
     const currentYil = getDomYil();
 
-    updateUIForUserType(
-      savedUserType,
-      birimId,
-      currentAy,
-      currentYil,
-      updateHypButtonStateUI,
-    );
+    updateUIForUserType(savedUserType, birimId, currentAy, currentYil, updateHypButtonStateUI);
   }
 
   const savedFontSize = await new Promise((resolve) =>
-    chrome.storage.local.get(["userFontSize"], (res) =>
-      resolve(res.userFontSize || 16),
-    ),
+    chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 16))
   );
   document.documentElement.style.fontSize = savedFontSize + "px";
 
@@ -415,16 +361,27 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Tema yükleme
   const themeSelect = inputs.theme();
   if (themeSelect) {
-    const savedTheme = await new Promise(resolve => 
-      chrome.storage.local.get(["themePreference"], (res) => 
-        resolve(res.themePreference || "light")
-      )
+    const savedTheme = await new Promise((resolve) =>
+      chrome.storage.local.get(["themePreference"], (res) => resolve(res.themePreference || "light"))
     );
     applyTheme(savedTheme);
     themeSelect.value = savedTheme;
   }
 
-  const aylar = [ "OCAK", "SUBAT", "MART", "NISAN", "MAYIS", "HAZIRAN", "TEMMUZ", "AGUSTOS", "EYLUL", "EKIM", "KASIM", "ARALIK" ];
+  const aylar = [
+    "OCAK",
+    "SUBAT",
+    "MART",
+    "NISAN",
+    "MAYIS",
+    "HAZIRAN",
+    "TEMMUZ",
+    "AGUSTOS",
+    "EYLUL",
+    "EKIM",
+    "KASIM",
+    "ARALIK",
+  ];
   const suAn = new Date();
   const aySelect = document.getElementById("ay");
   const yilInput = document.getElementById("yil");
@@ -452,7 +409,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           },
           showAll,
           selectedAy,
-          selectedYil,
+          selectedYil
         );
       });
     } else {
@@ -469,7 +426,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         },
         false,
         selectedAy,
-        selectedYil,
+        selectedYil
       );
     }
   }
@@ -478,9 +435,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (yilInput) yilInput.value = suAn.getFullYear();
 
   // Rıza kontrolü
-  const consentRes = await new Promise((resolve) =>
-    chrome.storage.local.get(["kvkkConsent"], resolve),
-  );
+  const consentRes = await new Promise((resolve) => chrome.storage.local.get(["kvkkConsent"], resolve));
   let hasConsent = consentRes.kvkkConsent === true;
   if (!hasConsent) hasConsent = await requestConsent();
   if (!hasConsent) {
@@ -493,13 +448,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // İlk kurulum kontrolü
   const userTypeExists = await new Promise((resolve) =>
-    chrome.storage.local.get(["userType"], (res) =>
-      resolve(res.userType !== undefined),
-    ),
+    chrome.storage.local.get(["userType"], (res) => resolve(res.userType !== undefined))
   );
   if (!userTypeExists) {
-    const { userType: selectedType, theme: selectedTheme } =
-      await showFirstTimeUserTypeModal();
+    const { userType: selectedType, theme: selectedTheme } = await showFirstTimeUserTypeModal();
     await chrome.storage.local.set({
       userType: selectedType,
       themePreference: selectedTheme,
@@ -514,7 +466,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   migrateFromOldStorage();
 
   // Güncelleme sonrası yenilikler
-  const lastVersionSeen = await new Promise(resolve => 
+  const lastVersionSeen = await new Promise((resolve) =>
     chrome.storage.local.get(["lastVersionSeen"], (res) => resolve(res.lastVersionSeen))
   );
 
@@ -522,7 +474,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const currentVersion = manifest.version;
 
   if (lastVersionSeen !== currentVersion) {
-    await showWhatsNewModal(currentVersion);  // ← Artık doğru tema ile açılır!
+    await showWhatsNewModal(currentVersion); // ← Artık doğru tema ile açılır!
     await chrome.storage.local.set({ lastVersionSeen: currentVersion });
   }
 
@@ -540,8 +492,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Sürüm numarası
   try {
     const versionBadge = document.getElementById("versionBadge");
-    if (versionBadge && manifest?.version)
-      versionBadge.textContent = `v${manifest.version}`;
+    if (versionBadge && manifest?.version) versionBadge.textContent = `v${manifest.version}`;
   } catch (e) {
     const versionBadge = document.getElementById("versionBadge");
     if (versionBadge) versionBadge.textContent = "v2.0.2";
@@ -614,8 +565,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (userTypeSelect) userTypeSelect.value = savedType;
           setUserType(savedType);
           const nufusRow = document.getElementById("nufus")?.closest(".row");
-          if (nufusRow)
-            nufusRow.style.display = savedType === "nurse" ? "none" : "flex";
+          if (nufusRow) nufusRow.style.display = savedType === "nurse" ? "none" : "flex";
         });
       } else {
         chrome.storage.local.get(["userType"], (userRes) => {
@@ -634,11 +584,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const settingsBtn = document.getElementById("btnSettings");
   if (settingsBtn) {
     settingsBtn.addEventListener("click", () => {
-      import("./modules/ui/components/modal/settings.js").then(
-        ({ openSettingsModal }) => {
-          openSettingsModal();
-        },
-      );
+      import("./modules/ui/components/modal/settings.js").then(({ openSettingsModal }) => {
+        openSettingsModal();
+      });
     });
   }
 
@@ -658,11 +606,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     tavanHesapla,
     updateHypButtonStateUI,
     aySelect,
-    yilInput,
+    yilInput
   );
 
   // Mesaj dinleyici
-  chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
     console.log("📨 Mesaj alındı:", msg.action);
 
     if (msg.action === "showSpinner") {
@@ -684,8 +632,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       hour: "2-digit",
       minute: "2-digit",
     });
-    const { confirmDialog, messageDialog } =
-      await import("./modules/ui/components/index.js");
+    const { messageDialog } = await import("./modules/ui/components/index.js");
 
     if (msg.action === "dataParsed") {
       hideLoadingSpinner();
@@ -703,8 +650,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log(`🔍 pendingStorageType: ${pendingStorage}`); // ← BU LOGU EKLE
 
         if (!birimId) {
-          if (sendResponse)
-            sendResponse({ status: "error", message: "Birim ID gerekli" });
+          if (sendResponse) sendResponse({ status: "error", message: "Birim ID gerekli" });
           return;
         }
 
@@ -714,9 +660,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const merged = msg.results;
 
-        console.log(
-          `📊 dataParsed: ${merged.length} işlem, targetUserType=${targetUserType}`,
-        );
+        console.log(`📊 dataParsed: ${merged.length} işlem, targetUserType=${targetUserType}`);
 
         if (merged.length > 0) {
           const key = `savedResults_${targetUserType}_${birimId}`;
@@ -727,16 +671,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             // Ay/yıl kontrolü
             if (existingRecord) {
-              const hasMonthYear =
-                existingRecord.ay !== undefined &&
-                existingRecord.yil !== undefined;
-              if (
-                hasMonthYear &&
-                (existingRecord.ay !== ayStr || existingRecord.yil !== yil)
-              ) {
-                console.log(
-                  `📅 Farklı ay/yıl tespit edildi, mevcut veri kullanılmayacak`,
-                );
+              const hasMonthYear = existingRecord.ay !== undefined && existingRecord.yil !== undefined;
+              if (hasMonthYear && (existingRecord.ay !== ayStr || existingRecord.yil !== yil)) {
+                console.log(`📅 Farklı ay/yıl tespit edildi, mevcut veri kullanılmayacak`);
                 existingData = [];
               }
             }
@@ -786,32 +723,20 @@ document.addEventListener("DOMContentLoaded", async function () {
                   const doctorRecord = allRes[doctorKey];
 
                   if (nurseRecord) {
-                    const hasMonthYear =
-                      nurseRecord.ay !== undefined &&
-                      nurseRecord.yil !== undefined;
-                    if (
-                      hasMonthYear &&
-                      (nurseRecord.ay !== ayStr || nurseRecord.yil !== yil)
-                    ) {
+                    const hasMonthYear = nurseRecord.ay !== undefined && nurseRecord.yil !== undefined;
+                    if (hasMonthYear && (nurseRecord.ay !== ayStr || nurseRecord.yil !== yil)) {
                       nurseData = [];
                     }
                   }
 
                   if (doctorRecord) {
-                    const hasMonthYear =
-                      doctorRecord.ay !== undefined &&
-                      doctorRecord.yil !== undefined;
-                    if (
-                      hasMonthYear &&
-                      (doctorRecord.ay !== ayStr || doctorRecord.yil !== yil)
-                    ) {
+                    const hasMonthYear = doctorRecord.ay !== undefined && doctorRecord.yil !== undefined;
+                    if (hasMonthYear && (doctorRecord.ay !== ayStr || doctorRecord.yil !== yil)) {
                       doctorData = [];
                     }
                   }
 
-                  console.log(
-                    `📊 ASÇ Tablo: nurseData=${nurseData.length}, doctorData=${doctorData.length}`,
-                  );
+                  console.log(`📊 ASÇ Tablo: nurseData=${nurseData.length}, doctorData=${doctorData.length}`);
 
                   const hasBoth = nurseData.length > 0 && doctorData.length > 0;
                   const hasAny = nurseData.length > 0 || doctorData.length > 0;
@@ -825,20 +750,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                     const mergedData = [...nurseData];
                     doctorData.forEach((doctorItem) => {
                       const doctorAd = normalizeText(doctorItem.ad);
-                      const exists = nurseData.some(
-                        (nurseItem) => normalizeText(nurseItem.ad) === doctorAd,
-                      );
+                      const exists = nurseData.some((nurseItem) => normalizeText(nurseItem.ad) === doctorAd);
                       if (!exists) mergedData.push(doctorItem);
                     });
-                    console.log(
-                      `📊 ASÇ Tablo: Birleştirilmiş veri ${mergedData.length} işlem`,
-                    );
-                    updateTable(
-                      combineData(mergedData),
-                      userType,
-                      true,
-                      birimId,
-                    );
+                    console.log(`📊 ASÇ Tablo: Birleştirilmiş veri ${mergedData.length} işlem`);
+                    updateTable(combineData(mergedData), userType, true, birimId);
                   } else if (nurseData.length > 0) {
                     console.log(`📊 ASÇ Tablo: Sadece hemşire verisi`);
                     updateTable(nurseData, userType, false, birimId);
@@ -876,14 +792,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             tavanElement.textContent = "1.00000";
           }
           updateKHTBar([], userType);
-          
+
           let uyariMesaji = "";
           const suAn = new Date();
           const cariAyIndex = suAn.getMonth();
           const cariYil = suAn.getFullYear();
           const gun = suAn.getDate();
           const cariAyAdi = aylar[cariAyIndex];
-          
+
           if (ayStr === cariAyAdi && yil === cariYil && gun <= 10) {
             let oncekiAyIndex = cariAyIndex - 1;
             let oncekiYil = cariYil;
@@ -892,15 +808,15 @@ document.addEventListener("DOMContentLoaded", async function () {
               oncekiYil--;
             }
             const oncekiAyAdi = aylar[oncekiAyIndex];
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler genellikle ayın 8-10. günlerinde sisteme yansır.\n📌 ${oncekiAyAdi} ${oncekiYil} veya daha eski ayları seçerek mevcut verileri görüntüleyebilirsiniz.\n📌 Daha sonra tekrar deneyiniz.`;
+            uyariMesaji = `${ayStr} ${yil} için henüz veri bulunmuyor.\n\nVeriler genellikle ayın 8-10. günlerinde sisteme yansır.\n\n${oncekiAyAdi} ${oncekiYil} veya daha eski bir ayı seçmeyi deneyin.`;
           } else if (ayStr === cariAyAdi && yil === cariYil && gun > 10) {
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Veriler sisteme yansımamış olabilir.\n📌 Lütfen daha sonra tekrar deneyiniz.`;
+            uyariMesaji = `${ayStr} ${yil} için veri bulunamadı.\n\nVeriler henüz sisteme yansımamış olabilir. Lütfen daha sonra tekrar deneyin.`;
           } else {
-            uyariMesaji = `Seçtiğiniz dönem (${ayStr} ${yil}) için SİNA'da veri bulunamadı.\n\n📌 Bir süre sonra tekrar deneyebilirsiniz.`;
+            uyariMesaji = `${ayStr} ${yil} için veri bulunamadı.\n\nLütfen daha sonra tekrar deneyin.`;
           }
-          
-          messageDialog(uyariMesaji, "⚠️ Bilgilendirme");
-          
+
+          messageDialog(uyariMesaji, "Bilgilendirme");
+
           if (userType === "nurse") {
             loadNurseShowAllForBirim(birimId).then((showAll) => {
               loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
@@ -908,7 +824,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           } else {
             loadDataForCurrentBirim(updateTable, userType, birimId, null, false, ayStr, yil);
           }
-          
+
           if (sendResponse) sendResponse({ status: "ok", data: [] });
           return;
         }
@@ -920,8 +836,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       const birimId = getDomBirimId();
 
       if (!birimId) {
-        if (sendResponse)
-          sendResponse({ status: "error", message: "Birim ID gerekli" });
+        if (sendResponse) sendResponse({ status: "error", message: "Birim ID gerekli" });
         return true;
       }
 
@@ -935,12 +850,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Mevcut ay/yıl kontrolü
         if (existingRecord) {
-          const hasMonthYear =
-            existingRecord.ay !== undefined && existingRecord.yil !== undefined;
-          if (
-            hasMonthYear &&
-            (existingRecord.ay !== ayStr || existingRecord.yil !== yil)
-          ) {
+          const hasMonthYear = existingRecord.ay !== undefined && existingRecord.yil !== undefined;
+          if (hasMonthYear && (existingRecord.ay !== ayStr || existingRecord.yil !== yil)) {
             console.log(`📅 HYP: Farklı ay/yıl, mevcut veri kullanılmayacak`);
             guncelVeri = [];
           }
@@ -954,9 +865,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           const sinaKarsiligi = hypToSinaMapNormalized.get(hypAdNormalized);
 
           if (sinaKarsiligi) {
-            const idx = guncelVeri.findIndex((s) =>
-              normalizeText(s.ad).includes(sinaKarsiligi),
-            );
+            const idx = guncelVeri.findIndex((s) => normalizeText(s.ad).includes(sinaKarsiligi));
 
             if (idx !== -1) {
               guncelVeri[idx].yapilan = hypItem.yapilan;

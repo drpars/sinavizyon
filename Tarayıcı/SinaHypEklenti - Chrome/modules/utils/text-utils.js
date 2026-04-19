@@ -11,26 +11,33 @@
  * @returns {string} Normalize edilmiş, İngilizce karakterli ve büyük harfli metin.
  */
 export function normalizeText(text) {
-  if (!text || typeof text !== 'string') return '';
-  
+  if (!text || typeof text !== "string") return "";
+
   // 1. Türkçe karakterleri İngilizce karşılıklarına çevir
   const turkishToEnglish = {
-    'ç': 'c', 'Ç': 'c',
-    'ğ': 'g', 'Ğ': 'g',
-    'ı': 'i', 'I': 'i',  // Dikkat: I (ı) -> i
-    'i': 'i', 'İ': 'i',  // Dikkat: İ (i) -> i
-    'ö': 'o', 'Ö': 'o',
-    'ş': 's', 'Ş': 's',
-    'ü': 'u', 'Ü': 'u'
+    ç: "c",
+    Ç: "c",
+    ğ: "g",
+    Ğ: "g",
+    ı: "i",
+    I: "i", // Dikkat: I (ı) -> i
+    i: "i",
+    İ: "i", // Dikkat: İ (i) -> i
+    ö: "o",
+    Ö: "o",
+    ş: "s",
+    Ş: "s",
+    ü: "u",
+    Ü: "u",
   };
-  
+
   let normalized = text;
   for (const [tr, en] of Object.entries(turkishToEnglish)) {
     normalized = normalized.replaceAll(tr, en);
   }
-  
+
   // 2. Fazla boşlukları temizle ve büyük harfe çevir
-  return normalized.replace(/\s+/g, ' ').trim().toUpperCase();
+  return normalized.replace(/\s+/g, " ").trim().toUpperCase();
 }
 
 /**

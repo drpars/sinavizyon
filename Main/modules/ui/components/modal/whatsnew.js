@@ -5,28 +5,28 @@ export async function showWhatsNewModal(version) {
     const modal = document.createElement("div");
     modal.className = "consent-modal";
     modal.style.animation = "fadeIn 0.2s ease";
-    
+
     let whatsNewItems = [];
-    
-      if (version === "2.1.4") {
-        whatsNewItems = [
-          "🐛 Akıllı öneride tamamlanmış işlemler artık önerilmez",
-          "📊 Slider kartları zorluk puanına göre sıralanır",
-          "🧠 Hibrit Zorluk Puanı (statik + dinamik analiz)",
-          "⚖️ Devreden bulunan işlemler daha kolay kabul edilir"
-        ];
-      } else if (version === "2.1.3") {
+
+    if (version === "2.1.4") {
+      whatsNewItems = [
+        "🐛 Akıllı öneride tamamlanmış işlemler artık önerilmez",
+        "📊 Slider kartları zorluk puanına göre sıralanır",
+        "🧠 Hibrit Zorluk Puanı (statik + dinamik analiz)",
+        "⚖️ Devreden bulunan işlemler daha kolay kabul edilir",
+      ];
+    } else if (version === "2.1.3") {
       whatsNewItems = [
         "🧠 Stratejik Zeka (AI) güncellemesi",
         "🎯 Tavan katsayısını aşan gereksiz eforları önerme",
-        "🧹 Kod temizliği ve performans iyileştirmeleri"
+        "🧹 Kod temizliği ve performans iyileştirmeleri",
       ];
     } else if (version === "2.1.2") {
       whatsNewItems = [
         "🧹 v2.1.x'den geçişte eski veriler temizlenir (temiz başlangıç)",
         "🐛 SİNA tekrar çekildiğinde büyük olan yapilan değeri korunur",
         "🎨 WhatsNew modalı koyu tema ile uyumlu hale geldi",
-        "🎮 Simülasyon kartları tıkla-aç/kapat özelliği (daha fazla slider görünür)"
+        "🎮 Simülasyon kartları tıkla-aç/kapat özelliği (daha fazla slider görünür)",
       ];
     } else if (version === "2.1.1") {
       whatsNewItems = [
@@ -35,7 +35,7 @@ export async function showWhatsNewModal(version) {
         "🐛 Türkçe karakter sorunu çözüldü (İ/ı karakterleri)",
         "🐛 Modlar arası geçişte veri kaybı giderildi",
         "🔧 Veri çekme işlemleri daha kararlı hale getirildi",
-        "🧹 Kod temizliği ve performans iyileştirmeleri"
+        "🧹 Kod temizliği ve performans iyileştirmeleri",
       ];
     } else if (version === "2.1.0") {
       whatsNewItems = [
@@ -44,27 +44,27 @@ export async function showWhatsNewModal(version) {
         "🎮 İnteraktif slider'lar ile anlık katsayı hesaplama",
         "📊 Öncelikli sıralama (Taramalar > İzlemler > Kanser)",
         "🎨 Sade ve modern arayüz, global scrollbar stili",
-        "🐛 SİNA zamanı, spinner ve Birim ID hata düzeltmeleri"
+        "🐛 SİNA zamanı, spinner ve Birim ID hata düzeltmeleri",
       ];
     } else if (version === "2.0.4") {
       whatsNewItems = [
         "🔒 Güvenlik iyileştirmesi (innerHTML → textContent)",
         "🛡️ XSS saldırılarına karşı koruma",
-        "📱 Firefox manifest uyumluluğu güncellendi"
+        "📱 Firefox manifest uyumluluğu güncellendi",
       ];
     } else if (version === "2.0.3") {
       whatsNewItems = [
         "🔔 Toast bildirimleri iyileştirildi (daha hızlı ve kararlı)",
         "🎨 Scrollbar tasarımı yenilendi (ince ve şık görünüm)",
         "🖌️ CSS iyileştirmeleri ve hover efektleri",
-        "🧹 Kod temizliği ve performans artışı"
+        "🧹 Kod temizliği ve performans artışı",
       ];
     } else if (version === "2.0.2") {
       whatsNewItems = [
         "🔧 Kod temizliği ve modüler yapı iyileştirmeleri",
         "🐛 Birim ID çakışması giderildi",
         "📦 Modal dosyaları modüler hale getirildi",
-        "⚡ State yükleme optimize edildi"
+        "⚡ State yükleme optimize edildi",
       ];
     } else if (version === "2.0.1") {
       whatsNewItems = [
@@ -73,7 +73,7 @@ export async function showWhatsNewModal(version) {
         "🐛 Farklı aylara ait veriler artık karışmıyor",
         "⚡ Veri çekme, tutarsızlık ve birleştirme düzeltildi",
         "🔧 Ayarlar penceresindeki butonlar düzeltildi",
-        "🛡️ Sadece ihtiyaç duyulan sayfalarda veri çekiliyor"
+        "🛡️ Sadece ihtiyaç duyulan sayfalarda veri çekiliyor",
       ];
     } else if (version === "2.0.0") {
       whatsNewItems = [
@@ -82,23 +82,23 @@ export async function showWhatsNewModal(version) {
         "🔧 Tüm ayarlar tek pencerede",
         "📏 Yazı boyutunu kendiniz ayarlayın",
         "👩‍⚕️ ASÇ hesaplamaları iyileştirildi",
-        "⚡ Daha hızlı veri çekme"
+        "⚡ Daha hızlı veri çekme",
       ];
     } else {
-      whatsNewItems = [
-        "🎨 Yeni görünüm ve temalar",
-        "🐛 Hata düzeltmeleri",
-        "⚡ Performans iyileştirmeleri"
-      ];
+      whatsNewItems = ["🎨 Yeni görünüm ve temalar", "🐛 Hata düzeltmeleri", "⚡ Performans iyileştirmeleri"];
     }
-    
-    const itemsHtml = whatsNewItems.map(item => `
+
+    const itemsHtml = whatsNewItems
+      .map(
+        (item) => `
       <div style="margin: 12px 0; font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px;">
         <span style="min-width: 24px;">✅</span>
         <span style="flex: 1; line-height: 1.4;">${item}</span>
       </div>
-    `).join('');
-    
+    `
+      )
+      .join("");
+
     modal.innerHTML = `
       <div class="consent-modal-content" style="max-width: 420px; text-align: left; overflow: hidden;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -120,14 +120,18 @@ export async function showWhatsNewModal(version) {
         </button>
       </div>
     `;
-    
+
     document.body.appendChild(modal);
     modal.style.display = "flex";
-    
+
     const confirmBtn = document.getElementById("whatsNewConfirmBtn");
-    confirmBtn.addEventListener("click", () => {
-      modal.remove();
-      resolve();
-    }, { once: true });
+    confirmBtn.addEventListener(
+      "click",
+      () => {
+        modal.remove();
+        resolve();
+      },
+      { once: true }
+    );
   });
 }

@@ -6,9 +6,18 @@ export function getCurrentYearMonth() {
 
 export function getMonthNumber(monthName) {
   const months = {
-    "OCAK": 1, "SUBAT": 2, "MART": 3, "NISAN": 4,
-    "MAYIS": 5, "HAZIRAN": 6, "TEMMUZ": 7, "AGUSTOS": 8,
-    "EYLUL": 9, "EKIM": 10, "KASIM": 11, "ARALIK": 12
+    OCAK: 1,
+    SUBAT: 2,
+    MART: 3,
+    NISAN: 4,
+    MAYIS: 5,
+    HAZIRAN: 6,
+    TEMMUZ: 7,
+    AGUSTOS: 8,
+    EYLUL: 9,
+    EKIM: 10,
+    KASIM: 11,
+    ARALIK: 12,
   };
   return months[monthName] || 1;
 }

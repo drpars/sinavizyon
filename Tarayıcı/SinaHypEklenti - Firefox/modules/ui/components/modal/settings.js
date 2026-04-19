@@ -1,36 +1,26 @@
 // modules/ui/components/modal/settings.js
 // Ayarlar Modalı - Tüm ayarlar hafızada tutulur
-
-import { 
-  getCurrentUserType, 
-  setCurrentUserType, 
-  saveCurrentUserTypeToStorage, 
-  getCurrentBirimId, 
-  setCurrentBirimId, 
-  getCurrentShowAll 
-} from '../../../core/state.js';
-
-import { 
-  getDomAy, 
-  getDomYil, 
-  getDomBirimId, 
-  getDomNufus 
-} from '../../../core/dom.js';
-
-import { 
-  saveNufusForBirim, 
-  loadNufusForBirim,
-  loadDataForCurrentBirim, 
+import { getDomAy, getDomBirimId, getDomNufus, getDomYil } from "../../../core/dom.js";
+import {
+  getCurrentBirimId,
+  getCurrentShowAll,
+  getCurrentUserType,
+  saveCurrentUserTypeToStorage,
+  setCurrentBirimId,
+  setCurrentUserType,
+} from "../../../core/state.js";
+import {
+  exportData,
+  loadDataForCurrentBirim,
   loadDataForCurrentBirimWithMerge,
-  exportData 
-} from '../../../core/storage.js';
-
-import { applyTheme } from '../../updaters/theme-updater.js';
-import { tavanHesapla } from '../../../lib/calculations.js';
-import { updateTable } from '../../updaters/table-updater.js';
-import { showToast } from '../../../utils/notifications.js';
-import { revokeConsent } from '../../../features/consent/index.js';
-import { confirmDialog } from '../dialog.js';
+  saveNufusForBirim,
+} from "../../../core/storage.js";
+import { revokeConsent } from "../../../features/consent/index.js";
+import { tavanHesapla } from "../../../lib/calculations.js";
+import { showToast } from "../../../utils/notifications.js";
+import { updateTable } from "../../updaters/table-updater.js";
+import { applyTheme } from "../../updaters/theme-updater.js";
+import { confirmDialog } from "../dialog.js";
 
 let modalElement = null;
 
@@ -158,7 +148,7 @@ function createSettingsModal() {
       </div>
     </div>
   `;
-  
+
   return modal;
 }
 
@@ -168,51 +158,51 @@ async function loadCurrentValues() {
   const currentUserType = getCurrentUserType();
   const userTypeRadio = document.querySelector(`input[name="userTypeRadio"][value="${currentUserType}"]`);
   if (userTypeRadio) userTypeRadio.checked = true;
-  
+
   // Tema
   const isDarkMode = document.body.classList.contains("dark-mode");
   const currentTheme = isDarkMode ? "dark" : "light";
   const themeBtns = document.querySelectorAll(".theme-btn");
-  themeBtns.forEach(btn => {
+  themeBtns.forEach((btn) => {
     if (btn.dataset.theme === currentTheme) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
     }
   });
-  
+
   // Yazı boyutu - storage'dan al
-  const savedFontSize = await new Promise(resolve => 
+  const savedFontSize = await new Promise((resolve) =>
     chrome.storage.local.get(["userFontSize"], (res) => resolve(res.userFontSize || 16))
   );
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
   const fontSizeValue = document.getElementById("modalFontSizeValue");
   if (fontSizeSlider) fontSizeSlider.value = parseFloat(savedFontSize).toFixed(1);
   if (fontSizeValue) fontSizeValue.textContent = savedFontSize + "px";
-  
+
   // Dönem ayarları - storage'dan al
-  const savedAy = await new Promise(resolve => 
+  const savedAy = await new Promise((resolve) =>
     chrome.storage.local.get(["lastSelectedAy"], (res) => resolve(res.lastSelectedAy || getDomAy()))
   );
-  const savedYil = await new Promise(resolve => 
+  const savedYil = await new Promise((resolve) =>
     chrome.storage.local.get(["lastSelectedYil"], (res) => resolve(res.lastSelectedYil || getDomYil()))
   );
-  const savedBirimId = await new Promise(resolve => 
+  const savedBirimId = await new Promise((resolve) =>
     chrome.storage.local.get(["birimId"], (res) => resolve(res.birimId || getDomBirimId()))
   );
-  
+
   const modalAy = document.getElementById("modalAy");
   const modalYil = document.getElementById("modalYil");
   const modalBirimId = document.getElementById("modalBirimId");
   const modalNufus = document.getElementById("modalNufus");
-  
+
   if (modalAy) modalAy.value = savedAy;
   if (modalYil) modalYil.value = savedYil;
   if (modalBirimId) modalBirimId.value = savedBirimId;
-  
+
   // Nüfusu birim ID'ye göre yükle
   if (savedBirimId) {
-    const savedNufus = await new Promise(resolve => 
+    const savedNufus = await new Promise((resolve) =>
       chrome.storage.local.get([`nufus_${savedBirimId}`], (res) => resolve(res[`nufus_${savedBirimId}`] || ""))
     );
     if (modalNufus) modalNufus.value = savedNufus;
@@ -227,10 +217,10 @@ async function applyChanges() {
   const selectedUserType = document.querySelector('input[name="userTypeRadio"]:checked')?.value;
   if (selectedUserType && selectedUserType !== getCurrentUserType()) {
     setCurrentUserType(selectedUserType);
-    await saveCurrentUserTypeToStorage();
-    
+    saveCurrentUserTypeToStorage();
+
     // ✅ UI'ı yenile (global fonksiyon varsa)
-    if (typeof window.refreshUIForUserType === 'function') {
+    if (typeof window.refreshUIForUserType === "function") {
       console.log("🔄 Kullanıcı tipi değişti, UI yenileniyor:", selectedUserType);
       window.refreshUIForUserType(selectedUserType);
     } else {
@@ -240,7 +230,7 @@ async function applyChanges() {
       const hypBtn = document.getElementById("btnHyp");
       if (sinaBtn) sinaBtn.textContent = "SİNA";
       if (hypBtn) hypBtn.textContent = selectedUserType === "nurse" ? "SİNA BİRİM" : "HYP";
-      
+
       // Tavan kartı görünürlüğünü güncelle
       const tavanKart = document.getElementById("tavanKatsayi")?.closest(".score-box");
       const nufusRow = document.getElementById("nufus")?.closest(".row");
@@ -248,19 +238,19 @@ async function applyChanges() {
       if (nufusRow) nufusRow.style.display = selectedUserType === "nurse" ? "none" : "flex";
     }
   }
-  
+
   // 2. Tema
   const activeThemeBtn = document.querySelector(".theme-btn.active");
   const selectedTheme = activeThemeBtn?.dataset.theme || "light";
   applyTheme(selectedTheme);
   await chrome.storage.local.set({ themePreference: selectedTheme }); // ✅ Kaydediyor
-  
+
   // 3. Yazı boyutu
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
   const newFontSize = parseFloat(fontSizeSlider?.value) || 16;
   document.documentElement.style.fontSize = newFontSize + "px";
   await chrome.storage.local.set({ userFontSize: newFontSize });
-  
+
   // Font toggle'ı aç
   const fontToggleCheckbox = document.getElementById("fontToggleCheckbox");
   if (fontToggleCheckbox && !fontToggleCheckbox.checked) {
@@ -268,15 +258,15 @@ async function applyChanges() {
     const fontContainer = document.getElementById("fontSettingsContainer");
     if (fontContainer) fontContainer.style.display = "block";
   }
-  
+
   // 4. Dönem ayarları
   const newAy = document.getElementById("modalAy")?.value || getDomAy();
   const newYil = parseInt(document.getElementById("modalYil")?.value) || getDomYil();
   const newBirimId = document.getElementById("modalBirimId")?.value.trim() || "";
   const newNufus = document.getElementById("modalNufus")?.value || "";
-  
+
   let needsReload = false;
-  
+
   // AY ve YIL - storage'a kaydet
   if (newAy !== getDomAy()) {
     const aySelect = document.getElementById("ay");
@@ -284,14 +274,14 @@ async function applyChanges() {
     await chrome.storage.local.set({ lastSelectedAy: newAy });
     needsReload = true;
   }
-  
+
   if (newYil !== getDomYil()) {
     const yilInput = document.getElementById("yil");
     if (yilInput) yilInput.value = newYil;
     await chrome.storage.local.set({ lastSelectedYil: newYil });
     needsReload = true;
   }
-  
+
   // BİRİM ID - storage'a kaydet
   if (newBirimId !== getDomBirimId()) {
     const birimIdInput = document.getElementById("birimId");
@@ -300,27 +290,27 @@ async function applyChanges() {
     await chrome.storage.local.set({ birimId: newBirimId });
     needsReload = true;
   }
-  
+
   // NÜFUS - storage'a kaydet
   if (newNufus !== getDomNufus()) {
     const nufusInput = document.getElementById("nufus");
     if (nufusInput) nufusInput.value = newNufus;
     if (newBirimId) {
-      await saveNufusForBirim(newBirimId, newNufus);
+      saveNufusForBirim(newBirimId, newNufus);
     } else if (getDomBirimId()) {
-      await saveNufusForBirim(getDomBirimId(), newNufus);
+      saveNufusForBirim(getDomBirimId(), newNufus);
     }
     tavanHesapla(newNufus);
     needsReload = true;
   }
-  
+
   // Verileri yeniden yükle
   if (needsReload) {
     const birimId = getCurrentBirimId();
     const userType = getCurrentUserType();
     const ay = getDomAy();
     const yil = getDomYil();
-    
+
     if (userType === "nurse") {
       const showAll = getCurrentShowAll();
       loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ay, yil);
@@ -328,7 +318,7 @@ async function applyChanges() {
       loadDataForCurrentBirim(updateTable, userType, birimId, null, false, ay, yil);
     }
   }
-  
+
   showToast("Ayarlar kaydedildi ✅");
   closeSettingsModal();
 }
@@ -337,24 +327,24 @@ async function applyChanges() {
 function bindEvents() {
   const closeBtn = document.getElementById("closeSettingsModalBtn");
   if (closeBtn) closeBtn.addEventListener("click", closeSettingsModal);
-  
+
   const cancelBtn = document.getElementById("settingsCancelBtn");
   if (cancelBtn) cancelBtn.addEventListener("click", closeSettingsModal);
-  
+
   const overlay = document.querySelector(".settings-modal-overlay");
   if (overlay) overlay.addEventListener("click", closeSettingsModal);
-  
+
   const applyBtn = document.getElementById("settingsApplyBtn");
   if (applyBtn) applyBtn.addEventListener("click", applyChanges);
-  
+
   const themeBtns = document.querySelectorAll(".theme-btn");
-  themeBtns.forEach(btn => {
+  themeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
-      themeBtns.forEach(b => b.classList.remove("active"));
+      themeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
     });
   });
-  
+
   const fontSizeSlider = document.getElementById("modalFontSizeSlider");
   const fontSizeValue = document.getElementById("modalFontSizeValue");
   if (fontSizeSlider && fontSizeValue) {
@@ -363,7 +353,7 @@ function bindEvents() {
       fontSizeValue.textContent = val + "px";
     });
   }
-  
+
   const exportBtn = document.getElementById("modalExportData");
   if (exportBtn) {
     exportBtn.addEventListener("click", async () => {
@@ -371,19 +361,22 @@ function bindEvents() {
       await exportData();
     });
   }
-  
+
   const deleteBtn = document.getElementById("modalDeleteData");
   if (deleteBtn) {
     deleteBtn.addEventListener("click", async () => {
       closeSettingsModal();
-      const confirmed = await confirmDialog("Tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?", "Veri Silme Onayı");
+      const confirmed = await confirmDialog(
+        "Tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+        "Veri Silme Onayı"
+      );
       if (confirmed) {
-        const { deleteAllData } = await import('../../../../sidepanel.js');
+        const { deleteAllData } = await import("../../../../sidepanel.js");
         deleteAllData();
       }
     });
   }
-  
+
   const revokeBtn = document.getElementById("modalRevokeConsent");
   if (revokeBtn) {
     revokeBtn.addEventListener("click", async () => {

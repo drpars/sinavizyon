@@ -10,9 +10,9 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
   // Rıza kontrolü – sadece rıza varsa veri çekme işlemleri başlatılır
   async function checkConsent() {
     if (consentCache !== null) return consentCache;
-    
+
     if (consentPromise) return consentPromise;
-    
+
     consentPromise = new Promise((resolve) => {
       chrome.storage.local.get(["kvkkConsent"], (res) => {
         consentCache = res.kvkkConsent === true;
@@ -58,9 +58,7 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
           return;
         }
 
-        const kartlar = document.querySelectorAll(
-          ".population-target-analysis .content-sub"
-        );
+        const kartlar = document.querySelectorAll(".population-target-analysis .content-sub");
         if (kartlar.length > 0) {
           console.log("✅ Kartlar ekranda görüldü, veriler çekiliyor...");
           veriCekVeGonder(kartlar);
@@ -88,9 +86,7 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
 
       observer = new MutationObserver(() => {
         if (basarili) return;
-        const kartlar = document.querySelectorAll(
-          ".population-target-analysis .content-sub"
-        );
+        const kartlar = document.querySelectorAll(".population-target-analysis .content-sub");
         if (kartlar.length > 0) {
           veriCekVeGonder(kartlar);
           basarili = true;
@@ -104,13 +100,11 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
         // ========== VERİ ÇEKİLDİ, SPINNER'I GİZLE ==========
         chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
         console.log("✅ HYP: Spinner gizlendi");
-        
+
         const sonuclar = Array.from(kartlar)
           .map((kart) => ({
             ad: kart.querySelector(".title")?.textContent?.trim() || "",
-            yapilan: kart
-              .querySelector(".performance-statistics-value")
-              ?.textContent?.trim() || "",
+            yapilan: kart.querySelector(".performance-statistics-value")?.textContent?.trim() || "",
           }))
           .filter((item) => item.ad && item.yapilan);
 
@@ -120,10 +114,10 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
               action: "hypDataParsed",
               results: sonuclar,
             })
-          .catch((err) => {
-            console.error("Mesaj gönderilemedi:", err);
-            console.trace(); // Stack trace göster
-          });
+            .catch((err) => {
+              console.error("Mesaj gönderilemedi:", err);
+              console.trace(); // Stack trace göster
+            });
           console.log("🚀 Veriler eklentiye başarıyla gönderildi!");
         } else {
           console.log("⚠️ HYP verisi bulunamadı");
@@ -134,7 +128,7 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
 
   // --- SİNA: Sıralı Hibrit Yaklaşım (Observer → Interval → Zaman Aşımı) ---
   const hasCopyHash = window.location.hash === "#kopyala";
-  
+
   if (isSina && hasCopyHash) {
     checkConsent().then((hasConsent) => {
       if (!hasConsent) {
@@ -157,58 +151,66 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
       // Veri çekme fonksiyonu
       function sinaExtractData() {
         if (veriGonderildi) return;
-        
+
         // ========== ÖNCE SPINNER'I GİZLE ==========
         chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
         console.log("✅ SİNA: Spinner gizlendi");
-        
+
         // ASÇ sayfasındaki flex tablo için özel seçici
         let rows = document.querySelectorAll('div[role="row"], [role="row"]');
-        
+
         // Doktor sayfası için alternatif seçiciler
         if (rows.length === 0) {
           rows = document.querySelectorAll('table tbody tr, [role="row"], .MuiTableRow-root');
         }
-        
+
         // Son çare: Sayfadaki tüm tablo satırları
         if (rows.length === 0) {
-          rows = document.querySelectorAll('table tr');
+          rows = document.querySelectorAll("table tr");
         }
-        
+
         // Sayfada "Aradığınız kriterlerde..." mesajı var mı?
-        const noDataMessage = document.body.innerText.includes("Aradığınız kriterlerde Gerçekleşme Tablosu için sonuç bulunamadı");
+        const noDataMessage = document.body.innerText.includes(
+          "Aradığınız kriterlerde Gerçekleşme Tablosu için sonuç bulunamadı"
+        );
         if (noDataMessage) {
           console.log("📭 Sayfada 'sonuç bulunamadı' mesajı var, boş mesaj gönderiliyor...");
           veriGonderildi = true;
-          chrome.runtime.sendMessage({ action: "dataParsed", results: [] })
+          chrome.runtime
+            .sendMessage({ action: "dataParsed", results: [] })
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
           return;
         }
-        
+
         // Başlık satırlarını filtrele
-        const dataRows = Array.from(rows).filter(row => {
+        const dataRows = Array.from(rows).filter((row) => {
           const cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"], td, th');
           if (cells.length === 0) return false;
           const firstCell = cells[0];
           const text = firstCell.textContent?.trim() || "";
-          return text !== "" && 
-                 !text.includes("İŞLEM ADI") && 
-                 !text.includes("GER.") && 
-                 !text.includes("YAP.") && 
-                 !text.includes("DEV.") && 
-                 !text.includes("DURUM") &&
-                 !text.includes("Kronik") &&
-                 !text.includes("Birim");
+          return (
+            text !== "" &&
+            !text.includes("İŞLEM ADI") &&
+            !text.includes("GER.") &&
+            !text.includes("YAP.") &&
+            !text.includes("DEV.") &&
+            !text.includes("DURUM") &&
+            !text.includes("Kronik") &&
+            !text.includes("Birim")
+          );
         });
-        
+
         const results = [];
         dataRows.forEach((row) => {
           let cells = row.querySelectorAll('[role="cell"], .MuiTableCell-root, div[role="cell"], td, th');
           if (cells.length < 4) return;
-          
+
           const cellArray = Array.from(cells);
-          let ad = "", gereken = "", yapilan = "", devreden = "";
-          
+          let ad = "",
+            gereken = "",
+            yapilan = "",
+            devreden = "";
+
           if (cellArray.length >= 5) {
             ad = cellArray[1]?.textContent?.trim() || "";
             gereken = cellArray[2]?.textContent?.trim() || "";
@@ -220,10 +222,10 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
             yapilan = cellArray[2]?.textContent?.trim() || "";
             devreden = cellArray[3]?.textContent?.trim() || "0";
           }
-          
+
           const rowData = { ad, gereken, yapilan, devreden };
           const hasNumber = !isNaN(parseInt(rowData.gereken));
-          
+
           if (hasNumber && rowData.ad && !rowData.ad.includes("Çankırı")) {
             results.push(rowData);
           }
@@ -231,17 +233,19 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
 
         if (veriGonderildi) return;
         veriGonderildi = true;
-        
+
         if (results.length > 0) {
           console.log("✅ SİNA verileri çekildi:", results.length, "işlem");
-          chrome.runtime.sendMessage({ action: "dataParsed", results: results })
+          chrome.runtime
+            .sendMessage({ action: "dataParsed", results: results })
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
         } else {
           console.log("⚠️ SİNA verisi bulunamadı, boş mesaj gönderiliyor...");
-          chrome.runtime.sendMessage({ action: "dataParsed", results: [] })
+          chrome.runtime
+            .sendMessage({ action: "dataParsed", results: [] })
             .catch((err) => console.error("Mesaj gönderilemedi:", err));
         }
-        
+
         // Temizlik
         if (observer) observer.disconnect();
         if (fallbackInterval) clearInterval(fallbackInterval);
@@ -281,25 +285,25 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
         if (!veriGonderildi) {
           console.log("⏳ Observer 2 sn içinde veri bulamadı, Interval moduna geçiliyor...");
           if (observer) observer.disconnect();
-          
+
           // ========== 2. FALLBACK INTERVAL (maksimum 10 sn) ==========
           let intervalAttempts = 0;
           const MAX_INTERVAL_ATTEMPTS = 10;
-          
+
           fallbackInterval = setInterval(() => {
             intervalAttempts++;
-            
+
             if (veriGonderildi) {
               clearInterval(fallbackInterval);
               return;
             }
-            
+
             if (intervalAttempts > MAX_INTERVAL_ATTEMPTS) {
               console.log("⏹️ Interval maksimum denemeye ulaştı, durduruluyor...");
               clearInterval(fallbackInterval);
               return;
             }
-            
+
             const rows = document.querySelectorAll('div[role="row"], [role="row"], table tbody tr');
             if (rows.length > 0) {
               console.log("🔄 Interval ile veri bulundu, çekiliyor...");

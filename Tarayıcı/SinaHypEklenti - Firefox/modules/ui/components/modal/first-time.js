@@ -51,7 +51,7 @@ export async function showFirstTimeUserTypeModal() {
         </button>
       </div>
     `;
-    
+
     // Stil ekle (eğer yoksa)
     if (!document.querySelector("#firstTimeModalStyle")) {
       const style = document.createElement("style");
@@ -73,18 +73,18 @@ export async function showFirstTimeUserTypeModal() {
       `;
       document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(modal);
     modal.style.display = "flex";
-    
+
     let selectedType = "doctor";
     const doctorCard = modal.querySelector('.user-type-card[data-type="doctor"]');
     const nurseCard = modal.querySelector('.user-type-card[data-type="nurse"]');
     const themeSelect = document.getElementById("firstTimeThemeSelect");
     const confirmBtn = document.getElementById("firstTimeConfirmBtn");
-    
+
     doctorCard.classList.add("selected");
-    
+
     const selectCard = (type) => {
       selectedType = type;
       if (type === "doctor") {
@@ -95,10 +95,10 @@ export async function showFirstTimeUserTypeModal() {
         doctorCard.classList.remove("selected");
       }
     };
-    
+
     doctorCard.addEventListener("click", () => selectCard("doctor"));
     nurseCard.addEventListener("click", () => selectCard("nurse"));
-    
+
     const applyThemePreview = (theme) => {
       if (theme === "dark") {
         document.body.classList.add("dark-mode");
@@ -106,11 +106,11 @@ export async function showFirstTimeUserTypeModal() {
         document.body.classList.remove("dark-mode");
       }
     };
-    
+
     themeSelect.addEventListener("change", (e) => {
       applyThemePreview(e.target.value);
     });
-    
+
     const handleConfirm = () => {
       const selectedTheme = themeSelect?.value || "light";
       modal.remove();
