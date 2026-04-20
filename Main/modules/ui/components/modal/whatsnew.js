@@ -112,7 +112,7 @@ export async function showWhatsNewModal(version) {
         </div>
         
         <div style="background: var(--bg-dark); border-radius: 12px; padding: 10px; margin-bottom: 16px; text-align: center; border: 1px solid var(--border);">
-          <span style="font-size: 0.7rem;">💡 İpucu: 'Ne Yapmalıyım?' butonu ile hedefe ulaşmak için strateji alın!</span>
+          <span style="font-size: 0.7rem;">💡 İpucu: 'Ne Yapmalıyım' butonu ile hedefe ulaşmak için strateji alın!</span>
         </div>
         
         <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
