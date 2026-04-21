@@ -4,11 +4,22 @@ const isFirefox = typeof browser !== "undefined" && navigator.userAgent.includes
 // background.js - EKLENECEK KISIM
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === "showSpinner") {
-    // Sidepanel'e spinner göster mesajı gönder
     chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
     sendResponse({ status: "ok" });
   } else if (message.action === "hideSpinner") {
     chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+    sendResponse({ status: "ok" });
+  } else if (message.action === "closeTab") {
+    if (message.tabId) {
+      console.log(`🔄 Sekme kapatılıyor: ${message.tabId}`);
+      chrome.tabs.remove(message.tabId, () => {
+        if (chrome.runtime.lastError) {
+          console.error(`❌ Sekme kapatılamadı: ${chrome.runtime.lastError.message}`);
+        } else {
+          console.log(`✅ Sekme kapatıldı: ${message.tabId}`);
+        }
+      });
+    }
     sendResponse({ status: "ok" });
   }
   return true;

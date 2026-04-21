@@ -8,7 +8,15 @@ export async function showWhatsNewModal(version) {
 
     let whatsNewItems = [];
 
-    if (version === "2.1.4") {
+    if (version === "2.1.6") {
+      whatsNewItems = [
+        "⚡ HYP API Entegrasyonu (ışık hızında veri çekme)",
+        "🛡️ HYP'de birim ID kontrolü (yanlış birim uyarısı)",
+        "🔒 HYP oturum kontrolü",
+        "🐛 Birim ID değişince tavan güncellemesi düzeltildi",
+        "🐛 Simülasyon katsayı tutarsızlığı giderildi",
+      ];
+    } else if (version === "2.1.4") {
       whatsNewItems = [
         "🐛 Akıllı öneride tamamlanmış işlemler artık önerilmez",
         "📊 Slider kartları zorluk puanına göre sıralanır",

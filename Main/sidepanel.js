@@ -829,8 +829,13 @@ document.addEventListener("DOMContentLoaded", async function () {
           return;
         }
       });
+    } else if (msg.action === "hypError") {
+      hideLoadingSpinner();
+      messageDialog(msg.error, "HYP Hatası");
+      return true;
     } else if (msg.action === "hypDataParsed") {
       hideLoadingSpinner();
+
       const ayStr = document.getElementById("ay")?.value || "";
       const yil = parseInt(document.getElementById("yil")?.value || "0");
       const birimId = getDomBirimId();
@@ -857,21 +862,23 @@ document.addEventListener("DOMContentLoaded", async function () {
           }
         }
 
+        // ✅ LOGLAR
+        console.log("📊 HYP gelen veri:", msg.results);
+        console.log("📊 Storage key:", key);
+        console.log("📊 existingRecord:", existingRecord);
+        console.log("📊 guncelVeri (ilk hali):", guncelVeri.length, "işlem");
+        console.log("📊 ayStr:", ayStr, "yil:", yil);
+
         // HYP verilerini mevcut veriye ekle
         msg.results.forEach((hypItem) => {
           const hypAdNormalized = normalizeText(hypItem.ad);
-
-          // ✅ Normalize map'i kullan
-          const sinaKarsiligi = hypToSinaMapNormalized.get(hypAdNormalized);
-
-          if (sinaKarsiligi) {
-            const idx = guncelVeri.findIndex((s) => normalizeText(s.ad).includes(sinaKarsiligi));
-
-            if (idx !== -1) {
-              guncelVeri[idx].yapilan = hypItem.yapilan;
-            }
+          const idx = guncelVeri.findIndex((s) => normalizeText(s.ad) === hypAdNormalized);
+          if (idx !== -1) {
+            guncelVeri[idx].yapilan = hypItem.yapilan;
           }
         });
+
+        console.log("📊 guncelVeri (güncellenmiş):", guncelVeri);
 
         if (guncelVeri.length > 0) {
           storeDataWithTimestamp("savedResults", guncelVeri, userType, birimId, ayStr, yil);
@@ -881,6 +888,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (hypTimeSpan) hypTimeSpan.textContent = simdi;
         }
 
+        // ✅ TABLOYU GÜNCELLE
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
 
         const simulatorBtn = document.getElementById("btnSimulator");

@@ -1,6 +1,171 @@
+// ============================================================
+// HYP API ENTEGRASYONU (v2.1.6)
+// ============================================================
+
+// HYP sayfasında seçili birimin ID'sini bul
+function getHypSelectedBirimId() {
+  try {
+    const dd = document.querySelector("p-dropdown");
+    const lbl = dd?.querySelector(".ui-dropdown-label");
+    const name = lbl?.textContent?.trim();
+    const orgs = JSON.parse(localStorage.getItem("hyp-user-organizations") || "[]");
+    const selected = orgs.find((o) => o.OrganizationName === name);
+    return selected?.OrganizationId || null;
+  } catch (e) {
+    console.error("❌ HYP birim ID alınamadı:", e);
+    return null;
+  }
+}
+
+// HYP API'sinden veri çek
+async function fetchHypData(ay, yil) {
+  const ayNumaralari = {
+    OCAK: "01",
+    SUBAT: "02",
+    MART: "03",
+    NISAN: "04",
+    MAYIS: "05",
+    HAZIRAN: "06",
+    TEMMUZ: "07",
+    AGUSTOS: "08",
+    EYLUL: "09",
+    EKIM: "10",
+    KASIM: "11",
+    ARALIK: "12",
+  };
+
+  const ayNo = ayNumaralari[ay];
+  const dateStart = `${yil}-${ayNo}-01`;
+
+  const response = await fetch(
+    `https://hyp.saglik.gov.tr/api/EpisodeOfCare/$calculate-performance-statistics?dateStart=${dateStart}`,
+    { credentials: "include" }
+  );
+
+  // Oturum kontrolü
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    throw new Error("OTURUM_YOK");
+  }
+
+  if (!response.ok) {
+    throw new Error(`API hatası: ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+// HYP verilerini SİNA formatına dönüştür
+function mapHypToSina(hypData) {
+  const mapping = {
+    hypertension_screening: "HİPERTANSİYON TARAMASI",
+    hypertension_monitoring: "HİPERTANSİYON İZLEM",
+    diabetes_screening: "DİYABET TARAMASI",
+    diabetes_monitoring: "DİYABET İZLEMİ",
+    obesity_screening: "OBEZİTE TARAMASI",
+    "obesity_monitoring-shm": "OBEZİTE İZLEMİ",
+    cvdrisk_screening: "KVR TARAMASI",
+    cvdrisk_monitoring: "KVR İZLEM",
+    elderly_monitoring: "YAŞLI SAĞLIĞI İZLEMİ",
+  };
+
+  return hypData
+    .map((item) => {
+      const key = `${item.CareType}_${item.State}`;
+      const ad = mapping[key];
+      return ad ? { ad, yapilan: item.NumOfEpisodes.toString() } : null;
+    })
+    .filter((item) => item !== null);
+}
+
+// HYP veri çekme ana fonksiyonu
+async function fetchHypAndSend(expectedBirimId, ay, yil, tabId) {
+  console.log("🚀 HYP API entegrasyonu başlatılıyor...");
+
+  // 1. Seçili birim ID'sini al
+  const selectedBirimId = getHypSelectedBirimId();
+
+  if (!selectedBirimId) {
+    chrome.runtime.sendMessage({
+      action: "hypError",
+      error: "HYP'de seçili birim bulunamadı. Lütfen HYP'ye giriş yaptığınızdan emin olun.",
+    });
+    // ✅ Hata durumunda da sekmeyi kapat
+    if (tabId) {
+      setTimeout(() => chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId }), 500);
+    }
+    return;
+  }
+
+  console.log("📍 HYP seçili birim ID:", selectedBirimId);
+
+  // 2. Birim ID eşleştirme
+  if (selectedBirimId !== expectedBirimId) {
+    const orgs = JSON.parse(localStorage.getItem("hyp-user-organizations") || "[]");
+    const selected = orgs.find((o) => o.OrganizationId === selectedBirimId);
+    const selectedName = selected?.OrganizationName || selectedBirimId;
+
+    chrome.runtime.sendMessage({
+      action: "hypError",
+      error: `HYP'de farklı birim seçili: "${selectedName}".\n\nLütfen HYP'de doğru birimi seçin.`,
+    });
+    // ✅ Hata durumunda da sekmeyi kapat
+    if (tabId) {
+      setTimeout(() => chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId }), 500);
+    }
+    return;
+  }
+
+  // 3. Veriyi çek
+  try {
+    const hypData = await fetchHypData(ay, yil);
+    const results = mapHypToSina(hypData);
+
+    console.log("✅ HYP verileri çekildi:", results.length, "işlem");
+
+    chrome.runtime.sendMessage({
+      action: "hypDataParsed",
+      results: results,
+    });
+
+    // ✅ Başarılı durumda sekmeyi kapat
+    if (tabId) {
+      setTimeout(() => {
+        chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId });
+      }, 1000);
+    }
+  } catch (e) {
+    // ✅ Hata durumunda da sekmeyi kapat
+    if (tabId) {
+      setTimeout(() => chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId }), 500);
+    }
+
+    if (e.message === "OTURUM_YOK") {
+      chrome.runtime.sendMessage({
+        action: "hypError",
+        error: "HYP oturumu bulunamadı. Lütfen HYP'ye giriş yapın.",
+      });
+    } else {
+      chrome.runtime.sendMessage({
+        action: "hypError",
+        error: `HYP verileri çekilemedi: ${e.message}`,
+      });
+    }
+  }
+}
+
+// Eklentiden gelen mesajı dinle
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.action === "fetchHypData") {
+    fetchHypAndSend(msg.expectedBirimId, msg.ay, msg.yil, msg.tabId);
+    sendResponse({ status: "ok" });
+  }
+  return true;
+});
+
 console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
 (function () {
-  const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
+  // const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
   const isSina = window.location.href.includes("sina.saglik.gov.tr");
 
   // Consent cache
@@ -23,108 +188,108 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
   }
 
   // --- HYP: İnatçı tıklayıcı ve veri çekici ---
-  if (isHyp && window.location.hash === "#kopyala") {
-    checkConsent().then((hasConsent) => {
-      if (!hasConsent) {
-        console.log("🔒 KVKK rızası yok, HYP verisi çekilmiyor.");
-        return;
-      }
-
-      console.log("🚀 HYP Eklentisi: İnatçı Tıklama Modu Devrede");
-
-      // ========== SPINNER GÖSTER ==========
-      chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
-      console.log("🔄 HYP: Spinner gösterildi");
-
-      let basarili = false;
-      let intervalId = null;
-      let observer = null;
-      let attemptCount = 0;
-      const MAX_ATTEMPTS = 10;
-
-      const tiklaVeKontrolEt = () => {
-        if (basarili) {
-          if (intervalId) clearInterval(intervalId);
-          return;
-        }
-
-        attemptCount++;
-        if (attemptCount > MAX_ATTEMPTS) {
-          console.warn("⏰ Zaman aşımı: Hedef kartlar bulunamadı.");
-          // ========== ZAMAN AŞIMINDA SPINNER'I GİZLE ==========
-          chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
-          if (intervalId) clearInterval(intervalId);
-          if (observer) observer.disconnect();
-          return;
-        }
-
-        const kartlar = document.querySelectorAll(".population-target-analysis .content-sub");
-        if (kartlar.length > 0) {
-          console.log("✅ Kartlar ekranda görüldü, veriler çekiliyor...");
-          veriCekVeGonder(kartlar);
-          basarili = true;
-          if (intervalId) clearInterval(intervalId);
-          if (observer) observer.disconnect();
-          return;
-        }
-
-        let sekme = document.querySelector('a[id="5"]');
-        if (!sekme) {
-          const li = document.getElementById("5");
-          if (li) sekme = li.querySelector("a") || li;
-        }
-
-        if (sekme) {
-          console.log("⏳ Sekme bulundu, tıklanıyor...");
-          sekme.click();
-        } else {
-          console.log("Aranan sekme henüz sayfada yok, yüklenmesi bekleniyor...");
-        }
-      };
-
-      intervalId = setInterval(tiklaVeKontrolEt, 1000);
-
-      observer = new MutationObserver(() => {
-        if (basarili) return;
-        const kartlar = document.querySelectorAll(".population-target-analysis .content-sub");
-        if (kartlar.length > 0) {
-          veriCekVeGonder(kartlar);
-          basarili = true;
-          if (intervalId) clearInterval(intervalId);
-          observer.disconnect();
-        }
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      function veriCekVeGonder(kartlar) {
-        // ========== VERİ ÇEKİLDİ, SPINNER'I GİZLE ==========
-        chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
-        console.log("✅ HYP: Spinner gizlendi");
-
-        const sonuclar = Array.from(kartlar)
-          .map((kart) => ({
-            ad: kart.querySelector(".title")?.textContent?.trim() || "",
-            yapilan: kart.querySelector(".performance-statistics-value")?.textContent?.trim() || "",
-          }))
-          .filter((item) => item.ad && item.yapilan);
-
-        if (sonuclar.length > 0) {
-          chrome.runtime
-            .sendMessage({
-              action: "hypDataParsed",
-              results: sonuclar,
-            })
-            .catch((err) => {
-              console.error("Mesaj gönderilemedi:", err);
-              console.trace(); // Stack trace göster
-            });
-          console.log("🚀 Veriler eklentiye başarıyla gönderildi!");
-        } else {
-          console.log("⚠️ HYP verisi bulunamadı");
-        }
-      }
-    });
-  }
+  // if (isHyp && window.location.hash === "#kopyala") {
+  //   checkConsent().then((hasConsent) => {
+  //     if (!hasConsent) {
+  //       console.log("🔒 KVKK rızası yok, HYP verisi çekilmiyor.");
+  //       return;
+  //     }
+  //
+  //     console.log("🚀 HYP Eklentisi: İnatçı Tıklama Modu Devrede");
+  //
+  //     // ========== SPINNER GÖSTER ==========
+  //     chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
+  //     console.log("🔄 HYP: Spinner gösterildi");
+  //
+  //     let basarili = false;
+  //     let intervalId = null;
+  //     let observer = null;
+  //     let attemptCount = 0;
+  //     const MAX_ATTEMPTS = 10;
+  //
+  //     const tiklaVeKontrolEt = () => {
+  //       if (basarili) {
+  //         if (intervalId) clearInterval(intervalId);
+  //         return;
+  //       }
+  //
+  //       attemptCount++;
+  //       if (attemptCount > MAX_ATTEMPTS) {
+  //         console.warn("⏰ Zaman aşımı: Hedef kartlar bulunamadı.");
+  //         // ========== ZAMAN AŞIMINDA SPINNER'I GİZLE ==========
+  //         chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+  //         if (intervalId) clearInterval(intervalId);
+  //         if (observer) observer.disconnect();
+  //         return;
+  //       }
+  //
+  //       const kartlar = document.querySelectorAll(".population-target-analysis .content-sub");
+  //       if (kartlar.length > 0) {
+  //         console.log("✅ Kartlar ekranda görüldü, veriler çekiliyor...");
+  //         veriCekVeGonder(kartlar);
+  //         basarili = true;
+  //         if (intervalId) clearInterval(intervalId);
+  //         if (observer) observer.disconnect();
+  //         return;
+  //       }
+  //
+  //       let sekme = document.querySelector('a[id="5"]');
+  //       if (!sekme) {
+  //         const li = document.getElementById("5");
+  //         if (li) sekme = li.querySelector("a") || li;
+  //       }
+  //
+  //       if (sekme) {
+  //         console.log("⏳ Sekme bulundu, tıklanıyor...");
+  //         sekme.click();
+  //       } else {
+  //         console.log("Aranan sekme henüz sayfada yok, yüklenmesi bekleniyor...");
+  //       }
+  //     };
+  //
+  //     intervalId = setInterval(tiklaVeKontrolEt, 1000);
+  //
+  //     observer = new MutationObserver(() => {
+  //       if (basarili) return;
+  //       const kartlar = document.querySelectorAll(".population-target-analysis .content-sub");
+  //       if (kartlar.length > 0) {
+  //         veriCekVeGonder(kartlar);
+  //         basarili = true;
+  //         if (intervalId) clearInterval(intervalId);
+  //         observer.disconnect();
+  //       }
+  //     });
+  //     observer.observe(document.body, { childList: true, subtree: true });
+  //
+  //     function veriCekVeGonder(kartlar) {
+  //       // ========== VERİ ÇEKİLDİ, SPINNER'I GİZLE ==========
+  //       chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+  //       console.log("✅ HYP: Spinner gizlendi");
+  //
+  //       const sonuclar = Array.from(kartlar)
+  //         .map((kart) => ({
+  //           ad: kart.querySelector(".title")?.textContent?.trim() || "",
+  //           yapilan: kart.querySelector(".performance-statistics-value")?.textContent?.trim() || "",
+  //         }))
+  //         .filter((item) => item.ad && item.yapilan);
+  //
+  //       if (sonuclar.length > 0) {
+  //         chrome.runtime
+  //           .sendMessage({
+  //             action: "hypDataParsed",
+  //             results: sonuclar,
+  //           })
+  //           .catch((err) => {
+  //             console.error("Mesaj gönderilemedi:", err);
+  //             console.trace(); // Stack trace göster
+  //           });
+  //         console.log("🚀 Veriler eklentiye başarıyla gönderildi!");
+  //       } else {
+  //         console.log("⚠️ HYP verisi bulunamadı");
+  //       }
+  //     }
+  //   });
+  // }
 
   // --- SİNA: Sıralı Hibrit Yaklaşım (Observer → Interval → Zaman Aşımı) ---
   const hasCopyHash = window.location.hash === "#kopyala";

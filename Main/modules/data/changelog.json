@@ -1,6 +1,17 @@
 {
   "changelogData": [
     {
+      "version": "2.1.6",
+      "date": "2026-04-21",
+      "changes": [
+        "⚡ **HYP API Entegrasyonu:** HYP verileri artık ışık hızında çekiliyor.",
+        "🛡️ **Birim ID Kontrolü:** HYP'de farklı birim seçiliyse kullanıcı uyarılıyor.",
+        "🔒 **Oturum Kontrolü:** HYP oturumu yoksa anlaşılır hata mesajı gösteriliyor.",
+        "🐛 **Düzeltme:** Birim ID değişince tavan katsayısı anında güncelleniyor.",
+        "🐛 **Düzeltme:** Simülasyon katsayısı slider oynatınca tutarsızlaşmıyor."
+      ]
+    },
+    {
       "version": "2.1.4",
       "date": "2026-04-16",
       "changes": [

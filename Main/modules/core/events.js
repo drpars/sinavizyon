@@ -124,7 +124,35 @@ export function bindHypButton(getCurrentAy, getCurrentYil, getDomBirimId) {
         );
         return;
       }
-      url = HYP_URLS.DASHBOARD;
+
+      // ✅ HER ZAMAN YENİ SEKME AÇ
+      try {
+        chrome.runtime.sendMessage({ action: "showSpinner" }).catch(() => {});
+
+        chrome.tabs.create({ url: HYP_URLS.DASHBOARD, active: false }, (tab) => {
+          const hypTabId = tab.id;
+
+          chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+            if (tabId === tab.id && info.status === "complete") {
+              chrome.tabs.onUpdated.removeListener(listener);
+              setTimeout(() => {
+                chrome.tabs.sendMessage(tabId, {
+                  action: "fetchHypData",
+                  expectedBirimId: birimId,
+                  ay: ayStr,
+                  yil: yil,
+                  tabId: hypTabId, // ✅ Sekme ID'sini ilet
+                });
+              }, 1500); // Biraz daha bekle (sayfa tam yüklensin)
+            }
+          });
+        });
+      } catch (e) {
+        console.error("HYP API çağrısı başarısız:", e);
+        chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+      }
+
+      return;
     }
 
     // ✅ TÜM KONTROLLER GEÇİLDİ - SPINNER'I GÖSTER
