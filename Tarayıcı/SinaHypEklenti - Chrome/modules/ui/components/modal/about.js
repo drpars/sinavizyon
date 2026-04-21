@@ -54,9 +54,14 @@ export async function showAboutDialog() {
           </div>
         </div>
         
-        <button id="aboutOkBtn" style="background-color: var(--blue); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: opacity 0.2s;">
-          KAPAT
-        </button>
+        <div style="display: flex; gap: 10px;">
+          <button id="aboutWhatsNewBtn" style="background-color: var(--bg); color: var(--blue); border: 1px solid var(--border); padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; flex: 1; transition: all 0.2s;">
+            Yenilikler
+          </button>
+          <button id="aboutOkBtn" style="background-color: var(--blue); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; flex: 1; transition: opacity 0.2s;">
+            KAPAT
+          </button>
+        </div>
       </div>
     `;
 
@@ -76,10 +81,18 @@ export async function showAboutDialog() {
     modal.style.display = "flex";
 
     const okBtn = document.getElementById("aboutOkBtn");
-    okBtn.addEventListener(
-      "click",
-      () => {
+    const whatsNewBtn = document.getElementById("aboutWhatsNewBtn");
+
+    okBtn.addEventListener("click", () => {
+      modal.remove();
+        resolve();
+    }, { once: true });
+
+    whatsNewBtn.addEventListener("click", async () => {
         modal.remove();
+        const { showWhatsNewModal } = await import("./whatsnew.js");
+        const manifest = chrome.runtime.getManifest();
+        showWhatsNewModal(manifest.version);
         resolve();
       },
       { once: true }

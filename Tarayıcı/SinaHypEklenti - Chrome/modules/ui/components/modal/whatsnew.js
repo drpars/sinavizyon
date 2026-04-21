@@ -8,7 +8,18 @@ export async function showWhatsNewModal(version) {
 
     let whatsNewItems = [];
 
-    if (version === "2.1.6") {
+    if (version === "2.1.7") {
+      whatsNewItems = [
+        "⚡ HYP API Entegrasyonu (ışık hızında veri çekme)",
+        "🛡️ HYP'de birim ID kontrolü (yanlış birim uyarısı)",
+        "🔒 HYP oturum kontrolü",
+        "🐛 'Ne Yapmalıyım?' nüfus okuma düzeltildi",
+        "🐛 Birim ID değişince tavan güncellemesi düzeltildi",
+        "🐛 Simülasyon katsayı tutarsızlığı giderildi",
+        "📋 Hakkında penceresine Yenilikler butonu eklendi",
+        "📱 Yenilikler modalı küçük ekranlara uyumlu hale geldi",
+      ];
+    } else if (version === "2.1.6") {
       whatsNewItems = [
         "⚡ HYP API Entegrasyonu (ışık hızında veri çekme)",
         "🛡️ HYP'de birim ID kontrolü (yanlış birim uyarısı)",
@@ -108,22 +119,22 @@ export async function showWhatsNewModal(version) {
       .join("");
 
     modal.innerHTML = `
-      <div class="consent-modal-content" style="max-width: 420px; text-align: left; overflow: hidden;">
+      <div class="consent-modal-content" style="max-width: 420px; text-align: left; overflow: hidden; display: flex; flex-direction: column; max-height: 85vh;">
         <div style="text-align: center; margin-bottom: 20px;">
           <img src="icons/icon-org.svg" style="width: 64px; height: 64px;">
           <h2 style="margin: 12px 0 4px 0; color: var(--blue); font-size: 1.3rem;">SİNA VİZYON</h2>
           <p style="margin: 0; font-size: 0.75rem; opacity: 0.7;">v${version} ile neler değişti?</p>
         </div>
         
-        <div style="background: var(--bg); border-radius: 16px; padding: 8px 16px; margin-bottom: 20px; max-height: 350px; overflow-y: auto;">
+        <div style="background: var(--bg); border-radius: 16px; padding: 8px 16px; margin-bottom: 16px; overflow-y: auto; flex: 1; min-height: 0;">
           ${itemsHtml}
         </div>
         
-        <div style="background: var(--bg-dark); border-radius: 12px; padding: 10px; margin-bottom: 16px; text-align: center; border: 1px solid var(--border);">
+        <div style="background: var(--bg-dark); border-radius: 12px; padding: 10px; margin-bottom: 16px; text-align: center; border: 1px solid var(--border); flex-shrink: 0;">
           <span style="font-size: 0.7rem;">💡 İpucu: 'Ne Yapmalıyım' butonu ile hedefe ulaşmak için strateji alın!</span>
         </div>
         
-        <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
+        <button id="whatsNewConfirmBtn" style="width: 100%; background-color: var(--blue); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem; flex-shrink: 0;">
           SİNA VİZYON'U KULLANMAYA BAŞLA
         </button>
       </div>
@@ -132,14 +143,37 @@ export async function showWhatsNewModal(version) {
     document.body.appendChild(modal);
     modal.style.display = "flex";
 
+    // ✅ BUTON REFERANSINI AL
     const confirmBtn = document.getElementById("whatsNewConfirmBtn");
+
+    // ESC tuşu ile kapat
+    const escHandler = (e) => {
+      if (e.key === "Escape") {
+        modal.remove();
+        document.removeEventListener("keydown", escHandler);
+        resolve();
+      }
+    };
+    document.addEventListener("keydown", escHandler);
+
+    // Butona tıklanınca
     confirmBtn.addEventListener(
       "click",
       () => {
         modal.remove();
+        document.removeEventListener("keydown", escHandler);
         resolve();
       },
       { once: true }
     );
+
+    // Overlay'e tıklanınca da kapat (opsiyonel)
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        document.removeEventListener("keydown", escHandler);
+        resolve();
+      }
+    });
   });
 }

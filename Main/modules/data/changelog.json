@@ -1,6 +1,15 @@
 {
   "changelogData": [
     {
+      "version": "2.1.7",
+      "date": "2026-04-21",
+      "changes": [
+        "🐛 **Kritik Düzeltme:** İlk kurulumda 'Ne Yapmalıyım?' butonu nüfus bilgisini okuyamama sorunu giderildi.",
+        "📋 **Hakkında → Yenilikler:** Hakkında penceresine Yenilikler butonu eklendi.",
+        "📱 **Yenilikler Modalı:** Küçük ekranlarda (768px) kaydırma çubuğu ile tam görünüm sağlandı."
+      ]
+    },
+    {
       "version": "2.1.6",
       "date": "2026-04-21",
       "changes": [

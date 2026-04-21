@@ -28,7 +28,6 @@ import { requestConsent, revokeConsent } from "./modules/features/consent/index.
 import { loadNurseShowAllForBirim, saveNurseShowAllForBirim } from "./modules/features/nurse/index.js";
 // ---------- LIB ----------
 import { tavanHesapla } from "./modules/lib/calculations.js";
-import { hypToSinaMapNormalized } from "./modules/lib/constants.js";
 import { migrateFromOldStorage } from "./modules/lib/migration.js";
 import { showFirstTimeUserTypeModal, showWhatsNewModal } from "./modules/ui/components/index.js";
 import { showSimulatorModal } from "./modules/ui/components/modal/simulator.js";
@@ -194,40 +193,42 @@ function openSimulator() {
     return;
   }
 
-  // 3. Nüfus kontrolü (YENİ!)
-  const nufusInput = document.getElementById("nufus");
-  const nufus = parseFloat(nufusInput?.value) || 0;
+  // ✅ 3. Nüfusu STORAGE'dan oku! (DOM'dan değil)
+  const nufusKey = `nufus_${birimId}`;
+  chrome.storage.local.get([nufusKey], (res) => {
+    const nufus = parseFloat(res[nufusKey]) || 0;
 
-  if (nufus <= 0) {
-    import("./modules/ui/components/index.js").then(({ messageDialog }) => {
-      messageDialog(
-        "Tavan katsayısı hesaplamak için Nüfus bilgisi gereklidir.\n\n" + "Lütfen önce Nüfus değerini girin.",
-        "Eksik Bilgi"
-      );
-    });
-    return;
-  }
-
-  // 4. Veri kontrolü
-  const key = `savedResults_doctor_${birimId}`;
-  chrome.storage.local.get([key], (res) => {
-    const savedData = res[key]?.data || [];
-
-    if (savedData.length === 0) {
+    if (nufus <= 0) {
       import("./modules/ui/components/index.js").then(({ messageDialog }) => {
         messageDialog(
-          "Henüz veri çekilmemiş.\n\n" + "Lütfen önce SİNA butonuna tıklayarak verileri getirin.",
-          "Veri Bulunamadı"
+          "Tavan katsayısı hesaplamak için Nüfus bilgisi gereklidir.\n\n" + "Lütfen önce Nüfus değerini girin.",
+          "Eksik Bilgi"
         );
       });
       return;
     }
 
-    // 5. Tavan katsayısını hesapla
-    const tavanKatsayi = nufus > 0 ? Math.min(1.5, Math.max(1.0, 4000 / nufus)) : 1.0;
+    // 4. Veri kontrolü
+    const key = `savedResults_doctor_${birimId}`;
+    chrome.storage.local.get([key], (res) => {
+      const savedData = res[key]?.data || [];
 
-    // 6. Simülasyon modalını aç
-    showSimulatorModal(savedData, tavanKatsayi);
+      if (savedData.length === 0) {
+        import("./modules/ui/components/index.js").then(({ messageDialog }) => {
+          messageDialog(
+            "Henüz veri çekilmemiş.\n\n" + "Lütfen önce SİNA butonuna tıklayarak verileri getirin.",
+            "Veri Bulunamadı"
+          );
+        });
+        return;
+      }
+
+      // 5. Tavan katsayısını hesapla
+      const tavanKatsayi = nufus > 0 ? Math.min(1.5, Math.max(1.0, 4000 / nufus)) : 1.0;
+
+      // 6. Simülasyon modalını aç
+      showSimulatorModal(savedData, tavanKatsayi);
+    });
   });
 }
 
