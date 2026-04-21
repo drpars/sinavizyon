@@ -420,7 +420,13 @@ function updateSlidersList() {
     // Slider event listener
     slider.addEventListener("input", (e) => {
       const newValue = parseInt(e.target.value);
-      sliderStates.set(item.ad, newValue);
+
+      // ✅ Eğer yeni değer orijinal etkili yapılana eşitse, Map'ten sil
+      if (newValue === etkiliYapilan) {
+        sliderStates.delete(item.ad);
+      } else {
+        sliderStates.set(item.ad, newValue);
+      }
 
       // ✅ Sadece bu slider'ın bağlı olduğu elementleri güncelle
       const newRemaining = maxValue - newValue;

@@ -13,6 +13,7 @@ import {
   exportData,
   loadDataForCurrentBirim,
   loadDataForCurrentBirimWithMerge,
+  loadNufusForBirim,
   saveNufusForBirim,
 } from "../../../core/storage.js";
 import { revokeConsent } from "../../../features/consent/index.js";
@@ -288,6 +289,9 @@ async function applyChanges() {
     if (birimIdInput) birimIdInput.value = newBirimId;
     setCurrentBirimId(newBirimId);
     await chrome.storage.local.set({ birimId: newBirimId });
+
+    loadNufusForBirim(newBirimId, tavanHesapla);
+
     needsReload = true;
   }
 
