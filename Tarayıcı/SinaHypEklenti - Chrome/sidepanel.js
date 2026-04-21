@@ -261,6 +261,7 @@ export function deleteAllData() {
             setDomBirimId("");
             setCurrentBirimId("");
             setCurrentShowAll(false);
+            tavanHesapla("");
 
             const userTypeSelect = inputs.userType();
             if (userTypeSelect) userTypeSelect.value = userTypeBeforeDelete;

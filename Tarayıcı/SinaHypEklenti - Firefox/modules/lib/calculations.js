@@ -14,7 +14,7 @@ export function getEffectiveYapilan(gereken, yapilan, devreden) {
 export function tavanHesapla(nufus) {
   const tavanElement = document.getElementById("tavanKatsayi");
   const n = parseFloat(nufus);
-  let tavan = 1.0;
+  let tavan = 0.0;
   if (n > 0) {
     tavan = 4000 / n;
     if (tavan > 1.5) tavan = 1.5;

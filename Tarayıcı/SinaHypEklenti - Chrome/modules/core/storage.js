@@ -42,7 +42,7 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
   if (!nufusInput) return;
   if (!birimId) {
     nufusInput.value = "";
-    if (tavanHesaplaFn) tavanHesaplaFn("");
+    // ❌ tavanHesaplaFn("");  ← BU SATIRI SİL VEYA YORUM SATIRI YAP!
     return;
   }
   const key = `nufus_${birimId}`;
@@ -53,7 +53,7 @@ export function loadNufusForBirim(birimId, tavanHesaplaFn) {
       if (tavanHesaplaFn) tavanHesaplaFn(nufus);
     } else {
       nufusInput.value = "";
-      if (tavanHesaplaFn) tavanHesaplaFn("");
+      // ❌ tavanHesaplaFn("");  ← BURAYI DA SİL!
     }
   });
 }

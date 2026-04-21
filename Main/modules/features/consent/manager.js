@@ -9,6 +9,7 @@ export async function requestConsent() {
   return userConfirmed;
 }
 
+// modules/features/consent/manager.js
 export async function revokeConsent() {
   const confirmed = await confirmDialog(
     "Rızanızı geri çekerseniz tüm verileriniz silinecek ve eklenti veri toplamayı durduracaktır. Devam etmek istiyor musunuz?",
@@ -18,7 +19,7 @@ export async function revokeConsent() {
 
   chrome.storage.local.remove(
     ["kvkkConsent", "savedResults", "sinaLastTime", "hypLastTime", "nufus", "birimId", "theme"],
-    () => {
+    async () => {
       updateTable([]);
       document.getElementById("sinaTime").textContent = "";
       document.getElementById("hypTime").textContent = "";
@@ -29,7 +30,14 @@ export async function revokeConsent() {
       if (hypBtn) hypBtn.disabled = true;
 
       setUIEnabled(false);
-      messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");
+
+      // ✅ Mesajı göster ve kapanmasını bekle
+      await messageDialog("Rıza geri çekildi ve tüm veriler silindi.", "İşlem Tamam");
+
+      // ✅ 1 saniye bekle ve paneli kapat
+      setTimeout(() => {
+        window.close();
+      }, 1000);
     }
   );
 }

@@ -321,6 +321,12 @@ async function applyChanges() {
     } else {
       loadDataForCurrentBirim(updateTable, userType, birimId, null, false, ay, yil);
     }
+
+    // ✅ Tavan katsayısını EN SON hesapla (tablo yenilendikten sonra!)
+    const nufusInput = document.getElementById("nufus");
+    if (nufusInput?.value) {
+      tavanHesapla(nufusInput.value);
+    }
   }
 
   showToast("Ayarlar kaydedildi ✅");
