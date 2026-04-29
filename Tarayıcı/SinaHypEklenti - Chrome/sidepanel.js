@@ -833,6 +833,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       });
     } else if (msg.action === "hypError") {
       hideLoadingSpinner();
+
+      // ✅ HYP ana sayfasını aç (eğer komut geldiyse)
+      if (msg.openHyp) {
+        chrome.tabs.create({ url: "https://hyp.saglik.gov.tr", active: true });
+      }
+
       messageDialog(msg.error, "HYP Hatası");
       return true;
     } else if (msg.action === "hypDataParsed") {

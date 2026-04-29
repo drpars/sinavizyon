@@ -8,7 +8,14 @@ export async function showWhatsNewModal(version) {
 
     let whatsNewItems = [];
 
-    if (version === "2.1.7") {
+    if (version === "2.1.8") {
+      whatsNewItems = [
+        "🐛 KVR İzlem verisi HYP'den doğru şekilde güncelleniyor",
+        "👩‍⚕️ ASÇ başarı katsayısı hesaplaması güncellendi",
+        "👩‍⚕️ ASÇ için özel durum eklendi",
+        "🔑 HYP oturumu yoksa ana sayfa otomatik açılıyor",
+      ];
+    } else if (version === "2.1.7") {
       whatsNewItems = [
         "⚡ HYP API Entegrasyonu (ışık hızında veri çekme)",
         "🛡️ HYP'de birim ID kontrolü (yanlış birim uyarısı)",

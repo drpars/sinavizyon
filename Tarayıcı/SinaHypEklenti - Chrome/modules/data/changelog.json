@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.1.8",
+      "date": "2026-04-29",
+      "changes": [
+        "🐛 **KVR İzlem güncellemesi düzeltildi:** HYP API'den KVR İzlem verileri artık doğru şekilde çekiliyor.",
+        "👩‍⚕️ **ASÇ başarı katsayısı güncellendi:** ASÇ ve Doktor katsayıları karşılaştırılıp yüksek olan alınıyor.",
+        "👩‍⚕️ **ASÇ özel durum eklendi:** Doktor HYP yapmadıysa veya verisi yoksa ASÇ katsayısı 0.902 olarak belirleniyor.",
+        "🔑 **HYP oturum kontrolü iyileştirildi:** Oturum yoksa HYP ana sayfası otomatik açılıyor."
+      ]
+    },
+    {
       "version": "2.1.7",
       "date": "2026-04-21",
       "changes": [

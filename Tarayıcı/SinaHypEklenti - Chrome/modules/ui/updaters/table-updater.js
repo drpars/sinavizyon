@@ -33,6 +33,9 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
       const doctorKey = `savedResults_doctor_${birimId}`;
       chrome.storage.local.get([doctorKey], (res) => {
         const doctorData = res[doctorKey]?.data || [];
+
+        let finalAsçKatsayi = asçBasari;
+
         if (doctorData.length > 0) {
           let doctorToplam = 1.0;
           doctorData.forEach((item) => {
@@ -44,23 +47,39 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
           const doctorBasari = doctorToplam * SUREC_KATSAYISI;
           const tavanElement = document.getElementById("tavanKatsayi");
           tavanElement.textContent = doctorBasari.toFixed(5);
+
           const kosul1 = asçBasari >= 1.0;
           const kosul2 = asçBasari >= doctorBasari * 0.75;
-          katsayiElement.style.color = kosul1 && kosul2 ? "var(--green)" : "var(--red)";
+
+          if (kosul1 && kosul2) {
+            // ✅ Yüksek olanı al (ASÇ veya Doktor)
+            finalAsçKatsayi = Math.max(asçBasari, doctorBasari);
+            katsayiElement.style.color = "var(--green)";
+          } else if (kosul1) {
+            // ASÇ kendi katsayısını alır
+            finalAsçKatsayi = asçBasari;
+            katsayiElement.style.color = "var(--green)";
+          } else {
+            // ASÇ < 1.0 → KIRMIZI
+            katsayiElement.style.color = "var(--red)";
+          }
         } else {
+          // ✅ Doktor verisi YOKSA → ASÇ HYP yapmamışsa 0.902
+          if (asçBasari <= 1.0) {
+            finalAsçKatsayi = 0.902;
+            katsayiElement.style.color = "var(--red)";
+          } else {
+            finalAsçKatsayi = asçBasari;
+            katsayiElement.style.color = "var(--green)";
+          }
+
           const tavanElement = document.getElementById("tavanKatsayi");
           tavanElement.textContent = "1.00000";
-          const kosul1 = asçBasari >= 1.0;
-          const kosul2 = asçBasari >= 0.75;
-          katsayiElement.style.color = kosul1 && kosul2 ? "var(--green)" : "var(--red)";
         }
+
+        // ✅ Final katsayıyı DOM'a yaz
+        katsayiElement.textContent = finalAsçKatsayi.toFixed(5);
       });
-    } else {
-      const tavanElement = document.getElementById("tavanKatsayi");
-      tavanElement.textContent = "1.00000";
-      const kosul1 = asçBasari >= 1.0;
-      const kosul2 = asçBasari >= 0.75;
-      katsayiElement.style.color = kosul1 && kosul2 ? "var(--green)" : "var(--red)";
     }
     return;
   }
