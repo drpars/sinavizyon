@@ -6,42 +6,29 @@ import { normalizeText } from "../../utils/text-utils.js";
 // Cache Map
 const katsayiCache = new Map();
 
-export function calculateNurseKatsayi(islemAdi, gereken, yapilan, devreden) {
+export function calculateNurseKatsayi(islemAdi, gereken, yapilan, devreden, katsayiMapNorm = null) {
+  const map = katsayiMapNorm || katsayiMapNurseNormalized;
   const cacheKey = `${islemAdi}|${gereken}|${yapilan}|${devreden}`;
 
-  if (katsayiCache.has(cacheKey)) {
-    return katsayiCache.get(cacheKey);
-  }
+  if (katsayiCache.has(cacheKey)) return katsayiCache.get(cacheKey);
 
   const ad = normalizeText(islemAdi);
   const etkiliYapilan = getEffectiveYapilan(gereken, yapilan, devreden);
   const oranYuzde = gereken > 0 ? (etkiliYapilan / gereken) * 100 : 0;
-
   let sonuc = 1.0;
 
-  // ✅ Normalize map'i kullan
-  for (let [anahtar, k] of katsayiMapNurseNormalized.entries()) {
+  for (let [anahtar, k] of map.entries()) {
     if (ad.includes(anahtar)) {
-      if (oranYuzde < k.asgariOran) {
-        sonuc = k.asgariKatsayi;
-        break;
-      }
-      if (oranYuzde >= k.azamiOran) {
-        sonuc = k.azamiKatsayi;
-        break;
-      }
+      if (oranYuzde < k.asgariOran) { sonuc = k.asgariKatsayi; break; }
+      if (oranYuzde >= k.azamiOran) { sonuc = k.azamiKatsayi; break; }
       const artis = ((k.azamiKatsayi - 1) / (k.azamiOran - k.asgariOran)) * (oranYuzde - k.asgariOran);
       sonuc = 1 + artis;
       break;
     }
   }
 
-  if (katsayiCache.size > 1000) {
-    const firstKey = katsayiCache.keys().next().value;
-    katsayiCache.delete(firstKey);
-  }
+  if (katsayiCache.size > 1000) katsayiCache.delete(katsayiCache.keys().next().value);
   katsayiCache.set(cacheKey, sonuc);
-
   return sonuc;
 }
 
