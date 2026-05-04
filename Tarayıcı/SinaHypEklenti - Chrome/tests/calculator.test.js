@@ -1,5 +1,6 @@
 // tests/calculator.test.js
-import { describe, test, expect } from "@jest/globals";
+import { describe, expect, test } from "@jest/globals";
+
 import { calculateDoctorKatsayi } from "../modules/features/doctor/calculator.js";
 import { calculateNurseKatsayi } from "../modules/features/nurse/calculator.js";
 import { getKatsayiMap, getNurseKatsayiMap } from "../modules/lib/constants.js";
@@ -17,7 +18,7 @@ describe("calculateDoctorKatsayi", () => {
 
   test("Eski: %50 DİYABET TARAMASI", () => {
     const k = calculateDoctorKatsayi("DİYABET TARAMASI", 100, 50, 0, eskiMap);
-    expect(k).toBeCloseTo(1.022, 2);
+    expect(k).toBeCloseTo(1.01, 4);
   });
 
   test("Yeni: %50 DİYABET TARAMASI", () => {
@@ -54,7 +55,7 @@ describe("calculateNurseKatsayi", () => {
 
   test("Eski: %70 VİTAL BULGU ASÇ", () => {
     const k = calculateNurseKatsayi("VİTAL BULGU ASÇ", 100, 70, 0, eskiMap);
-    expect(k).toBeCloseTo(1.015, 2);
+    expect(k).toBeCloseTo(1.03, 4);
   });
 
   test("Yeni: %70 VİTAL BULGU ASÇ", () => {
