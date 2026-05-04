@@ -66,6 +66,7 @@ function mapHypToSina(hypData) {
     "obesity_monitoring-shm": "OBEZİTE İZLEMİ",
     cvdrisk_screening: "KVR TARAMASI",
     cvdrisk_monitoring: "KVR İZLEM",
+    cvdrisk_monitoring: "KVR İZLEMİ",
     elderly_monitoring: "YAŞLI SAĞLIĞI İZLEMİ",
   };
 
@@ -82,6 +83,34 @@ function mapHypToSina(hypData) {
 async function fetchHypAndSend(expectedBirimId, ay, yil, tabId) {
   console.log("🚀 HYP API entegrasyonu başlatılıyor...");
 
+  // 0. ÖNCE KISA BİR OTOURUM KONTROLÜ YAPALIM
+  try {
+    const testResponse = await fetch(
+      "https://hyp.saglik.gov.tr/api/EpisodeOfCare/$calculate-performance-statistics?dateStart=2026-04-01",
+      { credentials: "include" }
+    );
+    const contentType = testResponse.headers.get("content-type");
+
+    // Eğer JSON değilse (giriş sayfası HTML'i döndüyse) oturum yok demektir.
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("OTURUM_YOK");
+    }
+  } catch (e) {
+    if (e.message === "OTURUM_YOK") {
+      // Pasif sekmeyi kapat
+      if (tabId) {
+        setTimeout(() => chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId }), 500);
+      }
+      // Kullanıcıya bildir ve HYP ana sayfasını aç
+      chrome.runtime.sendMessage({
+        action: "hypError",
+        error: "HYP oturumu bulunamadı. Lütfen açılan sayfada giriş yapın.",
+        openHyp: true,
+      });
+      return;
+    }
+  }
+
   // 1. Seçili birim ID'sini al
   const selectedBirimId = getHypSelectedBirimId();
 
@@ -90,7 +119,6 @@ async function fetchHypAndSend(expectedBirimId, ay, yil, tabId) {
       action: "hypError",
       error: "HYP'de seçili birim bulunamadı. Lütfen HYP'ye giriş yaptığınızdan emin olun.",
     });
-    // ✅ Hata durumunda da sekmeyi kapat
     if (tabId) {
       setTimeout(() => chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId }), 500);
     }
@@ -135,7 +163,6 @@ async function fetchHypAndSend(expectedBirimId, ay, yil, tabId) {
       }, 1000);
     }
   } catch (e) {
-    // ✅ Hata durumunda da sekmeyi kapat
     if (tabId) {
       setTimeout(() => chrome.runtime.sendMessage({ action: "closeTab", tabId: tabId }), 500);
     }
@@ -143,7 +170,8 @@ async function fetchHypAndSend(expectedBirimId, ay, yil, tabId) {
     if (e.message === "OTURUM_YOK") {
       chrome.runtime.sendMessage({
         action: "hypError",
-        error: "HYP oturumu bulunamadı. Lütfen HYP'ye giriş yapın.",
+        error: "HYP oturumu bulunamadı. Lütfen açılan sayfada giriş yapın.",
+        openHyp: true,
       });
     } else {
       chrome.runtime.sendMessage({

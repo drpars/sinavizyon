@@ -34,9 +34,12 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
       chrome.storage.local.get([doctorKey], (res) => {
         const doctorData = res[doctorKey]?.data || [];
 
-        let finalAsçKatsayi = asçBasari;
+        // Doktor başarı katsayısını hesapla
+        let doctorBasari = 1.0;
+        let hasDoctorData = false;
 
         if (doctorData.length > 0) {
+          hasDoctorData = true;
           let doctorToplam = 1.0;
           doctorData.forEach((item) => {
             const ger = parseFloat(item.gereken) || 0;
@@ -44,42 +47,55 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
             const dev = parseFloat(item.devreden) || 0;
             doctorToplam *= calculateDoctorKatsayi(item.ad, ger, yap, dev);
           });
-          const doctorBasari = doctorToplam * SUREC_KATSAYISI;
-          const tavanElement = document.getElementById("tavanKatsayi");
-          tavanElement.textContent = doctorBasari.toFixed(5);
-
-          const kosul1 = asçBasari >= 1.0;
-          const kosul2 = asçBasari >= doctorBasari * 0.75;
-
-          if (kosul1 && kosul2) {
-            // ✅ Yüksek olanı al (ASÇ veya Doktor)
-            finalAsçKatsayi = Math.max(asçBasari, doctorBasari);
-            katsayiElement.style.color = "var(--green)";
-          } else if (kosul1) {
-            // ASÇ kendi katsayısını alır
-            finalAsçKatsayi = asçBasari;
-            katsayiElement.style.color = "var(--green)";
-          } else {
-            // ASÇ < 1.0 → KIRMIZI
-            katsayiElement.style.color = "var(--red)";
-          }
-        } else {
-          // ✅ Doktor verisi YOKSA → ASÇ HYP yapmamışsa 0.902
-          if (asçBasari <= 1.0) {
-            finalAsçKatsayi = 0.902;
-            katsayiElement.style.color = "var(--red)";
-          } else {
-            finalAsçKatsayi = asçBasari;
-            katsayiElement.style.color = "var(--green)";
-          }
-
-          const tavanElement = document.getElementById("tavanKatsayi");
-          tavanElement.textContent = "1.00000";
+          doctorBasari = doctorToplam * SUREC_KATSAYISI;
         }
 
-        // ✅ Final katsayıyı DOM'a yaz
-        katsayiElement.textContent = finalAsçKatsayi.toFixed(5);
+        // Doktor tavan katsayısını hesapla (nüfustan)
+        const nufusKey = `nufus_${birimId}`;
+        chrome.storage.local.get([nufusKey], (nufusRes) => {
+          const nufus = parseFloat(nufusRes[nufusKey]) || 0;
+          let doktorTavan = 1.0;
+          if (nufus > 0) {
+            doktorTavan = Math.min(1.5, Math.max(1.0, 4000 / nufus));
+          }
+
+          const tavanElement = document.getElementById("tavanKatsayi");
+
+          // Temel koşullar
+          const kosul1 = asçBasari >= 1.0;
+          const kosul2 = hasDoctorData ? asçBasari >= doctorBasari * 0.75 : asçBasari >= 0.75;
+
+          let finalAsçBasari = asçBasari;
+
+          if (kosul1 && kosul2 && hasDoctorData) {
+            // Doktor verisi varsa ve koşullar sağlanıyorsa
+            if (doctorBasari > doktorTavan) {
+              // Doktor tavanı aşmış → ASÇ tavan ile sınırla
+              finalAsçBasari = doktorTavan;
+            } else {
+              // Normal eşitleme
+              finalAsçBasari = doctorBasari;
+            }
+          }
+          // Doktor verisi yoksa: asçBasari kendi değerinde kalır (0.902 durumu yok)
+
+          // Görüntüleme
+          katsayiElement.textContent = finalAsçBasari.toFixed(5);
+          if (tavanElement) {
+            tavanElement.textContent = hasDoctorData ? doctorBasari.toFixed(5) : "1.00000";
+          }
+
+          // Renk: koşullar sağlanıyorsa yeşil
+          const isGreen = kosul1 && kosul2;
+          katsayiElement.style.color = isGreen ? "var(--green)" : "var(--red)";
+        });
       });
+    } else {
+      const tavanElement = document.getElementById("tavanKatsayi");
+      tavanElement.textContent = "1.00000";
+      const kosul1 = asçBasari >= 1.0;
+      const kosul2 = asçBasari >= 0.75;
+      katsayiElement.style.color = kosul1 && kosul2 ? "var(--green)" : "var(--red)";
     }
     return;
   }
