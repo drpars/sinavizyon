@@ -1,94 +1,73 @@
 // modules/ui/components/dialog.js
 
-export async function confirmDialog(prompt, title = "Onay") {
+function createDialog(type, param, title = "Onay") {
   return new Promise((resolve) => {
-    let modal = document.getElementById("confirmDialog");
+    const modalId = type === "confirm" ? "confirmDialog" : "messageDialog";
+    let modal = document.getElementById(modalId);
+
     if (!modal) {
       modal = document.createElement("div");
-      modal.id = "confirmDialog";
+      modal.id = modalId;
       modal.className = "consent-modal";
       modal.innerHTML = `
         <div class="consent-modal-content" style="max-width: 350px;">
-          <h3 id="confirmDialogTitle">Onay</h3>
-          <p id="confirmDialogPrompt" style="text-align: left;"></p>
+          <h3 id="${modalId}Title">${title}</h3>
+          <div id="${modalId}Text" style="text-align: left;"></div>
           <div class="consent-modal-buttons">
-            <button id="confirmDialogYesBtn" style="background-color: var(--green); color: var(--bg-dark);">Evet</button>
-            <button id="confirmDialogNoBtn" style="background-color: var(--red); color: white;">Hayır</button>
+            ${
+              type === "confirm"
+                ? `
+              <button id="${modalId}YesBtn" style="background-color: var(--green); color: var(--bg-dark);">Evet</button>
+              <button id="${modalId}NoBtn" style="background-color: var(--red); color: white;">Hayır</button>
+            `
+                : `
+              <button id="${modalId}OkBtn" style="background-color: var(--blue); color: white;">Tamam</button>
+            `
+            }
           </div>
         </div>
       `;
       document.body.appendChild(modal);
     }
 
-    const titleElem = document.getElementById("confirmDialogTitle");
-    const promptElem = document.getElementById("confirmDialogPrompt");
-    const yesBtn = document.getElementById("confirmDialogYesBtn");
-    const noBtn = document.getElementById("confirmDialogNoBtn");
+    const titleElem = document.getElementById(`${modalId}Title`);
+    const textElem = document.getElementById(`${modalId}Text`);
 
-    // ✅ textContent kullan
     titleElem.textContent = title;
-    promptElem.textContent = prompt;
+    textElem.style.whiteSpace = "pre-line";
+    textElem.textContent = param;
 
     modal.style.display = "flex";
 
-    const onYes = () => {
-      modal.style.display = "none";
-      cleanup();
-      resolve(true);
-    };
-    const onNo = () => {
-      modal.style.display = "none";
-      cleanup();
-      resolve(false);
-    };
     const cleanup = () => {
-      yesBtn.removeEventListener("click", onYes);
-      noBtn.removeEventListener("click", onNo);
+      modal.style.display = "none";
     };
-    yesBtn.addEventListener("click", onYes);
-    noBtn.addEventListener("click", onNo);
+
+    if (type === "confirm") {
+      const yesBtn = document.getElementById(`${modalId}YesBtn`);
+      const noBtn = document.getElementById(`${modalId}NoBtn`);
+      yesBtn.onclick = () => {
+        cleanup();
+        resolve(true);
+      };
+      noBtn.onclick = () => {
+        cleanup();
+        resolve(false);
+      };
+    } else {
+      const okBtn = document.getElementById(`${modalId}OkBtn`);
+      okBtn.onclick = () => {
+        cleanup();
+        resolve();
+      };
+    }
   });
 }
 
-export async function messageDialog(text, title = "Mesaj") {
-  return new Promise((resolve) => {
-    let modal = document.getElementById("messageDialog");
-    if (!modal) {
-      modal = document.createElement("div");
-      modal.id = "messageDialog";
-      modal.className = "consent-modal";
-      modal.innerHTML = `
-        <div class="consent-modal-content" style="max-width: 350px;">
-          <h3 id="messageDialogTitle">Mesaj</h3>
-          <div id="messageDialogText" style="text-align: left;"></div>
-          <div class="consent-modal-buttons">
-            <button id="messageDialogOkBtn" style="background-color: var(--blue); color: white;">Tamam</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
+export function confirmDialog(prompt, title = "Onay") {
+  return createDialog("confirm", prompt, title);
+}
 
-    const titleElem = document.getElementById("messageDialogTitle");
-    const textElem = document.getElementById("messageDialogText");
-    const okBtn = document.getElementById("messageDialogOkBtn");
-
-    titleElem.textContent = title;
-
-    // ✅ innerHTML yerine textContent + white-space: pre-line
-    textElem.style.whiteSpace = "pre-line";
-    textElem.textContent = text;
-
-    modal.style.display = "flex";
-
-    const onOk = () => {
-      modal.style.display = "none";
-      cleanup();
-      resolve();
-    };
-    const cleanup = () => {
-      okBtn.removeEventListener("click", onOk);
-    };
-    okBtn.addEventListener("click", onOk);
-  });
+export function messageDialog(text, title = "Mesaj") {
+  return createDialog("message", text, title);
 }

@@ -1,36 +1,14 @@
-// modules/features/doctor/calculator.js
 import { getEffectiveYapilan } from "../../lib/calculations.js";
 import { katsayiMapNormalized } from "../../lib/constants.js";
+import { calculateKatsayi } from "../../lib/katsayi-hesapla.js";
 import { normalizeText } from "../../utils/text-utils.js";
-
-// Cache Map
-const katsayiCache = new Map();
 
 export function calculateDoctorKatsayi(islemAdi, gereken, yapilan, devreden, katsayiMapNorm = null) {
   const map = katsayiMapNorm || katsayiMapNormalized;
-  const cacheKey = `${islemAdi}|${gereken}|${yapilan}|${devreden}`;
-
-  if (katsayiCache.has(cacheKey)) return katsayiCache.get(cacheKey);
-
-  const ad = normalizeText(islemAdi);
-  const etkiliYapilan = getEffectiveYapilan(gereken, yapilan, devreden);
-  const oranYuzde = gereken > 0 ? (etkiliYapilan / gereken) * 100 : 0;
-  let sonuc = 1.0;
-
-  for (let [anahtar, k] of map.entries()) {
-    if (ad.includes(anahtar)) {
-      if (oranYuzde < k.asgariOran) { sonuc = k.asgariKatsayi; break; }
-      if (oranYuzde >= k.azamiOran) { sonuc = k.azamiKatsayi; break; }
-      const artis = ((k.azamiKatsayi - 1) / (k.azamiOran - k.asgariOran)) * (oranYuzde - k.asgariOran);
-      sonuc = 1 + artis;
-      break;
-    }
-  }
-
-  if (katsayiCache.size > 1000) katsayiCache.delete(katsayiCache.keys().next().value);
-  katsayiCache.set(cacheKey, sonuc);
-  return sonuc;
+  return calculateKatsayi(islemAdi, gereken, yapilan, devreden, map);
 }
+
+export { clearKatsayiCache as clearDoctorKatsayiCache } from "../../lib/katsayi-hesapla.js";
 
 export function calculateDoctorKHT(data) {
   if (!data || data.length === 0) {
@@ -41,7 +19,6 @@ export function calculateDoctorKHT(data) {
   let toplamEtkiliYapilan = 0;
 
   data.forEach((item) => {
-    // ✅ normalizeText kullan
     const ad = normalizeText(item.ad || "");
     const isDiabet = ad.includes("DIYABET") && ad.includes("TARAMASI");
     const isHipertansiyon = ad.includes("HIPERTANSIYON") && ad.includes("TARAMASI");
@@ -77,9 +54,4 @@ export function calculateDoctorKHT(data) {
     totalHedef: toplamHedef,
     totalYapilan: toplamEtkiliYapilan,
   };
-}
-
-// Cache temizleme fonksiyonu (gerektiğinde çağrılır)
-export function clearDoctorKatsayiCache() {
-  katsayiCache.clear();
 }
