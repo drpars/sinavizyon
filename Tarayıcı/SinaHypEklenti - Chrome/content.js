@@ -65,9 +65,11 @@ function mapHypToSina(hypData) {
     obesity_screening: "OBEZİTE TARAMASI",
     "obesity_monitoring-shm": "OBEZİTE İZLEMİ",
     cvdrisk_screening: "KVR TARAMASI",
-    cvdrisk_monitoring: "KVR İZLEM",
     cvdrisk_monitoring: "KVR İZLEMİ",
     elderly_monitoring: "YAŞLI SAĞLIĞI İZLEMİ",
+    cad_monitoring: "KORONERARTER İZLEMİ",
+    stroke_monitoring: "İNME İZLEMİ",
+    ckd_monitoring: "KRONİK BOBREK İZLEMİ",
   };
 
   return hypData

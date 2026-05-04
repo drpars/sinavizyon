@@ -16,7 +16,7 @@ export function showConsentModal() {
           "✓ Verileriniz yalnızca sizin cihazınızda tutulur\n" +
           "✓ Hiçbir sunucuya gönderilmez\n" +
           "✓ İstediğiniz zaman silebilir veya dışa aktarabilirsiniz\n" +
-          "✓ Veriler 90 gün sonra otomatik silinir\n\n" +
+          "✓ Veriler 60 gün sonra otomatik silinir\n\n" +
           "Bu koşulları kabul ediyor musunuz?"
       );
       resolve(userConfirmed);
