@@ -2,7 +2,10 @@
 // ============================================================
 // Performans Simülasyonu Modalı - "Ne Yapmalıyım?"
 // ============================================================
+import { getDomAy, getDomYil } from "../../../core/dom.js";
 import { analyzeAllItems, calculateCurrentKatsayi, calculateSmartStrategy } from "../../../features/doctor/strategy.js";
+import { getKatsayiMap, getPasifIslemler } from "../../../lib/constants.js";
+import { normalizeText } from "../../../utils/text-utils.js";
 
 let currentData = [];
 let currentTavanKatsayi = 1.0;
@@ -213,7 +216,8 @@ function bindSimulatorEvents() {
 
 // Akıllı öneriyi uygula
 function applySmartSuggestion() {
-  const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi);
+  const mapNorm = getKatsayiMapNorm();
+  const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi, mapNorm);
 
   if (strategy.type === "single" && strategy.strategy) {
     const item = currentData.find((d) => d.ad === strategy.strategy.islem);
@@ -237,13 +241,29 @@ function applySmartSuggestion() {
 function updateSimulatorUI() {
   updateStatusCard();
   updateSuggestionCard();
-  // updateSlidersList();
   updateResultCard();
+}
+
+// Yardımcı: map oluştur
+function getKatsayiMapNorm() {
+  const ay = getDomAy();
+  const yil = getDomYil();
+  const map = getKatsayiMap(ay, yil);
+  const norm = new Map();
+  for (let [k, v] of map.entries()) norm.set(normalizeText(k), v);
+  return norm;
+}
+
+function getPasifListe() {
+  const ay = getDomAy();
+  const yil = getDomYil();
+  return getPasifIslemler(ay, yil);
 }
 
 // Mevcut durum kartını güncelle
 function updateStatusCard() {
-  const currentKatsayi = calculateCurrentKatsayi(currentData);
+  const mapNorm = getKatsayiMapNorm();
+  const currentKatsayi = calculateCurrentKatsayi(currentData, mapNorm);
   const fark = currentTavanKatsayi - currentKatsayi;
 
   const currentEl = document.getElementById("simCurrentKatsayi");
@@ -266,7 +286,8 @@ function updateStatusCard() {
 
 // Akıllı öneri kartını güncelle
 function updateSuggestionCard() {
-  const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi);
+  const mapNorm = getKatsayiMapNorm();
+  const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi, mapNorm);
   const contentEl = document.getElementById("simSuggestionContent");
   const compactEl = document.getElementById("simSuggestionCompact");
   const cardEl = document.getElementById("simSuggestionCard");
@@ -279,15 +300,31 @@ function updateSuggestionCard() {
   } else if (strategy.type === "single" && strategy.strategy) {
     const s = strategy.strategy;
     compactEl.innerHTML = `💡 +${s.needed} ${s.islem}`;
-  } else if (strategy.type === "combination" && strategy.strategy.steps) {
+  } else if (strategy.type === "combination" && strategy.strategy.steps && strategy.strategy.steps.length > 0) {
     const totalNeeded = strategy.strategy.totalNeeded;
     const stepsCount = strategy.strategy.steps.length;
-    compactEl.innerHTML = `💡 +${totalNeeded} toplam (${stepsCount} işlem)`;
+    const reached = strategy.strategy.reached;
+    compactEl.innerHTML = reached
+      ? `💡 +${totalNeeded} toplam (${stepsCount} işlem)`
+      : `⚠️ +${totalNeeded} toplam - Tavana ulaşılamaz`;
+  } else if (strategy.type === "combination" && (!strategy.strategy.steps || strategy.strategy.steps.length === 0)) {
+    compactEl.innerHTML = `⚠️ Tavan katsayısına ulaşılamıyor`;
+    contentEl.innerHTML = `
+      <div class="suggestion-single">
+        <p style="text-align: center; padding: 16px;">
+          Mevcut hedeflerle tavan katsayısına ulaşılamıyor.<br><br>
+          <small>Mevcut: ${strategy.currentKatsayi.toFixed(5)}</small><br>
+          <small>Hedef: ${strategy.tavanKatsayi.toFixed(5)}</small>
+        </p>
+      </div>
+    `;
+    if (cardEl) cardEl.style.display = "block";
+    return;
   } else {
     compactEl.innerHTML = `💡 Öneri hesaplanıyor...`;
   }
 
-  // Detay içeriği güncelle (mevcut kod aynı)
+  // Detay içeriği güncelle
   if (strategy.reached && strategy.message) {
     contentEl.innerHTML = `...`;
     return;
@@ -318,7 +355,7 @@ function updateSuggestionCard() {
         </div>
       </div>
     `;
-  } else if (strategy.type === "combination" && strategy.strategy.steps) {
+  } else if (strategy.type === "combination" && strategy.strategy.steps && strategy.strategy.steps.length > 0) {
     const steps = strategy.strategy.steps;
     const totalNeeded = strategy.strategy.totalNeeded;
     const finalKatsayi = strategy.strategy.finalKatsayi;
@@ -346,16 +383,24 @@ function updateSuggestionCard() {
             <span>+${totalNeeded} adet</span>
           </div>
           <div class="detail-row ${reached ? "success" : "warning"}">
-            <span>${reached ? "✅" : "⚠️"} Ulaşılırsa Katsayı:</span>
-            <span>${finalKatsayi.toFixed(5)} ${reached ? "✓" : ""}</span>
+            <span>${reached ? "✅" : "⚠️"} Ulaşılacak Katsayı:</span>
+            <span>${finalKatsayi.toFixed(5)} ${reached ? "✓" : "(Tavan: " + currentTavanKatsayi.toFixed(5) + ")"}</span>
           </div>
+          ${
+            !reached
+              ? `
+          <div class="detail-row" style="color: var(--orange); margin-top: 8px;">
+            <span>💡 Tüm işlemler tamamlansa bile tavana ulaşılamıyor. HYP'den yapılan güncellemesi yapın.</span>
+          </div>
+          `
+              : ""
+          }
         </div>
       </div>
     `;
   }
 
   if (cardEl) cardEl.style.display = "block";
-  // Kartı varsayılan olarak kapalı tut
   cardEl?.classList.remove("expanded");
 }
 
@@ -364,7 +409,8 @@ function updateSlidersList() {
   const container = document.getElementById("simSlidersList");
   if (!container) return;
 
-  const items = analyzeAllItems(currentData);
+  const mapNorm = getKatsayiMapNorm();
+  const items = analyzeAllItems(currentData, mapNorm, getPasifListe());
 
   container.innerHTML = "";
 
@@ -512,13 +558,14 @@ function updateResultCard() {
 
   if (!contentEl || !compactEl) return;
 
+  const mapNorm = getKatsayiMapNorm();
   let simData = JSON.parse(JSON.stringify(currentData));
   sliderStates.forEach((value, islemAdi) => {
     const item = simData.find((d) => d.ad === islemAdi);
     if (item) item.yapilan = value;
   });
 
-  const simKatsayi = calculateCurrentKatsayi(simData);
+  const simKatsayi = calculateCurrentKatsayi(simData, mapNorm);
   const reached = simKatsayi >= currentTavanKatsayi;
   const totalEkYapilan = Array.from(sliderStates.entries()).reduce((sum, [islem, value]) => {
     const original = currentData.find((d) => d.ad === islem);

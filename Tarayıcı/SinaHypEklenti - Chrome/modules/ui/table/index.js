@@ -6,6 +6,8 @@ import {
   SUREC_KATSAYISI,
   getKatsayiMap,
   getNurseKatsayiMap,
+  getPasifIslemler,
+  getSurecKatsayisi,
   nurseFilterListNormalized,
 } from "../../lib/constants.js";
 import { normalizeText } from "../../utils/text-utils.js";
@@ -117,10 +119,14 @@ export function buildDoctorTable(data, updateKHTBarFn, ay = null, yil = null) {
     }
   }
 
+  const surecKatsayisi = ay && yil ? getSurecKatsayisi(ay, yil) : SUREC_KATSAYISI;
+
   const fragment = document.createDocumentFragment();
   let toplamCarpim = 1.0;
 
-  const gruplar = groupData(data, (ad) => PASIF_ISLEMLER_NORMALIZED.some((p) => ad.includes(p)));
+  const pasifListe = ay && yil ? getPasifIslemler(ay, yil) : PASIF_ISLEMLER_NORMALIZED;
+
+  const gruplar = groupData(data, (ad) => pasifListe.some((p) => ad.includes(p)));
 
   Object.keys(gruplar).forEach((grupAdi) => {
     const items = gruplar[grupAdi];
@@ -143,7 +149,7 @@ export function buildDoctorTable(data, updateKHTBarFn, ay = null, yil = null) {
   tbody.innerHTML = "";
   tbody.appendChild(fragment);
 
-  const finalSonuc = toplamCarpim * SUREC_KATSAYISI;
+  const finalSonuc = toplamCarpim * surecKatsayisi;
   if (updateKHTBarFn) updateKHTBarFn(data, "doctor");
   return finalSonuc;
 }

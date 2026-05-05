@@ -68,10 +68,21 @@ export function getNurseKatsayiMap(ay, yil) {
   return katsayiMapNurseEski;
 }
 
+const SUREC_KATSAYISI_ESKI = 1.03;
+const SUREC_KATSAYISI_YENI = 1.0;
+
+export function getSurecKatsayisi(ay, yil) {
+  const ayNum = typeof ay === "string" ? getMonthNumber(ay) : ay;
+  if (yil > 2026 || (yil === 2026 && ayNum >= 5)) return SUREC_KATSAYISI_YENI;
+  return SUREC_KATSAYISI_ESKI;
+}
+
+// Geriye dönük uyumluluk
+export const SUREC_KATSAYISI = 1.0;
+
 // ========== SABİTLER ==========
 export const katsayiMapNurse = katsayiMapNurseEski; // Geriye dönük
 export const RETENTION_DAYS = 60;
-export const SUREC_KATSAYISI = 1.03;
 
 export const hypToSinaMap = {
   "HİPERTANSİYON TARAMA": "HİPERTANSİYON TARAMASI",
@@ -89,7 +100,14 @@ export const hypToSinaMap = {
 };
 
 export const nurseFilterList = ["YAŞLI SAĞLIĞI İZLEMİ ASÇ", "VİTAL BULGU ASÇ", "VİTAL BULGU ASÇ TEKİL"];
-export const PASIF_ISLEMLER_NORMALIZED = ["KOAH", "ASTIM", "OTIZM"];
+
+export function getPasifIslemler(ay, yil) {
+  const ayNum = typeof ay === "string" ? getMonthNumber(ay) : ay;
+  if (yil > 2026 || (yil === 2026 && ayNum >= 5)) return [];
+  return ["INME", "BOREK", "BOBREK", "KORONERARTER", "KORONER"];
+}
+
+export const PASIF_ISLEMLER_NORMALIZED = [];
 
 // ========== NORMALİZE MAP'LER (ESKİ - geriye dönük uyumluluk) ==========
 export const katsayiMapNormalized = new Map();

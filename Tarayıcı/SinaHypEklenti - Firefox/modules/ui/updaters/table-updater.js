@@ -2,7 +2,7 @@
 import { updateKHTBar } from "./kht-updater.js";
 
 import { calculateDoctorKatsayi } from "../../features/doctor/calculator.js";
-import { SUREC_KATSAYISI } from "../../lib/constants.js";
+import { getSurecKatsayisi, SUREC_KATSAYISI } from "../../lib/constants.js";
 import { buildDoctorTable, buildNurseTable } from "../table/index.js";
 
 export function updateTable(data, userType = "doctor", showAll = false, birimId = "", ay = null, yil = null) {
@@ -41,7 +41,7 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
             const dev = parseFloat(item.devreden) || 0;
             doctorToplam *= calculateDoctorKatsayi(item.ad, ger, yap, dev);
           });
-          doctorBasari = doctorToplam * SUREC_KATSAYISI;
+          doctorBasari = doctorToplam * getSurecKatsayisi(ay, yil);
         }
 
         const nufusKey = `nufus_${birimId}`;
