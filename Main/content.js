@@ -70,6 +70,9 @@ function mapHypToSina(hypData) {
     cad_monitoring: "KORONERARTER İZLEMİ",
     stroke_monitoring: "İNME İZLEMİ",
     ckd_monitoring: "KRONİK BOBREK İZLEMİ",
+    copd_monitoring: "KOAH İZLEMİ",
+    asthma_monitoring: "ASTIM İZLEMİ",
+    osb_screening: "OTİZM TARAMASI",
   };
 
   return hypData

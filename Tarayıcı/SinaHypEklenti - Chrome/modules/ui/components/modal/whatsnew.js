@@ -7,7 +7,13 @@ export async function showWhatsNewModal(version) {
     modal.style.animation = "fadeIn 0.2s ease";
 
     let whatsNewItems = [];
-
+    if (version === "2.2.1") {
+      whatsNewItems = [
+        "📊 1 Mayıs 2026 katsayı güncellemeleri eklendi",
+        "📅 Ay ve yıl seçimine göre eski/yeni katsayılar otomatik seçilir",
+        "🆕 Yeni işlemler: Koronerarter, Kronik Böbrek, İnme İzlemleri,KOAH İZLEMİ, ASTIM İZLEMİ, OTİZM TARAMASI",
+      ];
+    } else
     if (version === "2.2.0") {
       whatsNewItems = [
         "📊 1 Mayıs 2026 katsayı güncellemeleri eklendi",
