@@ -8,7 +8,19 @@ export async function showWhatsNewModal(version) {
 
     let whatsNewItems = [];
 
-    if (version === "2.1.8") {
+    if (version === "2.2.0") {
+      whatsNewItems = [
+        "📊 1 Mayıs 2026 katsayı güncellemeleri eklendi",
+        "📅 Ay ve yıl seçimine göre eski/yeni katsayılar otomatik seçilir",
+        "🆕 Yeni işlemler: Koronerarter, Kronik Böbrek, İnme İzlemleri",
+        "👩‍⚕️ ASÇ başarı katsayısı doktor tavanını aşamaz",
+        "⏱️ Veriler 60 gün saklanır (önceden 90 gündü)",
+        "🧹 Kod kalitesi iyileştirildi (ortak fonksiyonlar)",
+        "⚡ Performans artışı (cache ve optimizasyonlar)",
+        "🐛 KVR İzlem ve veri birleştirme düzeltmeleri",
+        "🧪 33 birim test eklendi",
+      ];
+    } else if (version === "2.1.8") {
       whatsNewItems = [
         "🐛 KVR İzlem verisi HYP'den doğru şekilde güncelleniyor",
         "👩‍⚕️ ASÇ başarı katsayısı hesaplaması güncellendi",

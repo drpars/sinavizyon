@@ -148,13 +148,13 @@ export function simulateSingleChange(data, islemAdi, newYapilan) {
 }
 
 // Bir işlem için maksimum katsayıya ulaşmak için gereken yapılan sayısı
-export function getMaxYapilanForIslem(item) {
+export function getMaxYapilanForIslem(item, katsayiMapNorm = null) {
   const ad = normalizeText(item.ad);
   const gereken = parseFloat(item.gereken) || 0;
+  const map = katsayiMapNorm || katsayiMapNormalized;
+  let azamiOran = 90;
 
-  let azamiOran = 90; // Varsayılan
-
-  for (let [anahtar, k] of katsayiMapNormalized.entries()) {
+  for (let [anahtar, k] of map.entries()) {
     if (ad.includes(anahtar)) {
       azamiOran = k.azamiOran;
       break;
@@ -186,29 +186,33 @@ export function getNeededForMax(item) {
  * @param {number} currentKatsayi Mevcut başarı katsayısı
  * @returns {object} { needed: 0, targetYapilan: 0, newKatsayi: 0 }
  */
-function findMinimalYapilanForTavan(data, item, tavanKatsayi, currentKatsayi) {
+function findMinimalYapilanForTavan(data, item, tavanKatsayi, currentKatsayi, katsayiMapNorm = null) {
   const currentYapilan = parseFloat(item.yapilan) || 0;
-  const maxYapilan = getMaxYapilanForIslem(item);
+  const maxYapilan = getMaxYapilanForIslem(item, katsayiMapNorm);
 
-  // Eğer mevcut haliyle zaten hedefe ulaşılıyorsa veya maksimum bile yetmiyorsa
   if (currentKatsayi >= tavanKatsayi) {
     return { needed: 0, targetYapilan: currentYapilan, newKatsayi: currentKatsayi };
   }
 
+  // ✅ Maksimum kontrolü: en yüksek değer bile yetmiyorsa atla
+  const maxSim = simulateSingleChange(data, item.ad, maxYapilan);
+  if (maxSim.katsayi < tavanKatsayi) {
+    return { needed: 0, targetYapilan: currentYapilan, newKatsayi: maxSim.katsayi };
+  }
+
   let low = currentYapilan;
   let high = maxYapilan;
-  let bestYapilan = maxYapilan; // Varsayılan olarak maksimumu al
+  let bestYapilan = maxYapilan;
 
-  // Binary Search ile tam hedefi bul
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     const simResult = simulateSingleChange(data, item.ad, mid);
 
     if (simResult.katsayi >= tavanKatsayi) {
-      bestYapilan = mid; // Hedefe ulaştı, daha da azaltmayı dene
+      bestYapilan = mid;
       high = mid - 1;
     } else {
-      low = mid + 1; // Yetmedi, artırmak gerek
+      low = mid + 1;
     }
   }
 

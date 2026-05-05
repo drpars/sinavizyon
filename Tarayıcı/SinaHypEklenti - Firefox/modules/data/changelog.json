@@ -1,6 +1,23 @@
 {
   "changelogData": [
     {
+      "version": "2.2.0",
+      "date": "2026-05-05",
+      "changes": [
+        "📊 **Yeni Katsayılar:** 1 Mayıs 2026 itibarıyla güncel katsayılar eklendi.",
+        "📅 **Tarih Bazlı Katsayı:** Nisan 2026 ve öncesi için eski katsayılar, Mayıs 2026 ve sonrası için yeni katsayılar otomatik seçilir.",
+        "🆕 **Yeni İşlemler:** KORONERARTER İZLEMİ, KRONİK BOBREK İZLEMİ, İNME İZLEMİ aktif işlemlere eklendi.",
+        "👩‍⚕️ **ASÇ Güncellemesi:** ASÇ başarı katsayısı, doktor tavan katsayısını aşamaz. Doktor verisi yoksa ASÇ kendi değerinde kalır.",
+        "🔧 **HYP Mapping:** Yeni işlemler için HYP-SİNA eşleştirmeleri güncellendi.",
+        "⏱️ **Veri Saklama:** Veriler 90 gün yerine 60 gün saklanacak şekilde güncellendi.",
+        "🧹 **Kod Kalitesi:** Katsayı hesaplama, tablo gruplandırma ve dialog fonksiyonları ortak hale getirildi (DRY).",
+        "⚡ **Performans:** Vital/Tekil katsayı karşılaştırması cache'lendi, DOM erişimleri azaltıldı.",
+        "🐛 **Düzeltme:** Veri birleştirmede NaN güvenliği sağlandı.",
+        "🐛 **Düzeltme:** KVR İzlem mapping çakışması giderildi.",
+        "🧪 **Test Altyapısı:** 33 birim test ile kod kalitesi güvence altına alındı."
+      ]
+    },
+    {
       "version": "2.1.8",
       "date": "2026-04-29",
       "changes": [

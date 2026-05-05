@@ -4,7 +4,10 @@ import {
   getCurrentBirimId,
   getCurrentShowAll,
   getCurrentUserType,
+  setCurrentAy,
+  setCurrentNufus,
   setCurrentShowAll,
+  setCurrentYil,
   setPendingStorageType,
 } from "./state.js";
 import { saveNufusForBirim } from "./storage.js";
@@ -225,11 +228,13 @@ export function bindToggleKvkkButton() {
 export function bindMonthYearChange(reloadDataByMonthFn, aySelect, yilInput) {
   if (aySelect) {
     aySelect.addEventListener("change", () => {
+      setCurrentAy(aySelect.value); // ✅ State güncelle
       reloadDataByMonthFn();
     });
   }
   if (yilInput) {
     yilInput.addEventListener("change", () => {
+      setCurrentYil(parseInt(yilInput.value)); // ✅ State güncelle
       reloadDataByMonthFn();
     });
   }
@@ -345,6 +350,7 @@ export function bindNufusChange(reloadDataByMonthFn) {
 
   input.addEventListener("change", (e) => {
     const val = e.target.value;
+    setCurrentNufus(val); // ✅ State güncelle
     const birimId = getCurrentBirimId();
     if (birimId) saveNufusForBirim(birimId, val);
     tavanHesapla(val);

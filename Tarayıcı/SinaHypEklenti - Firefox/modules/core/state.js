@@ -4,6 +4,9 @@
 // ============================================================
 
 // ---------- STATE DEĞİŞKENLERİ ----------
+let currentAy = "";
+let currentYil = 0;
+let currentNufus = "";
 let currentUserType = "doctor";
 let currentBirimId = "";
 let currentShowAll = false;
@@ -38,6 +41,18 @@ function batchSetStorage(items) {
 }
 
 // ---------- STATE GETTERS ----------
+export function getCurrentAy() {
+  return currentAy;
+}
+
+export function getCurrentYil() {
+  return currentYil;
+}
+
+export function getCurrentNufus() {
+  return currentNufus;
+}
+
 export function getCurrentUserType() {
   return currentUserType;
 }
@@ -63,6 +78,21 @@ export function getFontSettingsActive() {
 }
 
 // ---------- STATE SETTERS ----------
+export function setCurrentAy(ay) {
+  currentAy = ay;
+  notifyListeners();
+}
+
+export function setCurrentYil(yil) {
+  currentYil = yil;
+  notifyListeners();
+}
+
+export function setCurrentNufus(nufus) {
+  currentNufus = nufus;
+  notifyListeners();
+}
+
 export function setCurrentUserType(type, silent = false) {
   currentUserType = type;
   if (!silent) notifyListeners();

@@ -141,7 +141,6 @@ function mergeSinaData(existingData, newData) {
     return newData;
   }
 
-  // Mevcut yapilan ve devreden değerlerini bir Map'e kaydet
   const yapilanMap = new Map();
   const devredenMap = new Map();
 
@@ -151,18 +150,16 @@ function mergeSinaData(existingData, newData) {
     devredenMap.set(key, item.devreden);
   });
 
-  // Yeni veriyi oluştur
   return newData.map((item) => {
     const key = normalizeText(item.ad);
     const existingYapilan = yapilanMap.get(key);
     const existingDevreden = devredenMap.get(key);
     const newYapilan = item.yapilan;
 
-    // ✅ Büyük olan yapilan'ı al (yapılan işlem geri alınamaz!)
-    const finalYapilan =
-      existingYapilan !== undefined && parseFloat(existingYapilan) > parseFloat(newYapilan)
-        ? existingYapilan
-        : newYapilan;
+    // ✅ NaN güvenli karşılaştırma
+    const existingNum = parseFloat(existingYapilan) || 0;
+    const newNum = parseFloat(newYapilan) || 0;
+    const finalYapilan = existingNum > newNum ? existingYapilan : newYapilan;
 
     return {
       ...item,

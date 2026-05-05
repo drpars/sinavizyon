@@ -2,6 +2,7 @@
 // ============================================================
 // Tüm DOM element referansları buradan yönetilir
 // ============================================================
+import { getCurrentAy as stateAy, getCurrentNufus as stateNufus, getCurrentYil as stateYil } from "./state.js";
 
 // ---------- BUTONLAR ----------
 export const buttons = {
@@ -81,17 +82,17 @@ export function getDomUserType() {
 
 export function getDomAy() {
   const select = inputs.ay();
-  return select?.value || "";
+  return stateAy() || select?.value || "";
 }
 
 export function getDomYil() {
   const input = inputs.yil();
-  return parseInt(input?.value || "0");
+  return stateYil() || parseInt(input?.value || "0");
 }
 
 export function getDomNufus() {
   const input = inputs.nufus();
-  return input?.value || "";
+  return stateNufus() || input?.value || "";
 }
 
 export function setDomNufus(value) {

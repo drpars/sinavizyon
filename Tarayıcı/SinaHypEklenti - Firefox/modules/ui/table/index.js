@@ -148,6 +148,8 @@ export function buildDoctorTable(data, updateKHTBarFn, ay = null, yil = null) {
   return finalSonuc;
 }
 
+const vitalCache = new Map();
+
 export function buildNurseTable(data, showAll, updateKHTBarFn, ay = null, yil = null) {
   const tbody = document.getElementById("tableBody");
   if (!tbody) return { asçBasari: 1.0, asçItems: [], doctorItems: [] };
@@ -181,25 +183,43 @@ export function buildNurseTable(data, showAll, updateKHTBarFn, ay = null, yil = 
   let useTekilInstead = false;
 
   if (vitalNormalItems.length > 0 && vitalTekilItems.length > 0) {
-    let normalKatsayi = 1.0;
-    let tekilKatsayi = 1.0;
-
-    vitalNormalItems.forEach((item) => {
-      const ger = parseFloat(item.gereken) || 0;
-      const yap = parseFloat(item.yapilan) || 0;
-      const dev = parseFloat(item.devreden) || 0;
-      normalKatsayi *= calculateNurseKatsayi(item.ad, ger, yap, dev, nurseMapNorm);
+    // ✅ Cache anahtarı
+    const cacheKey = JSON.stringify({
+      normal: vitalNormalItems.map((i) => `${i.ad}|${i.gereken}|${i.yapilan}|${i.devreden}`),
+      tekil: vitalTekilItems.map((i) => `${i.ad}|${i.gereken}|${i.yapilan}|${i.devreden}`),
     });
 
-    vitalTekilItems.forEach((item) => {
-      const ger = parseFloat(item.gereken) || 0;
-      const yap = parseFloat(item.yapilan) || 0;
-      const dev = parseFloat(item.devreden) || 0;
-      tekilKatsayi *= calculateNurseKatsayi(item.ad, ger, yap, dev, nurseMapNorm);
-    });
+    const cached = vitalCache.get(cacheKey);
+    if (cached !== undefined) {
+      useTekilInstead = cached;
+      selectedVitalItems = useTekilInstead ? [...vitalTekilItems] : [...vitalNormalItems];
+    } else {
+      let normalKatsayi = 1.0;
+      let tekilKatsayi = 1.0;
 
-    if (tekilKatsayi > normalKatsayi) {
-      useTekilInstead = true;
+      vitalNormalItems.forEach((item) => {
+        const ger = parseFloat(item.gereken) || 0;
+        const yap = parseFloat(item.yapilan) || 0;
+        const dev = parseFloat(item.devreden) || 0;
+        normalKatsayi *= calculateNurseKatsayi(item.ad, ger, yap, dev, nurseMapNorm);
+      });
+
+      vitalTekilItems.forEach((item) => {
+        const ger = parseFloat(item.gereken) || 0;
+        const yap = parseFloat(item.yapilan) || 0;
+        const dev = parseFloat(item.devreden) || 0;
+        tekilKatsayi *= calculateNurseKatsayi(item.ad, ger, yap, dev, nurseMapNorm);
+      });
+
+      useTekilInstead = tekilKatsayi > normalKatsayi;
+      vitalCache.set(cacheKey, useTekilInstead);
+
+      if (vitalCache.size > 100) {
+        vitalCache.delete(vitalCache.keys().next().value);
+      }
+    }
+
+    if (useTekilInstead) {
       selectedVitalItems = [...vitalTekilItems];
     }
   } else if (vitalTekilItems.length > 0) {
