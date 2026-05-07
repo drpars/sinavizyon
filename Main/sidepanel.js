@@ -503,6 +503,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     simulatorBtn.addEventListener("click", openSimulator);
   }
 
+  // Dashboard butonu
+  const dashboardBtn = document.getElementById("btnDashboard");
+  if (dashboardBtn) {
+    dashboardBtn.addEventListener("click", () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL("modules/features/dashboard/dashboard.html") });
+    });
+  }
+
   // Font ayarı
   const fontToggle = document.getElementById("fontToggleCheckbox");
   const fontContainer = document.getElementById("fontSettingsContainer");

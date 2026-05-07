@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>SİNA VİZYON - Dashboard</title>
+    <link rel="stylesheet" href="../../../styles/components/dashboard.css" />
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <div class="header-left">
+          <img src="../../../icons/icon-org.svg" class="header-logo" alt="SİNA VİZYON" />
+          <div class="header-title">
+            <h1>SİNA VİZYON</h1>
+            <div class="update-times">
+              <span class="update-time">SİNA: <strong id="sinaTime">-</strong></span>
+              <span class="update-time">HYP: <strong id="hypTime">-</strong></span>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <span id="ayYil" class="month-year"></span>
+        </div>
+      </div>
+
+      <div class="dashboard-cards" id="dashboardCards"></div>
+
+      <div class="dashboard-tables">
+        <div class="table-section table-izlem" id="izlemlerSection"></div>
+        <div class="tables-right">
+          <div class="table-section table-tarama" id="taramalarSection"></div>
+          <div class="table-section table-kanser" id="kanserSection"></div>
+        </div>
+      </div>
+    </div>
+    <div class="about-modal" id="aboutModal">
+      <div class="about-modal-content">
+        <span class="about-modal-close" id="aboutModalClose">&times;</span>
+        <div class="about-modal-glow"></div>
+        <div class="about-modal-icon">
+          <img src="../../../icons/deepseek-logo.png" alt="DeepSeek" class="deepseek-pulse" />
+        </div>
+        <h2>SİNA VİZYON</h2>
+        <div class="about-modal-powered">
+          <span>Powered by</span>
+          <strong>DeepSeek AI</strong>
+        </div>
+        <p class="about-modal-motto">"Yapay zeka ile aile hekimliğinde performans takibi artık çok daha kolay."</p>
+        <p class="about-modal-quote">
+          "Bilim, aklın şiiridir; şiir, aklın bilimidir."
+          <span class="about-modal-quote-author">— İbn-i Sina</span>
+        </p>
+        <div class="about-modal-version">
+          <span id="aboutVersion">v2.2.2</span>
+        </div>
+      </div>
+    </div>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

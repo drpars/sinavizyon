@@ -92,6 +92,20 @@ input[type="number"] {
   display: none;
 }
 
+.table-expand-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--fg);
+  opacity: 0.2;
+  transform: translateY(1px);
+}
+.table-expand-btn:hover {
+  opacity: 1;
+  color: var(--blue);
+}
+
 /* ============================================
    GLOBAL SCROLLBAR STİLİ (OKSUZ, İNCE, TEMALI)
    ============================================ */
