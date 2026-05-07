@@ -7,18 +7,19 @@ export async function showWhatsNewModal(version) {
     modal.style.animation = "fadeIn 0.2s ease";
 
     let whatsNewItems = [];
-    if (version === "2.2.1") {
+    if (version === "2.2.2") {
       whatsNewItems = [
-        "📊 1 Mayıs 2026 katsayı güncellemeleri eklendi",
-        "📅 Ay ve yıl seçimine göre eski/yeni katsayılar otomatik seçilir",
-        "🆕 Yeni işlemler: Koronerarter, Kronik Böbrek, İnme İzlemleri,KOAH İZLEMİ, ASTIM İZLEMİ, OTİZM TARAMASI",
+        "🐛 Katsayı hesaplama cache hatası giderildi",
+        "🐛 SİNA tekrar çekildiğinde devreden güncelleniyor",
+        "🔧 HYP'den KOAH, ASTIM, OTİZM verileri çekiliyor",
       ];
-    } else
-    if (version === "2.2.0") {
+    } else if (version === "2.2.1") {
+      whatsNewItems = ["🔧 HYP'den KOAH, ASTIM, OTİZM verileri çekiliyor", "🐛 Akıllı Öneri iyileştirmeleri"];
+    } else if (version === "2.2.0") {
       whatsNewItems = [
         "📊 1 Mayıs 2026 katsayı güncellemeleri eklendi",
         "📅 Ay ve yıl seçimine göre eski/yeni katsayılar otomatik seçilir",
-        "🆕 Yeni işlemler: Koronerarter, Kronik Böbrek, İnme İzlemleri",
+        "🆕 Yeni işlemler: Koronerarter, Kronik Böbrek, İnme, KOAH, ASTIM, Otizm",
         "👩‍⚕️ ASÇ başarı katsayısı doktor tavanını aşamaz",
         "⏱️ Veriler 60 gün saklanır (önceden 90 gündü)",
         "🧹 Kod kalitesi iyileştirildi (ortak fonksiyonlar)",

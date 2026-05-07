@@ -1,6 +1,15 @@
 {
   "changelogData": [
     {
+      "version": "2.2.2",
+      "date": "2026-05-07",
+      "changes": [
+        "🐛 **Kritik Düzeltme:** Eski ay katsayılarının cache'de kalıp yeni ay hesaplamalarını bozması giderildi.",
+        "🐛 **Devreden Düzeltmesi:** SİNA'dan veri tekrar çekildiğinde devreden değeri güncel SİNA değeri ile değişir.",
+        "🔧 **HYP Mapping:** KOAH İZLEMİ, ASTIM İZLEMİ, OTİZM TARAMASI eklendi."
+      ]
+    },
+    {
       "version": "2.2.1",
       "date": "2026-05-05",
       "changes": [

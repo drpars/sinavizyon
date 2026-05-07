@@ -164,7 +164,7 @@ function mergeSinaData(existingData, newData) {
     return {
       ...item,
       yapilan: finalYapilan,
-      devreden: existingDevreden !== undefined ? existingDevreden : item.devreden,
+      devreden: item.devreden,
     };
   });
 }
@@ -646,7 +646,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       // pendingStorageType'ı state'ten al
       chrome.storage.local.get(["pendingStorageType"], (res) => {
         pendingStorage = res.pendingStorageType || "nurse";
-        console.log(`🔍 pendingStorageType: ${pendingStorage}`); // ← BU LOGU EKLE
 
         if (!birimId) {
           if (sendResponse) sendResponse({ status: "error", message: "Birim ID gerekli" });
