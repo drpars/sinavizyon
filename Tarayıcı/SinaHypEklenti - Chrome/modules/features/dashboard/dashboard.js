@@ -28,6 +28,15 @@ function renderDashboard(record, birimId) {
 
   // Header
   document.getElementById("ayYil").textContent = `${ay} ${yil}`;
+
+  // Birim adını güncelle
+  const birimHeader = document.getElementById("birimNameHeader");
+  if (birimHeader) {
+    const birimText = birimHeader.querySelector(".birim-text");
+    if (birimText) {
+      birimText.textContent = birimId ? `Birim: ${birimId}` : "Birim: -";
+    }
+  }
   // sonGuncelleme satırını SİL:
 
   renderCards(data, birimId, ay, yil);

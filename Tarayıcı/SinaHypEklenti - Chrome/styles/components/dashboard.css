@@ -122,6 +122,37 @@ body {
   gap: 12px;
 }
 
+/* ---------- BİRİM ADI HEADER ---------- */
+.birim-name-header {
+  position: relative;
+  text-align: center;
+  padding: 8px 0;
+  margin: 4px 0;
+  overflow: hidden;
+}
+
+.birim-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(122,162,247,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  animation: glowSpin 8s linear infinite;
+}
+
+.birim-text {
+  position: relative;
+  z-index: 1;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--daccent), #bb9af7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .refresh-btn {
   background: rgba(255,255,255,0.15);
   border: 1px solid rgba(255,255,255,0.2);
@@ -277,7 +308,7 @@ body {
   gap: 10px;
   flex: 1;
   min-height: 0;
-  align-items: stretch;   /* sol ve sağ kolonları dikeyde eşitler */
+  align-items: flex-start;   /* kartlar kendi yüksekliğinde kalsın */
 }
 
 .table-izlem {
@@ -298,11 +329,13 @@ body {
 }
 
 .tables-right {
-  flex: 1;            /* kalalan dikey alanı al */
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  margin: 0;           /* ekstra dış boşluk yok */
+  align-self: flex-start; /* konteynerda dikeyde başa yaslan */
 }
 
 /* .table-section genel flex:1 tanımını ezmek için */
