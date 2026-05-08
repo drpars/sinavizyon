@@ -122,16 +122,21 @@ body {
   gap: 12px;
 }
 
-/* ---------- BİRİM ADI HEADER ---------- */
-.birim-name-header {
+/* ---------- BİRİM ADI KARTI ---------- */
+.birim-ad-card {
   position: relative;
+  background: linear-gradient(135deg, var(--daccent), var(--dbg-header));
+  color: white;
+  padding: 12px 24px;
+  border-radius: 14px;
+  margin-bottom: 14px;
   text-align: center;
-  padding: 8px 0;
-  margin: 4px 0;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  animation: none; /* glow için */
 }
 
-.birim-glow {
+.birim-ad-glow {
   position: absolute;
   top: -50%;
   left: -50%;
@@ -142,12 +147,12 @@ body {
   animation: glowSpin 8s linear infinite;
 }
 
-.birim-text {
+.birim-ad-text {
   position: relative;
   z-index: 1;
   font-size: 1.2rem;
   font-weight: 600;
-  background: linear-gradient(135deg, var(--daccent), #bb9af7);
+  background: linear-gradient(135deg, #ffffff, #bb9af7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

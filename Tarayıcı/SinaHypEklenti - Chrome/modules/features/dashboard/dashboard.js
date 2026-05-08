@@ -29,12 +29,12 @@ function renderDashboard(record, birimId) {
   // Header
   document.getElementById("ayYil").textContent = `${ay} ${yil}`;
 
-  // Birim adını güncelle
-  const birimHeader = document.getElementById("birimNameHeader");
-  if (birimHeader) {
-    const birimText = birimHeader.querySelector(".birim-text");
-    if (birimText) {
-      birimText.textContent = birimId ? `Birim: ${birimId}` : "Birim: -";
+  // Birim adı kartını güncelle
+  const birimAdCard = document.getElementById("birimAdCard");
+  if (birimAdCard) {
+    const birimAdText = birimAdCard.querySelector(".birim-ad-text");
+    if (birimAdText) {
+      birimAdText.textContent = birimId ? `Birim: ${birimId}` : "Birim: -";
     }
   }
   // sonGuncelleme satırını SİL:
