@@ -277,10 +277,11 @@ body {
   gap: 10px;
   flex: 1;
   min-height: 0;
+  align-items: stretch;   /* sol ve sağ kolonları dikeyde eşitler */
 }
 
 .table-izlem {
-  flex: 1;  /* solda geniş */
+  flex: 0 0 auto;  /* içeriği kadar yükseklik */
   min-width: 0;
 }
 
@@ -297,28 +298,27 @@ body {
 }
 
 .tables-right {
-  flex: 1;
+  flex: 1;            /* kalalan dikey alanı al */
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
 }
 
-/* Tarama ve Kanser tabloları dikeyde esnek dolsun */
-.table-tarama,
-.table-kanser {
-  flex: 1 1 0; /* dikeyde kalan alanı doldur */
+/* .table-section genel flex:1 tanımını ezmek için */
+.table-tarama, .table-kanser {
+  flex: 0 0 auto;  /* içerik kadar yer kapla */
   display: flex;
   flex-direction: column;
-  min-height: 0; /* taşma yönetimi için */
 }
 
-/* Tabloların iç kısımları esnek olsun */
+/* Tarama ve Kanser body'leri içerik kadar */
 .table-tarama .table-section-body,
 .table-kanser .table-section-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 0 0 auto;   /* sadece içerik kadar yükseklik */
+  overflow-y: visible;
   max-height: none;
+  padding: 4px;        /* boşluk azalt */
 }
 
 /* Tarama ve Kanser yazıları da biraz büyüsün */
@@ -337,6 +337,7 @@ body {
   font-size: 0.8rem;
 }
 
+/* ---------- TABLE SECTION ---------- */
 .table-section {
   background: var(--dbg-card);
   border: 1px solid var(--dborder);
@@ -348,6 +349,8 @@ body {
   flex: 1;
   min-width: 0;
   transition: all 0.3s ease;
+  padding: 0;   /* ek boşluk yok */
+  margin: 0;    /* ek boşluk yok */
 }
 
 .table-section:hover {
