@@ -10,6 +10,8 @@ import {
   getSurecKatsayisi,
   nurseFilterListNormalized,
 } from "../../lib/constants.js";
+import { getDomAy, getDomYil } from "../../core/dom.js";
+import { getKatsayiMapNormalized } from "../../lib/constants.js";
 import { normalizeText } from "../../utils/text-utils.js";
 
 // ========== ORTAK YARDIMCILAR ==========
@@ -65,7 +67,20 @@ export function createTableRow(item, grupAdi = "") {
   const oranYuzde = ger > 0 ? (etkiliYapilan / ger) * 100 : 0;
   const isPasif = grupAdi === "DİĞER / PASİF";
 
-  const isSuccess = oranYuzde >= 90;
+  // Her işlemin kendi azamiOran'ını kullan
+  const ay = getDomAy();
+  const yil = getDomYil();
+  const mapNorm = getKatsayiMapNormalized(ay, yil);
+  const adNorm = normalizeText(item.ad);
+  let azamiOran = 90; // varsayılan
+  for (const [key, k] of mapNorm.entries()) {
+    if (adNorm.includes(key)) {
+      azamiOran = k.azamiOran;
+      break;
+    }
+  }
+  const isSuccess = oranYuzde >= azamiOran;
+
   const tr = document.createElement("tr");
   if (!isPasif) tr.className = isSuccess ? "status-done" : "status-fail";
 

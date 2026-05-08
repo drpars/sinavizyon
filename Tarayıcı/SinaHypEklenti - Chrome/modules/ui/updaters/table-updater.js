@@ -2,8 +2,9 @@
 import { updateKHTBar } from "./kht-updater.js";
 
 import { calculateDoctorKatsayi } from "../../features/doctor/calculator.js";
-import { getSurecKatsayisi, SUREC_KATSAYISI } from "../../lib/constants.js";
+import { getKatsayiMap, getSurecKatsayisi, SUREC_KATSAYISI } from "../../lib/constants.js";
 import { buildDoctorTable, buildNurseTable } from "../table/index.js";
+import { normalizeText } from "../../utils/text-utils.js";
 
 export function updateTable(data, userType = "doctor", showAll = false, birimId = "", ay = null, yil = null) {
   const tbody = document.getElementById("tableBody");
@@ -35,11 +36,18 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
         if (doctorData.length > 0) {
           hasDoctorData = true;
           let doctorToplam = 1.0;
+          // Doktor katsayi map'ini oluştur
+          let doctorMapNorm = null;
+          if (ay && yil) {
+            const doctorMap = getKatsayiMap(ay, yil);
+            doctorMapNorm = new Map();
+            for (let [k, v] of doctorMap.entries()) doctorMapNorm.set(normalizeText(k), v);
+          }
           doctorData.forEach((item) => {
             const ger = parseFloat(item.gereken) || 0;
             const yap = parseFloat(item.yapilan) || 0;
             const dev = parseFloat(item.devreden) || 0;
-            doctorToplam *= calculateDoctorKatsayi(item.ad, ger, yap, dev);
+            doctorToplam *= calculateDoctorKatsayi(item.ad, ger, yap, dev, doctorMapNorm);
           });
           doctorBasari = doctorToplam * getSurecKatsayisi(ay, yil);
         }

@@ -903,6 +903,20 @@ document.addEventListener("DOMContentLoaded", async function () {
         // ✅ TABLOYU GÜNCELLE
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
 
+        // Simülatör açıksa güncelle
+        if (window.simulatorModal && simulatorModal.style.display === "flex") {
+          // Yeniden veri çek ve UI'yi tazele
+          const savedKey = `savedResults_${userType}_${birimId}`;
+          chrome.storage.local.get([savedKey], (res) => {
+            const data = res[savedKey]?.data || [];
+            // Simülatör UI fonksiyonları
+            updateStatusCard();
+            updateSuggestionCard();
+            updateResultCard();
+            updateSlidersList();
+          });
+        }
+
         const simulatorBtn = document.getElementById("btnSimulator");
         if (simulatorBtn && userType === "doctor") {
           simulatorBtn.disabled = false;
