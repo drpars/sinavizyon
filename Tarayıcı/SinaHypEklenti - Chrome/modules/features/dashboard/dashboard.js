@@ -288,6 +288,21 @@ async function createTableSection(title, items, color, icon, ay, yil) {
   `;
 }
 
+// Yenile tusu
+document.getElementById('btnRefresh').addEventListener('click', (e) => {
+  e.stopPropagation();  // ← modalı engelle
+  
+  chrome.storage.local.get(['birimId'], (settings) => {
+    const birimId = settings.birimId;
+    if (birimId) {
+      const key = `savedResults_doctor_${birimId}`;
+      chrome.storage.local.get([key], (res) => {
+        renderDashboard(res[key], birimId);
+      });
+    }
+  });
+});
+
 // About Modal
 document.querySelector('.dashboard-header').addEventListener('click', () => {
   const modal = document.getElementById('aboutModal');

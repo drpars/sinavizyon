@@ -122,6 +122,30 @@ body {
   gap: 12px;
 }
 
+.refresh-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  font-size: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: rgba(255,255,255,0.25);
+  transform: rotate(90deg);
+}
+
+.refresh-btn:active {
+  transform: rotate(360deg) scale(0.9);
+}
+
 .month-year {
   background: rgba(255,255,255,0.2);
   padding: 6px 14px;
