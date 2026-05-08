@@ -304,18 +304,20 @@ body {
   min-width: 0;
 }
 
-/* .table-section genel flex:1 tanımını ezmek için */
-.table-tarama, .table-kanser {
-  flex: 0 0 auto;  /* içerik kadar yer kapla */
+/* Tarama ve Kanser tabloları dikeyde esnek dolsun */
+.table-tarama,
+.table-kanser {
+  flex: 1 1 0; /* dikeyde kalan alanı doldur */
   display: flex;
   flex-direction: column;
+  min-height: 0; /* taşma yönetimi için */
 }
 
-/* Tarama ve Kanser body'leri içerik kadar */
+/* Tabloların iç kısımları esnek olsun */
 .table-tarama .table-section-body,
 .table-kanser .table-section-body {
-  flex: 0 0 auto;
-  overflow-y: visible;
+  flex: 1;
+  overflow-y: auto;
   max-height: none;
 }
 
