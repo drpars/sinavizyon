@@ -24,7 +24,7 @@ function renderDashboard(record, birimId) {
     return;
   }
 
-  const { data, ay, yil } = record;
+  const { data, ay, yil, birimAdi } = record;
 
   // Header
   document.getElementById("ayYil").textContent = `${ay} ${yil}`;
@@ -34,19 +34,13 @@ function renderDashboard(record, birimId) {
   if (birimAdCard) {
     const birimAdText = birimAdCard.querySelector(".birim-ad-text");
     if (birimAdText) {
-      birimAdText.textContent = birimId ? `Birim: ${birimId}` : "Birim: -";
+      const display = birimAdi || birimId || "-";
+      birimAdText.textContent = `Birim: ${display}`;
     }
   }
-  // sonGuncelleme satırını SİL:
 
   renderCards(data, birimId, ay, yil);
-  renderTables(data, ay, yil);
-
-  // SİNA ve HYP zamanlarını al
-  chrome.storage.local.get(["sinaLastTime_doctor_" + birimId, "hypLastTime_doctor_" + birimId], (res) => {
-    document.getElementById("sinaTime").textContent = res["sinaLastTime_doctor_" + birimId]?.data || "-";
-    document.getElementById("hypTime").textContent = res["hypLastTime_doctor_" + birimId]?.data || "-";
-  });
+  renderTables(data, ay, yil, birimAdi);
 }
 
 async function renderCards(data, birimId, ay, yil) {
@@ -189,7 +183,7 @@ async function calculateToplamKatsayi(data, ay, yil) {
   }
 }
 
-async function renderTables(data, ay, yil) {
+async function renderTables(data, ay, yil, birimAdi) {
   const izlemlerSection = document.getElementById("izlemlerSection");
   const taramalarSection = document.getElementById("taramalarSection");
   const kanserSection = document.getElementById("kanserSection");
@@ -211,12 +205,12 @@ async function renderTables(data, ay, yil) {
     }
   });
 
-  izlemlerSection.innerHTML = await createTableSection('İZLEMLER', izlemler, '#10b981', 'fas fa-heartbeat', ay, yil);
-  taramalarSection.innerHTML = await createTableSection('TARAMALAR', taramalar, '#3b82f6', 'fas fa-search', ay, yil);
-  kanserSection.innerHTML = await createTableSection('KANSER TARAMALARI', kanserler, '#f59e0b', 'fas fa-ribbon', ay, yil);
+  izlemlerSection.innerHTML = await createTableSection('İZLEMLER', izlemler, '#10b981', 'fas fa-heartbeat', ay, yil, birimAdi);
+  taramalarSection.innerHTML = await createTableSection('TARAMALAR', taramalar, '#3b82f6', 'fas fa-search', ay, yil, birimAdi);
+  kanserSection.innerHTML = await createTableSection('KANSER TARAMALARI', kanserler, '#f59e0b', 'fas fa-ribbon', ay, yil, birimAdi);
 }
 
-async function createTableSection(title, items, color, icon, ay, yil) {
+async function createTableSection(title, items, color, icon, ay, yil, birimAdi) {
   if (items.length === 0) return '';
 
   // Katsayı map'ini al
@@ -261,6 +255,7 @@ async function createTableSection(title, items, color, icon, ay, yil) {
 
     rows += `
       <tr class="${isDone ? 'row-done' : ''}">
+        <td class="birim-col">${birimAdi || "-"}</td>
         <td class="disease-name">${item.ad}</td>
         <td>${ger}</td>
         <td>${yap}</td>
@@ -281,6 +276,7 @@ async function createTableSection(title, items, color, icon, ay, yil) {
       <table class="dash-table">
         <thead>
           <tr>
+            <th>BİRİM</th>
             <th style="text-align:left">HASTALIK</th>
             <th>GEREKEN</th>
             <th>YAPILAN</th>

@@ -690,12 +690,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.log(`📊 Birleştirme sonucu: ${finalData.length} işlem`);
 
             // ✅ TEK SEFERDE KAYDET
+            const birimAdi = merged?.[0]?.birimAdi || "";
             const saveData = {
               [`savedResults_${targetUserType}_${birimId}`]: {
                 data: finalData,
                 timestamp: Date.now(),
                 ay: ayStr,
                 yil: yil,
+                birimAdi: birimAdi,
               },
               [`sinaLastTime_${targetUserType}_${birimId}`]: {
                 data: simdi,
