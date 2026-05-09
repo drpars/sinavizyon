@@ -125,37 +125,51 @@ body {
 /* ---------- BİRİM ADI KARTI ---------- */
 .birim-ad-card {
   position: relative;
-  background: linear-gradient(135deg, var(--daccent), var(--dbg-header));
+  background: linear-gradient(135deg, var(--daccent), var(--dbg-header) 90%);
   color: white;
   padding: 12px 24px;
   border-radius: 14px;
   margin-bottom: 14px;
   text-align: center;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  animation: none; /* glow için */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
-
+.birim-ad-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease;
+}
+.birim-ad-card:hover::before {
+  left: 100%;
+}
+.birim-ad-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
 .birim-ad-glow {
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(122,162,247,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
   pointer-events: none;
   animation: glowSpin 8s linear infinite;
 }
-
 .birim-ad-text {
   position: relative;
   z-index: 1;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #ffffff, #bb9af7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: 0.5px;
+  color: white;
 }
 
 .refresh-btn {
@@ -401,11 +415,15 @@ body {
   padding: 10px 14px;
   color: white;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.card-label {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
 }
 
 .table-section-body {
@@ -458,6 +476,10 @@ body {
   font-weight: 600;
   font-size: 0.73rem;
   border-radius: 6px 0 0 6px;
+}
+.dash-table th {
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .dash-table .row-done td {

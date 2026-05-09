@@ -1,10 +1,19 @@
 // dashboard.js
 const STORAGE_PREFIX = "savedResults_doctor_";
 
+// Apply theme based on preference
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+  } else {
+    document.body.classList.remove("dark-mode");
+  }
+}
+
 // Storage'dan veri ve ayarları oku
-chrome.storage.local.get(["themePreference", "birimId", "userType"], async (settings) => {
+chrome.storage.local.get(["themePreference", "birimId", "userType"], (settings) => {
   const theme = settings.themePreference || "light";
-  if (theme === "dark") document.body.classList.add("dark-mode");
+  applyTheme(theme);
 
   const birimId = settings.birimId;
   const userType = settings.userType || "doctor";
@@ -12,11 +21,29 @@ chrome.storage.local.get(["themePreference", "birimId", "userType"], async (sett
   if (birimId) {
     const key = `${STORAGE_PREFIX}${birimId}`;
     chrome.storage.local.get([key], (res) => {
-      const data = res[key];
-      renderDashboard(data, birimId); // ← birimId'yi geç
+      renderDashboard(res[key], birimId);
     });
   }
 });
+
+// Listen for theme changes from other parts of the extension (e.g., sidepanel)
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local" && changes.themePreference) {
+    applyTheme(changes.themePreference.newValue);
+  }
+});
+
+function updateTimes(birimId, userType) {
+  const sinaKey = `sinaLastTime_${userType}_${birimId}`;
+  const hypKey = `hypLastTime_${userType}_${birimId}`;
+
+  chrome.storage.local.get([sinaKey, hypKey], (res) => {
+    const sinaEl = document.getElementById("sinaTime");
+    const hypEl = document.getElementById("hypTime");
+    if (sinaEl && res[sinaKey]?.data) sinaEl.textContent = res[sinaKey].data;
+    if (hypEl && res[hypKey]?.data) hypEl.textContent = res[hypKey].data;
+  });
+}
 
 function renderDashboard(record, birimId) {
   if (!record?.data) {
@@ -32,12 +59,17 @@ function renderDashboard(record, birimId) {
   // Birim adı kartını güncelle
   const birimAdCard = document.getElementById("birimAdCard");
   if (birimAdCard) {
-    const birimAdText = birimAdCard.querySelector(".birim-ad-text");
-    if (birimAdText) {
-      const display = birimAdi || birimId || "-";
-      birimAdText.textContent = `Birim: ${display}`;
+    const birimText = birimAdCard.querySelector(".birim-ad-text");
+    if (birimText) {
+      birimText.textContent = birimAdi || birimId || "Birim: -";
     }
   }
+
+  // Zamanları güncelle
+  chrome.storage.local.get(["userType"], (s) => {
+    const userType = s.userType || "doctor";
+    updateTimes(birimId, userType);
+  });
 
   renderCards(data, birimId, ay, yil);
   renderTables(data, ay, yil, birimAdi);
@@ -205,28 +237,52 @@ async function renderTables(data, ay, yil, birimAdi) {
     }
   });
 
-  izlemlerSection.innerHTML = await createTableSection('İZLEMLER', izlemler, '#10b981', 'fas fa-heartbeat', ay, yil, birimAdi);
-  taramalarSection.innerHTML = await createTableSection('TARAMALAR', taramalar, '#3b82f6', 'fas fa-search', ay, yil, birimAdi);
-  kanserSection.innerHTML = await createTableSection('KANSER TARAMALARI', kanserler, '#f59e0b', 'fas fa-ribbon', ay, yil, birimAdi);
+  izlemlerSection.innerHTML = await createTableSection(
+    "İZLEMLER",
+    izlemler,
+    "#10b981",
+    "fas fa-heartbeat",
+    ay,
+    yil,
+    birimAdi
+  );
+  taramalarSection.innerHTML = await createTableSection(
+    "TARAMALAR",
+    taramalar,
+    "#3b82f6",
+    "fas fa-search",
+    ay,
+    yil,
+    birimAdi
+  );
+  kanserSection.innerHTML = await createTableSection(
+    "KANSER TARAMALARI",
+    kanserler,
+    "#f59e0b",
+    "fas fa-ribbon",
+    ay,
+    yil,
+    birimAdi
+  );
 }
 
 async function createTableSection(title, items, color, icon, ay, yil, birimAdi) {
-  if (items.length === 0) return '';
+  if (items.length === 0) return "";
 
   // Katsayı map'ini al
   let katsayiMapNorm = null;
   try {
-    const constants = await import(chrome.runtime.getURL('modules/lib/constants.js'));
-    const { normalizeText } = await import(chrome.runtime.getURL('modules/utils/text-utils.js'));
+    const constants = await import(chrome.runtime.getURL("modules/lib/constants.js"));
+    const { normalizeText } = await import(chrome.runtime.getURL("modules/utils/text-utils.js"));
     const katsayiMap = constants.getKatsayiMap(ay, yil);
     katsayiMapNorm = new Map();
     for (let [k, v] of katsayiMap.entries()) katsayiMapNorm.set(normalizeText(k), v);
   } catch (e) {
-    console.error('Map yüklenemedi:', e);
+    console.error("Map yüklenemedi:", e);
   }
 
-  let rows = '';
-  items.forEach(item => {
+  let rows = "";
+  items.forEach((item) => {
     const ger = parseFloat(item.gereken) || 0;
     const yap = parseFloat(item.yapilan) || 0;
     const dev = parseFloat(item.devreden) || 0;
@@ -248,22 +304,22 @@ async function createTableSection(title, items, color, icon, ay, yil, birimAdi) 
       }
     }
 
-    const asgariHedef = Math.ceil(ger * asgariOran / 100);
-    const azamiHedef = Math.ceil(ger * azamiOran / 100);
+    const asgariHedef = Math.ceil((ger * asgariOran) / 100);
+    const azamiHedef = Math.ceil((ger * azamiOran) / 100);
     const asgariKalan = Math.max(0, asgariHedef - etkiliYapilan);
     const azamiKalan = Math.max(0, azamiHedef - etkiliYapilan);
 
     rows += `
-      <tr class="${isDone ? 'row-done' : ''}">
-        <td class="birim-col">${birimAdi || "-"}</td>
+      <tr class="${isDone ? "row-done" : ""}">
+        <!-- birim-col removed -->
         <td class="disease-name">${item.ad}</td>
         <td>${ger}</td>
         <td>${yap}</td>
         <td>${dev}</td>
         <td>%${oran}</td>
-        <td class="${asgariKalan === 0 ? 'done' : 'remain'}">%${asgariOran}: ${asgariKalan === 0 ? '✓' : '+' + asgariKalan}</td>
-        <td class="${azamiKalan === 0 ? 'done' : 'remain'}">%${azamiOran}: ${azamiKalan === 0 ? '✓' : '+' + azamiKalan}</td>
-        <td class="${isDone ? 'done' : 'remain'}">${isDone ? '✓' : Math.max(0, azamiHedef - etkiliYapilan)}</td>
+        <td class="${asgariKalan === 0 ? "done" : "remain"}">%${asgariOran}: ${asgariKalan === 0 ? "✓" : "+" + asgariKalan}</td>
+        <td class="${azamiKalan === 0 ? "done" : "remain"}">%${azamiOran}: ${azamiKalan === 0 ? "✓" : "+" + azamiKalan}</td>
+        <td class="${isDone ? "done" : "remain"}">${isDone ? "✓" : Math.max(0, azamiHedef - etkiliYapilan)}</td>
       </tr>
     `;
   });
@@ -276,8 +332,8 @@ async function createTableSection(title, items, color, icon, ay, yil, birimAdi) 
       <table class="dash-table">
         <thead>
           <tr>
-            <th>BİRİM</th>
-            <th style="text-align:left">HASTALIK</th>
+            <!-- BİRİM column removed -->
+            <th style="text-align:left;padding-left:12px;">HASTALIK</th>
             <th>GEREKEN</th>
             <th>YAPILAN</th>
             <th>DEVREDEN</th>
@@ -294,38 +350,40 @@ async function createTableSection(title, items, color, icon, ay, yil, birimAdi) 
 }
 
 // Yenile tusu
-document.getElementById('btnRefresh').addEventListener('click', (e) => {
-  e.stopPropagation();  // ← modalı engelle
-  
-  chrome.storage.local.get(['birimId'], (settings) => {
+document.getElementById("btnRefresh").addEventListener("click", (e) => {
+  e.stopPropagation(); // ← modalı engelle
+
+  chrome.storage.local.get(["birimId", "userType"], (settings) => {
     const birimId = settings.birimId;
+    const userType = settings.userType || "doctor";
     if (birimId) {
       const key = `savedResults_doctor_${birimId}`;
       chrome.storage.local.get([key], (res) => {
         renderDashboard(res[key], birimId);
+        updateTimes(birimId, userType);
       });
     }
   });
 });
 
 // About Modal
-document.querySelector('.dashboard-header').addEventListener('click', () => {
-  const modal = document.getElementById('aboutModal');
-  modal.classList.add('show');
+document.querySelector(".dashboard-header").addEventListener("click", () => {
+  const modal = document.getElementById("aboutModal");
+  modal.classList.add("show");
 });
 
-document.getElementById('aboutModalClose').addEventListener('click', (e) => {
+document.getElementById("aboutModalClose").addEventListener("click", (e) => {
   e.stopPropagation();
-  document.getElementById('aboutModal').classList.remove('show');
+  document.getElementById("aboutModal").classList.remove("show");
 });
 
-document.getElementById('aboutModal').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('show');
+document.getElementById("aboutModal").addEventListener("click", function (e) {
+  if (e.target === this) this.classList.remove("show");
 });
 
 // ESC ile kapat
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    document.getElementById('aboutModal').classList.remove('show');
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    document.getElementById("aboutModal").classList.remove("show");
   }
 });
