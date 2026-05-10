@@ -2,8 +2,12 @@
   "changelogData": [
     {
       "version": "2.2.3",
-      "date": "2026-05-09",
+      "date": "2026-05-10",
       "changes": [
+        "🖼️ **Dashboard İkonu:** Tabloda Dashboard butonu için özel ikon eklendi.",
+        "🆕 **Yeni Özellik İşaretçisi:** Dashboard butonunda 'YENİ' badge'i ve parıltı efekti.",
+        "📌 **Dashboard Tek Sekme:** Dashboard her zaman aynı sekmede açılır, açıksa yenilenir.",
+        "🐛 **Birim Adı Düzeltmesi:** HYP verisi çekildiğinde birim adının kaybolması giderildi.",
         "🎨 **Birim Adı Kartı:** Header gibi animasyonlu kart eklendi, görsel uyum artırıldı.",
         "⏱️ **Zaman Gösterimi:** Dashboard'da SINA/HYP güncelleme zamanları gösteriliyor.",
         "🌓 **Theme Dinamik Güncelleme:** Ayarlar'dan tema değişince dashboard otomatik güncelleniyor.",
