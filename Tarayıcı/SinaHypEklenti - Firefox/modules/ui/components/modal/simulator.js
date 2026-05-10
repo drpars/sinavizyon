@@ -4,7 +4,7 @@
 // ============================================================
 import { getDomAy, getDomYil } from "../../../core/dom.js";
 import { analyzeAllItems, calculateCurrentKatsayi, calculateSmartStrategy } from "../../../features/doctor/strategy.js";
-import { getKatsayiMap, getPasifIslemler } from "../../../lib/constants.js";
+import { getKatsayiMap, getPasifIslemler, getSurecKatsayisi } from "../../../lib/constants.js";
 import { normalizeText } from "../../../utils/text-utils.js";
 
 let currentData = [];
@@ -263,7 +263,8 @@ function getPasifListe() {
 // Mevcut durum kartını güncelle
 function updateStatusCard() {
   const mapNorm = getKatsayiMapNorm();
-  const currentKatsayi = calculateCurrentKatsayi(currentData, mapNorm);
+  const surecKatsayisi = getSurecKatsayisi(getDomAy(), getDomYil());
+  const currentKatsayi = calculateCurrentKatsayi(currentData, mapNorm, surecKatsayisi);
   const fark = currentTavanKatsayi - currentKatsayi;
 
   const currentEl = document.getElementById("simCurrentKatsayi");

@@ -109,16 +109,35 @@ export function getPasifIslemler(ay, yil) {
 
 export const PASIF_ISLEMLER_NORMALIZED = [];
 
-// ========== NORMALİZE MAP'LER (ESKİ - geriye dönük uyumluluk) ==========
-export const katsayiMapNormalized = new Map();
-for (let [anahtar, deger] of katsayiMapEski.entries()) {
-  katsayiMapNormalized.set(normalizeText(anahtar), deger);
+// ========== NORMALİZE MAP'LER (Dinamik) ==========
+export function getKatsayiMapNormalized(ay = null, yil = null) {
+  // Parametre yoksa mevcut tarihi kullan
+  if (ay === null || yil === null) {
+    const now = new Date();
+    ay = now.toLocaleString('tr-TR', { month: 'long' }).toUpperCase();
+    yil = now.getFullYear();
+  }
+  const map = getKatsayiMap(ay, yil);
+  const norm = new Map();
+  for (let [k, v] of map.entries()) norm.set(normalizeText(k), v);
+  return norm;
 }
 
-export const katsayiMapNurseNormalized = new Map();
-for (let [anahtar, deger] of katsayiMapNurseEski.entries()) {
-  katsayiMapNurseNormalized.set(normalizeText(anahtar), deger);
+export function getKatsayiMapNurseNormalized(ay = null, yil = null) {
+  if (ay === null || yil === null) {
+    const now = new Date();
+    ay = now.toLocaleString('tr-TR', { month: 'long' }).toUpperCase();
+    yil = now.getFullYear();
+  }
+  const map = getNurseKatsayiMap(ay, yil);
+  const norm = new Map();
+  for (let [k, v] of map.entries()) norm.set(normalizeText(k), v);
+  return norm;
 }
+
+// Geriye dönük uyumluluk için eski static map'leri tut (kullanımdan kaldırılacak)
+export const katsayiMapNormalized = getKatsayiMapNormalized(); // varsayılan eski
+export const katsayiMapNurseNormalized = getKatsayiMapNurseNormalized();
 
 export const nurseFilterListNormalized = nurseFilterList.map((f) => normalizeText(f));
 

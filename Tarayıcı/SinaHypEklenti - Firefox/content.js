@@ -404,24 +404,27 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
           if (cells.length < 4) return;
 
           const cellArray = Array.from(cells);
-          let ad = "",
+          let birimAdi = "",
+            ad = "",
             gereken = "",
             yapilan = "",
             devreden = "";
 
           if (cellArray.length >= 5) {
+            birimAdi = cellArray[0]?.textContent?.trim() || "";
             ad = cellArray[1]?.textContent?.trim() || "";
             gereken = cellArray[2]?.textContent?.trim() || "";
             yapilan = cellArray[3]?.textContent?.trim() || "";
             devreden = cellArray[4]?.textContent?.trim() || "0";
           } else {
-            ad = cellArray[0]?.textContent?.trim() || "";
-            gereken = cellArray[1]?.textContent?.trim() || "";
-            yapilan = cellArray[2]?.textContent?.trim() || "";
-            devreden = cellArray[3]?.textContent?.trim() || "0";
+            birimAdi = cellArray[0]?.textContent?.trim() || "";
+            ad = cellArray[1]?.textContent?.trim() || "";
+            gereken = cellArray[2]?.textContent?.trim() || "";
+            yapilan = cellArray[3]?.textContent?.trim() || "";
+            devreden = cellArray[4]?.textContent?.trim() || "0";
           }
 
-          const rowData = { ad, gereken, yapilan, devreden };
+          const rowData = { birimAdi, ad, gereken, yapilan, devreden };
           const hasNumber = !isNaN(parseInt(rowData.gereken));
 
           if (hasNumber && rowData.ad && !rowData.ad.includes("Çankırı")) {

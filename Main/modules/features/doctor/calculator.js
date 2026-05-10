@@ -1,10 +1,10 @@
 import { getEffectiveYapilan } from "../../lib/calculations.js";
-import { katsayiMapNormalized } from "../../lib/constants.js";
+import { getKatsayiMapNormalized } from "../../lib/constants.js";
 import { calculateKatsayi } from "../../lib/katsayi-hesapla.js";
 import { normalizeText } from "../../utils/text-utils.js";
 
 export function calculateDoctorKatsayi(islemAdi, gereken, yapilan, devreden, katsayiMapNorm = null) {
-  const map = katsayiMapNorm || katsayiMapNormalized;
+  const map = katsayiMapNorm || getKatsayiMapNormalized();
   return calculateKatsayi(islemAdi, gereken, yapilan, devreden, map);
 }
 

@@ -1,6 +1,17 @@
 {
   "changelogData": [
     {
+      "version": "2.2.3",
+      "date": "2026-05-09",
+      "changes": [
+        "🎨 **Birim Adı Kartı:** Header gibi animasyonlu kart eklendi, görsel uyum artırıldı.",
+        "⏱️ **Zaman Gösterimi:** Dashboard'da SINA/HYP güncelleme zamanları gösteriliyor.",
+        "🌓 **Theme Dinamik Güncelleme:** Ayarlar'dan tema değişince dashboard otomatik güncelleniyor.",
+        "📱 **Responsive İyileştirmeler:** Tablo başlıkları ve kartlar daha okunabilir boyuta sahip.",
+        "🐛 **Kritik Düzeltme:** renderDashboard'da `settings` referansı giderildi."
+      ]
+    },
+    {
       "version": "2.2.2",
       "date": "2026-05-07",
       "changes": [

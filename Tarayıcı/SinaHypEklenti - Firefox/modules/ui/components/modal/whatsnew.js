@@ -7,7 +7,16 @@ export async function showWhatsNewModal(version) {
     modal.style.animation = "fadeIn 0.2s ease";
 
     let whatsNewItems = [];
-    if (version === "2.2.2") {
+
+    if (version === "2.2.3") {
+      whatsNewItems = [
+        "🎨 Birim Adı Kartı: Header stilinde animasyon, görünüm uyumlu hale getirildi.",
+        "⏱️ Zaman Gösterimi: Dashboard'da SİNA ve HYP güncelleme zamanları artık görünüyor.",
+        "🌓 Tema Dinamik Güncelleme: Ayarlar menüsünden tema değiştiğinde Dashboard otomatik yenileniyor.",
+        "📱 Responsive İyileştirme: Tablo başlıkları ve kartlar daha okunabilir ve mobilde uyumlu.",
+        "🐛 RenderDashboard Hatası Düzeltildi: `settings` referansı düzeltildi.",
+      ];
+    } else if (version === "2.2.2") {
       whatsNewItems = [
         "🐛 Katsayı hesaplama cache hatası giderildi",
         "🐛 SİNA tekrar çekildiğinde devreden güncelleniyor",

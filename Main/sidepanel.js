@@ -690,12 +690,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.log(`📊 Birleştirme sonucu: ${finalData.length} işlem`);
 
             // ✅ TEK SEFERDE KAYDET
+            const birimAdi = merged?.[0]?.birimAdi || "";
             const saveData = {
               [`savedResults_${targetUserType}_${birimId}`]: {
                 data: finalData,
                 timestamp: Date.now(),
                 ay: ayStr,
                 yil: yil,
+                birimAdi: birimAdi,
               },
               [`sinaLastTime_${targetUserType}_${birimId}`]: {
                 data: simdi,
@@ -902,6 +904,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // ✅ TABLOYU GÜNCELLE
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
+
+        // Simülatör açıksa güncelle
+        if (window.simulatorModal && simulatorModal.style.display === "flex") {
+          // Yeniden veri çek ve UI'yi tazele
+          const savedKey = `savedResults_${userType}_${birimId}`;
+          chrome.storage.local.get([savedKey], (res) => {
+            const data = res[savedKey]?.data || [];
+            // Simülatör UI fonksiyonları
+            updateStatusCard();
+            updateSuggestionCard();
+            updateResultCard();
+            updateSlidersList();
+          });
+        }
 
         const simulatorBtn = document.getElementById("btnSimulator");
         if (simulatorBtn && userType === "doctor") {
