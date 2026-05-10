@@ -54,3 +54,26 @@ export function hasClass(id, className) {
   const el = safeGetElement(id);
   return el ? el.classList.contains(className) : false;
 }
+
+/**
+ * Bir URL'yi tek sekmede açar. URL zaten açıksa o sekmeyi aktif edip yeniler,
+ * açık değilse yeni sekme oluşturur.
+ *
+ * @param {string} url - Açılacak URL (tam veya extension URL'si)
+ * @param {boolean} [reload=true] - Mevcut sekmeyi yenile
+ */
+export function createOrFocusTab(url, reload = true) {
+  chrome.tabs.query({ url: url }, (tabs) => {
+    if (tabs.length > 0) {
+      // Mevcut sekmeyi aktif et
+      const tab = tabs[0];
+      chrome.tabs.update(tab.id, { active: true });
+      if (reload) {
+        chrome.tabs.reload(tab.id);
+      }
+    } else {
+      // Yeni sekme aç
+      chrome.tabs.create({ url: url });
+    }
+  });
+}

@@ -43,6 +43,7 @@ import {
   updateUIForUserType,
 } from "./modules/ui/updaters/index.js";
 // ---------- UTILS ----------
+import { createOrFocusTab } from "./modules/utils/dom-utils.js";
 import { normalizeText } from "./modules/utils/text-utils.js";
 import { markNewFeature } from "./modules/utils/notifications.js";
 
@@ -508,8 +509,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const dashboardBtn = document.getElementById("btnDashboard");
   if (dashboardBtn) {
     markNewFeature(dashboardBtn, "dashboard-btn", "2.2.5");
+    const dashboardUrl = chrome.runtime.getURL("modules/features/dashboard/dashboard.html");
     dashboardBtn.addEventListener("click", () => {
-      chrome.tabs.create({ url: chrome.runtime.getURL("modules/features/dashboard/dashboard.html") });
+      createOrFocusTab(dashboardUrl);
     });
   }
 
