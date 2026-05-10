@@ -63,30 +63,36 @@ export function hasClass(id, className) {
  * @param {boolean} [reload=true] - Mevcut sekmeyi yenile
  */
 export function createOrFocusTab(url, reload = true) {
-  // URL'den path kısmını al (query/hash hariç) - extension URL'leri için
+  // Storage key olarak URL'nin sabit kısmını kullan
   const urlObj = new URL(url);
-  const pathOnly = urlObj.origin + urlObj.pathname;
+  const storageKey = `tabId_${urlObj.origin}${urlObj.pathname}`;
 
-  chrome.tabs.query({}, (allTabs) => {
-    // Aynı path'e sahip açık bir sekme var mı?
-    const existingTab = allTabs.find((tab) => {
-      try {
-        const tabUrl = new URL(tab.url || "");
-        return tabUrl.origin === urlObj.origin && tabUrl.pathname === urlObj.pathname;
-      } catch {
-        return false;
-      }
-    });
+  chrome.storage.local.get([storageKey], (res) => {
+    const savedTabId = res[storageKey];
 
-    if (existingTab) {
-      // Mevcut sekmeyi aktif et
-      chrome.tabs.update(existingTab.id, { active: true });
-      if (reload) {
-        chrome.tabs.reload(existingTab.id);
-      }
+    if (savedTabId) {
+      // Kayıtlı tabId var, sekme hâlâ açık mı kontrol et
+      chrome.tabs.get(savedTabId, (tab) => {
+        if (chrome.runtime.lastError) {
+          // Sekme kapanmış, yeni aç
+          openNewTab(url, storageKey, reload);
+        } else {
+          // Sekme açık, aktif et + reload
+          chrome.tabs.update(savedTabId, { active: true });
+          if (reload) {
+            chrome.tabs.reload(savedTabId);
+          }
+        }
+      });
     } else {
-      // Yeni sekme aç
-      chrome.tabs.create({ url: url });
+      // Kayıtlı tabId yok, yeni aç
+      openNewTab(url, storageKey, reload);
     }
+  });
+}
+
+function openNewTab(url, storageKey, reload) {
+  chrome.tabs.create({ url: url }, (tab) => {
+    chrome.storage.local.set({ [storageKey]: tab.id });
   });
 }
