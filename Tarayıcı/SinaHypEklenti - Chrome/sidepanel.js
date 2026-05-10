@@ -44,6 +44,7 @@ import {
 } from "./modules/ui/updaters/index.js";
 // ---------- UTILS ----------
 import { normalizeText } from "./modules/utils/text-utils.js";
+import { markNewFeature } from "./modules/utils/notifications.js";
 
 // ========== HELPER FUNCTIONS ==========
 let spinnerTimeout = null;
@@ -506,6 +507,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Dashboard butonu
   const dashboardBtn = document.getElementById("btnDashboard");
   if (dashboardBtn) {
+    markNewFeature(dashboardBtn, "dashboard-btn", "2.2.5");
     dashboardBtn.addEventListener("click", () => {
       chrome.tabs.create({ url: chrome.runtime.getURL("modules/features/dashboard/dashboard.html") });
     });
