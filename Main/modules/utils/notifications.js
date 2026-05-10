@@ -74,6 +74,78 @@ export function showToast(message, duration = 2500) {
   }, duration);
 }
 
+/**
+ * Yeni özellik işaretçisi: Badge + pulse glow.
+ * featureId bazlı storage'da "görüldü" işareti tutar.
+ * Kullanıcı tıkladığında veya expireVersion aşılınca kaybolur.
+ *
+ * @param {HTMLElement} element - Hedef buton/öğe
+ * @param {string} featureId - Benzersiz özellik ID'si (örn. "dashboard-btn")
+ * @param {string} expireVersion - Hangi sürümden sonra gösterilmeyecek (örn. "2.2.5")
+ */
+export function markNewFeature(element, featureId, expireVersion) {
+  if (!element || !featureId) return;
+
+  const storageKey = `newFeature_${featureId}`;
+
+  chrome.storage.local.get([storageKey], (res) => {
+    // Daha önce görüldüyse hiç gösterme
+    if (res[storageKey] === true) return;
+
+    // Sürüm kontrolü: mevcut sürüm > expireVersion ise gösterme
+    const manifest = chrome.runtime.getManifest();
+    const currentVer = manifest.version;
+    if (compareVersions(currentVer, expireVersion) > 0) return;
+
+    // Element'i wrapper içine al
+    const wrapper = document.createElement("span");
+    wrapper.className = "new-feature-wrapper";
+    element.parentNode.insertBefore(wrapper, element);
+    wrapper.appendChild(element);
+
+    // Badge ekle
+    const badge = document.createElement("span");
+    badge.className = "new-feature-badge";
+    badge.textContent = "YENİ";
+    wrapper.appendChild(badge);
+
+    // İlk 3 pulse glow animasyonu
+    element.classList.add("new-feature-glow");
+    element.addEventListener(
+      "animationend",
+      () => {
+        element.classList.remove("new-feature-glow");
+      },
+      { once: true }
+    );
+
+    // Kullanıcı tıklayınca badge'i kaldır ve görüldü olarak işaretle
+    const dismiss = () => {
+      if (badge.parentNode) badge.remove();
+      element.classList.remove("new-feature-glow");
+      chrome.storage.local.set({ [storageKey]: true });
+      element.removeEventListener("click", dismiss);
+    };
+
+    element.addEventListener("click", dismiss);
+  });
+}
+
+/**
+ * Semantik sürüm karşılaştırma: a > b → 1, a < b → -1, eşit → 0
+ */
+function compareVersions(a, b) {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const va = pa[i] || 0;
+    const vb = pb[i] || 0;
+    if (va > vb) return 1;
+    if (va < vb) return -1;
+  }
+  return 0;
+}
+
 export function showErrorToast(message, duration = 3500) {
   clearActiveToast();
 

@@ -13,12 +13,13 @@ export function getStorageKey(baseKey, birimId, userType) {
 }
 
 // Verileri birimId ve userType ile kaydet
-export function storeDataWithTimestamp(baseKey, data, userType, birimId, ay = null, yil = null) {
+export function storeDataWithTimestamp(baseKey, data, userType, birimId, ay = null, yil = null, birimAdi = null) {
   const timestamp = Date.now();
   const key = getStorageKey(baseKey, birimId, userType);
   const value = { data, timestamp };
   if (ay !== null) value.ay = ay;
   if (yil !== null) value.yil = yil;
+  if (birimAdi !== null) value.birimAdi = birimAdi;
   chrome.storage.local.set({ [key]: value }).catch(console.error);
 }
 

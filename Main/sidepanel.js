@@ -43,7 +43,9 @@ import {
   updateUIForUserType,
 } from "./modules/ui/updaters/index.js";
 // ---------- UTILS ----------
+import { createOrFocusTab } from "./modules/utils/dom-utils.js";
 import { normalizeText } from "./modules/utils/text-utils.js";
+import { markNewFeature } from "./modules/utils/notifications.js";
 
 // ========== HELPER FUNCTIONS ==========
 let spinnerTimeout = null;
@@ -506,8 +508,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Dashboard butonu
   const dashboardBtn = document.getElementById("btnDashboard");
   if (dashboardBtn) {
+    markNewFeature(dashboardBtn, "dashboard-btn", "2.2.5");
+    const dashboardUrl = chrome.runtime.getURL("modules/features/dashboard/dashboard.html");
     dashboardBtn.addEventListener("click", () => {
-      chrome.tabs.create({ url: chrome.runtime.getURL("modules/features/dashboard/dashboard.html") });
+      createOrFocusTab(dashboardUrl);
     });
   }
 
@@ -690,7 +694,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.log(`📊 Birleştirme sonucu: ${finalData.length} işlem`);
 
             // ✅ TEK SEFERDE KAYDET
-            const birimAdi = merged?.[0]?.birimAdi || "";
+            // Mevcut birimAdi varsa onu koru, yoksa yeni geleni al
+            const yeniBirimAdi = merged?.[0]?.birimAdi || "";
+            const birimAdi = yeniBirimAdi || existingRecord?.birimAdi || "";
             const saveData = {
               [`savedResults_${targetUserType}_${birimId}`]: {
                 data: finalData,
@@ -895,7 +901,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("📊 guncelVeri (güncellenmiş):", guncelVeri);
 
         if (guncelVeri.length > 0) {
-          storeDataWithTimestamp("savedResults", guncelVeri, userType, birimId, ayStr, yil);
+          // ✅ Mevcut birimAdi'yi koru (SİNA'dan gelmiştir)
+          const mevcutBirimAdi = existingRecord?.birimAdi || null;
+          storeDataWithTimestamp("savedResults", guncelVeri, userType, birimId, ayStr, yil, mevcutBirimAdi);
           storeDataWithTimestamp("hypLastTime", simdi, userType, birimId);
 
           const hypTimeSpan = document.getElementById("hypTime");

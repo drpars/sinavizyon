@@ -10,11 +10,13 @@ export async function showWhatsNewModal(version) {
 
     if (version === "2.2.3") {
       whatsNewItems = [
+        "🖼️ Dashboard ikonu yenilendi, tablodan kolayca erişin.",
+        "🆕 Yeni özellikler artık 'YENİ' badge'i ve parıltı efektiyle gösteriliyor.",
+        "📌 Dashboard butonu her zaman aynı sekmede açılır, tekrar tekrar sekme açmaz.",
+        "🐛 HYP verisi çekildiğinde birim adının kaybolması düzeltildi.",
         "🎨 Birim Adı Kartı: Header stilinde animasyon, görünüm uyumlu hale getirildi.",
         "⏱️ Zaman Gösterimi: Dashboard'da SİNA ve HYP güncelleme zamanları artık görünüyor.",
         "🌓 Tema Dinamik Güncelleme: Ayarlar menüsünden tema değiştiğinde Dashboard otomatik yenileniyor.",
-        "📱 Responsive İyileştirme: Tablo başlıkları ve kartlar daha okunabilir ve mobilde uyumlu.",
-        "🐛 RenderDashboard Hatası Düzeltildi: `settings` referansı düzeltildi.",
       ];
     } else if (version === "2.2.2") {
       whatsNewItems = [
