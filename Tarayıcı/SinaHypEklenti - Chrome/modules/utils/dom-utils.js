@@ -63,13 +63,26 @@ export function hasClass(id, className) {
  * @param {boolean} [reload=true] - Mevcut sekmeyi yenile
  */
 export function createOrFocusTab(url, reload = true) {
-  chrome.tabs.query({ url: url }, (tabs) => {
-    if (tabs.length > 0) {
+  // URL'den path kısmını al (query/hash hariç) - extension URL'leri için
+  const urlObj = new URL(url);
+  const pathOnly = urlObj.origin + urlObj.pathname;
+
+  chrome.tabs.query({}, (allTabs) => {
+    // Aynı path'e sahip açık bir sekme var mı?
+    const existingTab = allTabs.find((tab) => {
+      try {
+        const tabUrl = new URL(tab.url || "");
+        return tabUrl.origin === urlObj.origin && tabUrl.pathname === urlObj.pathname;
+      } catch {
+        return false;
+      }
+    });
+
+    if (existingTab) {
       // Mevcut sekmeyi aktif et
-      const tab = tabs[0];
-      chrome.tabs.update(tab.id, { active: true });
+      chrome.tabs.update(existingTab.id, { active: true });
       if (reload) {
-        chrome.tabs.reload(tab.id);
+        chrome.tabs.reload(existingTab.id);
       }
     } else {
       // Yeni sekme aç
