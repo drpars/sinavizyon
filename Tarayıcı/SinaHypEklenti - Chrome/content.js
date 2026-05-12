@@ -435,17 +435,70 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
         if (veriGonderildi) return;
         veriGonderildi = true;
 
-        if (results.length > 0) {
-          console.log("✅ SİNA verileri çekildi:", results.length, "işlem");
-          chrome.runtime
-            .sendMessage({ action: "dataParsed", results: results })
-            .catch((err) => console.error("Mesaj gönderilemedi:", err));
-        } else {
-          console.log("⚠️ SİNA verisi bulunamadı, boş mesaj gönderiliyor...");
-          chrome.runtime
-            .sendMessage({ action: "dataParsed", results: [] })
-            .catch((err) => console.error("Mesaj gönderilemedi:", err));
+        // Otizm API'sini paralel çağır (DOM scraping sonuçlarına ek olarak)
+        async function sendResultsWithOtizm() {
+          // İlk birim adını al (parse için)
+          const ilkBirimAdi = results.length > 0 ? results[0].birimAdi : "";
+          let otizmData = null;
+
+          if (ilkBirimAdi) {
+            try {
+              // Dinamik import ile api-client'ı yükle
+              const { parseBirimAdi } = await import(
+                chrome.runtime.getURL("modules/utils/text-utils.js")
+              );
+              const { fetchOtizmData } = await import(
+                chrome.runtime.getURL("modules/lib/sina-api-client.js")
+              );
+
+              const parsed = parseBirimAdi(ilkBirimAdi);
+              if (parsed) {
+                // URL'den ay/yıl bilgisini al
+                const urlParams = new URLSearchParams(window.location.search);
+                const filtersStr = urlParams.get("filters") || "";
+                const ayMatch = filtersStr.match(/252840=([A-Z]+)/);
+                const yilMatch = filtersStr.match(/252916=(\d{4})/);
+                const ay = ayMatch ? ayMatch[1] : "";
+                const yil = yilMatch ? yilMatch[1] : "";
+
+                if (ay && yil) {
+                  console.log("🔄 Otizm API çağrılıyor...");
+                  otizmData = await fetchOtizmData({
+                    ay,
+                    yil,
+                    il: parsed.il,
+                    ilce: parsed.ilce,
+                    birimAdi: parsed.tamAd,
+                  });
+                  if (otizmData) {
+                    console.log("✅ Otizm verisi API'den çekildi:", otizmData);
+                  } else {
+                    console.log("⚠️ Otizm API'den veri alınamadı");
+                  }
+                }
+              }
+            } catch (e) {
+              console.warn("⚠️ Otizm API hatası (sessiz):", e.message);
+            }
+          }
+
+          // Otizm verisini results'a ekle
+          const finalResults = otizmData ? [...results, otizmData] : results;
+
+          if (finalResults.length > 0) {
+            console.log("✅ SİNA verileri çekildi:", finalResults.length, "işlem");
+            chrome.runtime
+              .sendMessage({ action: "dataParsed", results: finalResults })
+              .catch((err) => console.error("Mesaj gönderilemedi:", err));
+          } else {
+            console.log("⚠️ SİNA verisi bulunamadı, boş mesaj gönderiliyor...");
+            chrome.runtime
+              .sendMessage({ action: "dataParsed", results: [] })
+              .catch((err) => console.error("Mesaj gönderilemedi:", err));
+          }
         }
+
+        sendResultsWithOtizm();
 
         // Temizlik
         if (observer) observer.disconnect();
