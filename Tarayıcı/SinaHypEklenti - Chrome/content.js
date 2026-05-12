@@ -350,9 +350,7 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
       async function sinaExtractData() {
         if (veriGonderildi) return;
 
-        // ========== ÖNCE SPINNER'I GİZLE ==========
-        chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
-        console.log("✅ SİNA: Spinner gizlendi");
+        // Spinner'ı HENÜZ gizleme — otizm API'si cevap verene kadar bekle
 
         // ASÇ sayfasındaki flex tablo için özel seçici
         let rows = document.querySelectorAll('div[role="row"], [role="row"]');
@@ -516,6 +514,10 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
             }
           }
         }
+
+        // Spinner'ı SONUÇLAR GÖNDERİLMEDEN hemen önce gizle
+        chrome.runtime.sendMessage({ action: "hideSpinner" }).catch(() => {});
+        console.log("✅ SİNA: Spinner gizlendi");
 
         if (results.length > 0) {
           console.log("✅ SİNA verileri çekildi:", results.length, "işlem");
