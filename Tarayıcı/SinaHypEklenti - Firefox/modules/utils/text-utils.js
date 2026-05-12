@@ -59,3 +59,37 @@ export function compareNormalized(text1, text2) {
 export function includesNormalized(text, search) {
   return normalizeText(text).includes(normalizeText(search));
 }
+
+/**
+ * SİNA'dan gelen birim adını parse eder.
+ * Pattern: "{il} {ilçe} {birimNo} Nolu AHB - {il}"
+ * Örnek: "Çankırı Merkez 20 Nolu AHB - Çankırı"
+ * → { il: "ÇANKIRI", ilce: "MERKEZ", birimNo: "20", tamAd: "Çankırı Merkez 20 Nolu AHB" }
+ *
+ * @param {string} birimAdi - SİNA'dan gelen ham birim adı
+ * @returns {{ il: string, ilce: string, birimNo: string, tamAd: string } | null}
+ */
+export function parseBirimAdi(birimAdi) {
+  if (!birimAdi || typeof birimAdi !== "string") return null;
+
+  // Normalize: fazla boşlukları temizle
+  const clean = birimAdi.trim().replace(/\s+/g, " ");
+
+  // Pattern: "{il} {ilçe} {birimNo} Nolu AHB - {il}"
+  // Regex: isteğe bağlı olarak birden fazla kelime il/ilçe için
+  const match = clean.match(/^(.+?)\s+(.+?)\s+(\d+)\s+Nolu\s+AHB\s+-\s+(.+)$/i);
+
+  if (!match) return null;
+
+  const [, il, ilce, birimNo, tail] = match;
+
+  // tail'nin il ile aynı olması beklenir, ama zorunlu değil
+  const tamAd = `${il.trim()} ${ilce.trim()} ${birimNo} Nolu AHB`;
+
+  return {
+    il: il.trim().toUpperCase(),
+    ilce: ilce.trim().toUpperCase(),
+    birimNo: birimNo.trim(),
+    tamAd: tamAd.trim(),
+  };
+}

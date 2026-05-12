@@ -22,9 +22,10 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
       return;
     }
 
-    const { asçBasari } = buildNurseTable(data, showAll, updateKHTBar, ay, yil);
+    const { asçBasari, asçItems } = buildNurseTable(data, showAll, updateKHTBar, ay, yil);
     const katsayiElement = document.getElementById("totalKatsayi");
-    katsayiElement.textContent = asçBasari.toFixed(5);
+    const hasNurseData = asçItems.length > 0;
+    katsayiElement.textContent = hasNurseData ? asçBasari.toFixed(5) : "1.00000";
 
     if (birimId) {
       const doctorKey = `savedResults_doctor_${birimId}`;
@@ -61,12 +62,13 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
           }
 
           const tavanElement = document.getElementById("tavanKatsayi");
-          const kosul1 = asçBasari >= 1.0;
-          const kosul2 = hasDoctorData ? asçBasari >= doctorBasari * 0.75 : asçBasari >= 0.75;
+          // ASÇ kendi verisi yoksa koşullar sağlanamaz
+          const kosul1 = hasNurseData && asçBasari >= 1.0;
+          const kosul2 = hasNurseData && (hasDoctorData ? asçBasari >= doctorBasari * 0.75 : asçBasari >= 0.75);
 
-          let finalAsçBasari = asçBasari;
+          let finalAsçBasari = hasNurseData ? asçBasari : 1.0;
 
-          if (kosul1 && kosul2 && hasDoctorData) {
+          if (hasNurseData && kosul1 && kosul2 && hasDoctorData) {
             if (doctorBasari > doktorTavan) {
               finalAsçBasari = doktorTavan;
             } else {
@@ -76,16 +78,16 @@ export function updateTable(data, userType = "doctor", showAll = false, birimId 
 
           katsayiElement.textContent = finalAsçBasari.toFixed(5);
           if (tavanElement) {
-            tavanElement.textContent = hasDoctorData ? doctorBasari.toFixed(5) : "1.00000";
+            tavanElement.textContent = (hasNurseData && hasDoctorData) ? doctorBasari.toFixed(5) : "1.00000";
           }
-          katsayiElement.style.color = kosul1 && kosul2 ? "var(--green)" : "var(--red)";
+          katsayiElement.style.color = (hasNurseData && kosul1 && kosul2) ? "var(--green)" : "var(--red)";
         });
       });
     } else {
       const tavanElement = document.getElementById("tavanKatsayi");
       tavanElement.textContent = "1.00000";
-      const kosul1 = asçBasari >= 1.0;
-      const kosul2 = asçBasari >= 0.75;
+      const kosul1 = hasNurseData && asçBasari >= 1.0;
+      const kosul2 = hasNurseData && asçBasari >= 0.75;
       katsayiElement.style.color = kosul1 && kosul2 ? "var(--green)" : "var(--red)";
     }
     return;

@@ -70,7 +70,7 @@ export function loadDataForCurrentBirim(
   yil = null
 ) {
   if (!birimId) {
-    if (updateTableFn) updateTableFn([], userType, showAll, birimId);
+    if (updateTableFn) updateTableFn([], userType, showAll, birimId, ay, yil);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
     if (onDataLoaded) onDataLoaded(false);
@@ -93,9 +93,9 @@ export function loadDataForCurrentBirim(
 
     const hasData = data.length > 0;
     if (hasData) {
-      if (updateTableFn) updateTableFn(data, userType, showAll, birimId);
+      if (updateTableFn) updateTableFn(data, userType, showAll, birimId, ay, yil);
     } else {
-      if (updateTableFn) updateTableFn([], userType, showAll, birimId);
+      if (updateTableFn) updateTableFn([], userType, showAll, birimId, ay, yil);
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
@@ -121,7 +121,7 @@ export function loadDataForCurrentBirimWithMerge(
   yil = null
 ) {
   if (!birimId) {
-    if (updateTableFn) updateTableFn([], userType, showAll);
+    if (updateTableFn) updateTableFn([], userType, showAll, birimId, ay, yil);
     document.getElementById("sinaTime").textContent = "";
     document.getElementById("hypTime").textContent = "";
     if (onDataLoaded) onDataLoaded(false);
@@ -185,10 +185,10 @@ export function loadDataForCurrentBirimWithMerge(
       const hasData = nurseData.length + doctorData.length > 0;
 
       if (effectiveShowAll) {
-        if (updateTableFn) updateTableFn(mergedData, userType, effectiveShowAll, birimId);
+        if (updateTableFn) updateTableFn(mergedData, userType, effectiveShowAll, birimId, ay, yil);
       } else {
         const dataToShow = nurseData.length > 0 ? nurseData : doctorData;
-        if (updateTableFn) updateTableFn(dataToShow, userType, false, birimId);
+        if (updateTableFn) updateTableFn(dataToShow, userType, false, birimId, ay, yil);
       }
 
       if (onDataLoaded) onDataLoaded(hasData);
@@ -223,9 +223,9 @@ export function loadDataForCurrentBirimWithMerge(
 
     const hasData = data.length > 0;
     if (hasData) {
-      if (updateTableFn) updateTableFn(data, userType, showAll);
+      if (updateTableFn) updateTableFn(data, userType, showAll, birimId, ay, yil);
     } else {
-      if (updateTableFn) updateTableFn([], userType, showAll);
+      if (updateTableFn) updateTableFn([], userType, showAll, birimId, ay, yil);
     }
     if (onDataLoaded) onDataLoaded(hasData);
   });
@@ -259,7 +259,7 @@ export function cleanExpiredData(updateTableFn) {
       chrome.storage.local.remove(keysToRemove, () => {
         console.log("Süresi dolan veriler temizlendi:", keysToRemove);
         if (keysToRemove.some((k) => k.startsWith("savedResults_"))) {
-          if (updateTableFn) updateTableFn([]);
+          if (updateTableFn) updateTableFn([], undefined, undefined, undefined, null, null);
           const sinaTimeSpan = document.getElementById("sinaTime");
           const hypTimeSpan = document.getElementById("hypTime");
           if (sinaTimeSpan) sinaTimeSpan.textContent = "";
