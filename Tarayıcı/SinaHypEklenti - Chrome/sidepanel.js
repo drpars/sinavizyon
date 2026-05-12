@@ -71,11 +71,11 @@ function showLoadingSpinner() {
 
     import("./modules/ui/components/index.js").then(({ messageDialog }) => {
       messageDialog(
-        "Veri çekme işlemi çok uzun sürüyor. Lütfen daha sonra tekrar deneyin.\n\n⏱️ Bekleme süresi aşıldı (15 saniye).",
+        "Veri çekme işlemi çok uzun sürüyor. Lütfen daha sonra tekrar deneyin.\n\n⏱️ Bekleme süresi aşıldı (25 saniye).",
         "Zaman Aşımı"
       );
     });
-  }, 15000);
+  }, 25000);
 }
 
 function hideLoadingSpinner() {
