@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.2.4",
+      "date": "2026-05-12",
+      "changes": [
+        "🔄 **Otizm API Entegrasyonu:** SİNA butonuyla eş zamanlı otizm verisi çekiliyor.",
+        "🐛 **ASÇ Süreç Katsayısı Düzeltmesi:** ASÇ başarı katsayısı artık doğru süreç katsayısını kullanıyor.",
+        "🐛 **ASÇ Veri Yokken:** Kendi verisi olmayan ASÇ için 1.0000 varsayılan değer gösteriliyor.",
+        "⏱️ **Spinner Süresi:** Otizm API gecikmesi için 15sn → 25sn'ye çıkarıldı."
+      ]
+    },
+    {
       "version": "2.2.3",
       "date": "2026-05-10",
       "changes": [

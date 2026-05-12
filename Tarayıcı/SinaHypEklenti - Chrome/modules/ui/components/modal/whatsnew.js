@@ -8,7 +8,13 @@ export async function showWhatsNewModal(version) {
 
     let whatsNewItems = [];
 
-    if (version === "2.2.3") {
+    if (version === "2.2.4") {
+      whatsNewItems = [
+        "🔄 SİNA çekimiyle eş zamanlı Otizm verisi artık API'den alınıyor.",
+        "🐛 ASÇ başarı katsayısındaki süreç katsayısı hatası giderildi.",
+        "🐛 ASÇ kendi verisi yokken doktor katsayısına eşitlenme sorunu düzeltildi.",
+      ];
+    } else if (version === "2.2.3") {
       whatsNewItems = [
         "🖼️ Dashboard ikonu yenilendi, tablodan kolayca erişin.",
         "🆕 Yeni özellikler artık 'YENİ' badge'i ve parıltı efektiyle gösteriliyor.",

@@ -756,7 +756,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                   const hasAny = nurseData.length > 0 || doctorData.length > 0;
 
                   if (!hasAny) {
-                    updateTable([], userType, false, birimId);
+                    updateTable([], userType, false, birimId, ayStr, yil);
                     return;
                   }
 
@@ -768,17 +768,17 @@ document.addEventListener("DOMContentLoaded", async function () {
                       if (!exists) mergedData.push(doctorItem);
                     });
                     console.log(`📊 ASÇ Tablo: Birleştirilmiş veri ${mergedData.length} işlem`);
-                    updateTable(combineData(mergedData), userType, true, birimId);
+                    updateTable(combineData(mergedData), userType, true, birimId, ayStr, yil);
                   } else if (nurseData.length > 0) {
                     console.log(`📊 ASÇ Tablo: Sadece hemşire verisi`);
-                    updateTable(nurseData, userType, false, birimId);
+                    updateTable(nurseData, userType, false, birimId, ayStr, yil);
                   } else if (doctorData.length > 0) {
                     console.log(`📊 ASÇ Tablo: Sadece doktor verisi`);
-                    updateTable(doctorData, userType, true, birimId);
+                    updateTable(doctorData, userType, true, birimId, ayStr, yil);
                   }
                 });
               } else {
-                updateTable(finalData, userType, getCurrentShowAll(), birimId);
+                updateTable(finalData, userType, getCurrentShowAll(), birimId, ayStr, yil);
               }
 
               // Butonları aktif et
