@@ -347,7 +347,7 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
       console.log("🔄 SİNA: Spinner gösterildi");
 
       // Veri çekme fonksiyonu
-      function sinaExtractData() {
+      async function sinaExtractData() {
         if (veriGonderildi) return;
 
         // ========== ÖNCE SPINNER'I GİZLE ==========
