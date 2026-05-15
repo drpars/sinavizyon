@@ -384,7 +384,7 @@ document.getElementById("aboutModal").addEventListener("click", function (e) {
   if (e.target === this) this.classList.remove("show");
 });
 
-// ========== OTİZM İZLEM TAKVİMİ ==========
+// ========== OTİZM TARAMA TAKVİMİ ==========
 
 let otizmHypTabId = null;
 let otizmFetchInProgress = false;
@@ -477,7 +477,7 @@ chrome.runtime.onMessage.addListener((msg, _sender) => {
         container.innerHTML = `
           <div class="otizm-izlem-section">
             <div class="otizm-section-header">
-              <span>🧩 OTİZM İZLEM TAKVİMİ</span>
+              <span>🧩 OTİZM TARAMA TAKVİMİ</span>
             </div>
             <div class="otizm-empty-state">
               <span>⚠️ HYP oturumu bulunamadı. Lütfen HYP'ye giriş yapın.</span>
@@ -488,7 +488,7 @@ chrome.runtime.onMessage.addListener((msg, _sender) => {
         container.innerHTML = `
           <div class="otizm-izlem-section">
             <div class="otizm-section-header">
-              <span>🧩 OTİZM İZLEM TAKVİMİ</span>
+              <span>🧩 OTİZM TARAMA TAKVİMİ</span>
             </div>
             <div class="otizm-empty-state">
               <span>❌ Veri çekilirken hata oluştu: ${msg.error}</span>

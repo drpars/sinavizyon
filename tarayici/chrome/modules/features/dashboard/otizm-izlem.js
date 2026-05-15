@@ -139,7 +139,7 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
         // Periyodun bitiş tarihi bugünden önceyse listeleme (kapanmış periyot)
         const bitisTarih = new Date(periyot.bitis);
         bitisTarih.setHours(0, 0, 0, 0);
-        if (bitisTarih < bugun) return;
+        if (bitisTarih <= bugun) return;
 
         sonuc.push({
           hasta: hasta,
@@ -181,7 +181,7 @@ function ayTablosuOlustur(baslik, satirlar, renk) {
           <span class="otizm-count">0 hasta</span>
         </div>
         <div class="otizm-ay-body otizm-empty">
-          <span>Bu ayda izlem periyodunda hasta bulunmamaktadır.</span>
+          <span>Bu ayda tarama periyodunda hasta bulunmamaktadır.</span>
         </div>
       </div>
     `;
@@ -242,7 +242,7 @@ export function renderOtizmIzlem(hastalar) {
     container.innerHTML = `
       <div class="otizm-izlem-section">
         <div class="otizm-section-header">
-          <span>🧩 OTİZM İZLEM TAKVİMİ</span>
+          <span>🧩 OTİZM TARAMA TAKVİMİ</span>
         </div>
         <div class="otizm-empty-state">
           <span>Veri bulunamadı. HYP bağlantısı gereklidir.</span>
@@ -273,8 +273,8 @@ export function renderOtizmIzlem(hastalar) {
   container.innerHTML = `
     <div class="otizm-izlem-section">
       <div class="otizm-section-header">
-        <span>🧩 OTİZM İZLEM TAKVİMİ</span>
-        <span class="otizm-section-subtitle">İzlem periyodundaki hastalar</span>
+        <span>🧩 OTİZM TARAMA TAKVİMİ</span>
+        <span class="otizm-section-subtitle">Tarama periyodundaki hastalar</span>
       </div>
       <div class="otizm-tablolar-grid">
         ${ayTablosuOlustur(buAyBaslik, buAySatirlar, "#8b5cf6")}
