@@ -422,16 +422,19 @@ function fetchOtizmIzlem(birimId) {
 
           // Sayfa tam yüklendikten sonra content.js'e mesaj gönder
           setTimeout(() => {
+            console.log(`🧩 Otizm: Sekme ${tabId} üzerinden content.js'e mesaj gönderiliyor...`);
             chrome.tabs.sendMessage(tabId, {
               action: "fetchOtizmHastalari",
               birimId: birimId,
             }, (response) => {
               if (chrome.runtime.lastError) {
-                console.warn("⚠️ Otizm hasta listesi: content.js ile iletişim kurulamadı");
+                console.warn("⚠️ Otizm hasta listesi: content.js ile iletişim kurulamadı", chrome.runtime.lastError.message);
                 kapatOtizmHypSekmesi();
+              } else {
+                console.log("🧩 Otizm: content.js'ten yanıt alındı:", response);
               }
             });
-          }, 1500);
+          }, 2000); // 2 saniye bekle (güvenli tarafta)
         }
       });
     }
