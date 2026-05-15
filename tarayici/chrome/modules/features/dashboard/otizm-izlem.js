@@ -32,18 +32,16 @@ export function hesaplaOtizmDonemleri(birthDate) {
 }
 
 /**
- * Bir periyodun (başlangıç-bitiş) belirtilen ay ile kesişip kesişmediğini kontrol eder.
- * @param {Date} baslangic - Periyot başlangıcı
- * @param {Date} bitis - Periyot bitişi
+ * Periyot bitiş tarihinin belirtilen ayda olup olmadığını kontrol eder.
+ * OSB tarama kuralı: Çocuk sadece periyodun son ayında hedefe girer.
+ * Örn: 1. periyot (18-21 ay arası yapılabilir) → sadece 20.ay+30gün tarihinin olduğu ayda listelenir.
+ * @param {Date} bitis - Periyot bitiş tarihi (20.ay+30g, 26.ay+30g, 38.ay+30g)
  * @param {number} yil
  * @param {number} ay (0-11)
  * @returns {boolean}
  */
-function periyotAyIleKesisiyorMu(baslangic, bitis, yil, ay) {
-  const ayBaslangic = new Date(yil, ay, 1);
-  const ayBitis = new Date(yil, ay + 1, 0, 23, 59, 59, 999);
-
-  return baslangic <= ayBitis && bitis >= ayBaslangic;
+function periyotBuAydaBiterMi(bitis, yil, ay) {
+  return bitis.getFullYear() === yil && bitis.getMonth() === ay;
 }
 
 /**
@@ -56,7 +54,8 @@ function periyotAyIleKesisiyorMu(baslangic, bitis, yil, ay) {
  */
 
 /**
- * Hastanın belirtilen ayda hangi periyotlarda olduğunu bulur.
+ * Hastanın belirtilen ayda hedefe giren periyotlarını bulur.
+ * OSB kuralı: Periyodun son tarihinin (bitiş) bulunduğu ay hedef aydır.
  * @param {object} donemler - hesaplaOtizmDonemleri() çıktısı
  * @param {number} yil
  * @param {number} ay (0-11)
@@ -69,7 +68,7 @@ function periyotlariBul(donemler, yil, ay) {
     { ad: "3. Periyot", baslangic: donemler.donem36, bitis: donemler.donem38, periyotNo: 3 },
   ];
 
-  return periyotlar.filter((p) => periyotAyIleKesisiyorMu(p.baslangic, p.bitis, yil, ay));
+  return periyotlar.filter((p) => periyotBuAydaBiterMi(p.bitis, yil, ay));
 }
 
 /**
@@ -220,7 +219,7 @@ function ayTablosuOlustur(baslik, satirlar, renk) {
               <th style="text-align:left;">Hasta</th>
               <th>Yaş</th>
               <th>Periyot</th>
-              <th>Dönem</th>
+              <th>Tarama Aralığı</th>
             </tr>
           </thead>
           <tbody>${rowsHtml}</tbody>
