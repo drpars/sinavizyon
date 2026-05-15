@@ -27,21 +27,29 @@ export function hesaplaOtizmDonemleri(birthDate) {
     return d;
   };
 
+  // Periyot penceresinin son günü = (X+1). ayın 1 gün öncesi
+  // 1P: 18.ay → 21.ay-1gün, 2P: 24.ay → 27.ay-1gün, 3P: 36.ay → 39.ay-1gün
+  const addMonthsMinus1Day = (date, months) => {
+    const d = addMonths(date, months);
+    d.setDate(d.getDate() - 1);
+    return d;
+  };
+
   return {
-    donem18: addMonths(dogum, 18),                    // 18. ay
-    donem20: addDays(addMonths(dogum, 20), 30),       // 20. ay + 30 gün
-    donem24: addMonths(dogum, 24),                    // 24. ay
-    donem26: addDays(addMonths(dogum, 26), 30),        // 26. ay + 30 gün
-    donem36: addMonths(dogum, 36),                    // 36. ay
-    donem38: addDays(addMonths(dogum, 38), 30),        // 38. ay + 30 gün
+    donem18: addMonths(dogum, 18),                // 18. ay (başlangıç)
+    donem20: addMonthsMinus1Day(dogum, 21),       // 21. ay - 1 gün (periyot sonu)
+    donem24: addMonths(dogum, 24),                // 24. ay (başlangıç)
+    donem26: addMonthsMinus1Day(dogum, 27),       // 27. ay - 1 gün (periyot sonu)
+    donem36: addMonths(dogum, 36),                // 36. ay (başlangıç)
+    donem38: addMonthsMinus1Day(dogum, 39),       // 39. ay - 1 gün (periyot sonu)
   };
 }
 
 /**
  * Periyot bitiş tarihinin belirtilen ayda olup olmadığını kontrol eder.
- * OSB tarama kuralı: Çocuk sadece periyodun son ayında hedefe girer.
- * Örn: 1. periyot (18-21 ay arası yapılabilir) → sadece 20.ay+30gün tarihinin olduğu ayda listelenir.
- * @param {Date} bitis - Periyot bitiş tarihi (20.ay+30g, 26.ay+30g, 38.ay+30g)
+ * OSB tarama kuralı: Çocuk sadece periyodun son ayında (pencerenin kapandığı ay) hedefe girer.
+ * Periyot penceresi: 1P=18.ay→21.ay-1gün, 2P=24.ay→27.ay-1gün, 3P=36.ay→39.ay-1gün
+ * @param {Date} bitis - Periyot bitiş tarihi (21.ay-1g, 27.ay-1g, 39.ay-1g)
  * @param {number} yil
  * @param {number} ay (0-11)
  * @returns {boolean}
@@ -129,7 +137,6 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
   let toplamHasta = 0;
   let dogumYok = 0;
   let periyotYok = 0;
-  let bugunElenen = 0;
 
   hastalar.forEach((hasta) => {
     if (!hasta.BirthDate) { dogumYok++; return; }
@@ -142,14 +149,8 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
       const dogum = new Date(hasta.BirthDate);
       const referans = new Date(yil, ay + 1, 0);
       const yasAy = ayOlarakYas(dogum, referans);
-      const bugun = new Date();
-      bugun.setHours(0, 0, 0, 0);
 
       aktifPeriyotlar.forEach((periyot) => {
-        const bitisTarih = new Date(periyot.bitis);
-        bitisTarih.setHours(0, 0, 0, 0);
-        if (bitisTarih <= bugun) { bugunElenen++; return; }
-
         sonuc.push({
           hasta: hasta,
           yasAy: yasAy,
@@ -165,14 +166,7 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
     }
   });
 
-  console.log(`🧩 Filtre [${ayAdi(ay)} ${yil}]: toplam=${toplamHasta} dogumYok=${dogumYok} periyotYok=${periyotYok} bugunElenen=${bugunElenen} sonuc=${sonuc.length}`);
-
-  // Debug: tüm hastaların periyot bitişlerini logla (isim olmadan)
-  hastalar.forEach((hasta, idx) => {
-    if (!hasta.BirthDate) return;
-    const donemler = hesaplaOtizmDonemleri(hasta.BirthDate);
-    console.log(`  [${idx+1}] Doğum:${hasta.BirthDate} | 1P bitiş:${formatTarih(donemler.donem20)} (${ayAdi(donemler.donem20.getMonth())}${donemler.donem20.getFullYear()}) | 2P bitiş:${formatTarih(donemler.donem26)} (${ayAdi(donemler.donem26.getMonth())}${donemler.donem26.getFullYear()}) | 3P bitiş:${formatTarih(donemler.donem38)} (${ayAdi(donemler.donem38.getMonth())}${donemler.donem38.getFullYear()})`);
-  });
+  console.log(`🧩 Filtre [${ayAdi(ay)} ${yil}]: toplam=${toplamHasta} dogumYok=${dogumYok} periyotYok=${periyotYok} sonuc=${sonuc.length}`);
 
   // Önce periyot numarasına, sonra isme göre sırala
   sonuc.sort((a, b) => {
