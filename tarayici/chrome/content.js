@@ -72,7 +72,6 @@ function mapHypToSina(hypData) {
     ckd_monitoring: "KRONİK BOBREK İZLEMİ",
     copd_monitoring: "KOAH İZLEMİ",
     asthma_monitoring: "ASTIM İZLEMİ",
-    osb_screening: "OTİZM TARAMASI",
   };
 
   return hypData
@@ -433,85 +432,82 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
         if (veriGonderildi) return;
         veriGonderildi = true;
 
-        // ========== OTİZM API (İNLINE - content script import desteklemez) ==========
-        const ilkBirimAdi = results.length > 0 ? results[0].birimAdi : "";
+        // ========== OTİZM API (v2: birimId tabanlı, çift endpoint) ==========
+        // URL'den birimId, ay ve yıl bilgilerini al
+        const urlParamsOtizm = new URLSearchParams(window.location.search);
+        const filtersStrOtizm = urlParamsOtizm.get("filters") || "";
+        const birimIdMatch = filtersStrOtizm.match(/252860=(\d+)/);
+        const birimId = birimIdMatch ? birimIdMatch[1] : "";
+        const ayMatch = filtersStrOtizm.match(/252840=([A-Z]+)/);
+        const yilMatch = filtersStrOtizm.match(/252916=(\d{4})/);
+        const ay = ayMatch ? ayMatch[1] : "";
+        const yil = yilMatch ? yilMatch[1] : "";
 
-        if (ilkBirimAdi) {
-          // Birim adını parse et: "Çankırı Merkez 20 Nolu AHB - Çankırı"
-          const match = ilkBirimAdi.trim().replace(/\s+/g, " ").match(
-            /^(.+?)\s+(.+?)\s+(\d+)\s+Nolu\s+AHB\s+-\s+(.+)$/i
-          );
-          if (match) {
-            const il = match[1].trim().toUpperCase();
-            const ilce = match[2].trim().toUpperCase();
-            const tamAd = `${match[1].trim()} ${match[2].trim()} ${match[3].trim()} Nolu AHB`;
+        if (birimId && ay && yil) {
+          const aylar = { OCAK: "01", SUBAT: "02", MART: "03", NISAN: "04", MAYIS: "05", HAZIRAN: "06", TEMMUZ: "07", AGUSTOS: "08", EYLUL: "09", EKIM: "10", KASIM: "11", ARALIK: "12" };
+          const ayNo = aylar[ay] || ay.padStart(2, "0");
+          const donem = `${yil}-${ayNo}`;
 
-            // URL'den ay/yıl bilgisini al
-            const urlParams = new URLSearchParams(window.location.search);
-            const filtersStr = urlParams.get("filters") || "";
-            const ayMatch = filtersStr.match(/252840=([A-Z]+)/);
-            const yilMatch = filtersStr.match(/252916=(\d{4})/);
-            const ay = ayMatch ? ayMatch[1] : "";
-            const yil = yilMatch ? yilMatch[1] : "";
+          const ortakFiltreler = `dbfl-ayffa266fbaeep7=${donem}&dbfl-y0athdfbb05282b=${donem}&dbfl-690d338da4xeu40=${birimId}&dbmfl-0eebb5447f112m8=${donem}`;
 
-            if (ay && yil) {
-              // Ay numarası
-              const aylar = { OCAK: "01", SUBAT: "02", MART: "03", NISAN: "04", MAYIS: "05", HAZIRAN: "06", TEMMUZ: "07", AGUSTOS: "08", EYLUL: "09", EKIM: "10", KASIM: "11", ARALIK: "12" };
-              const ayNo = aylar[ay] || ay.padStart(2, "0");
-              const period = `${yil}-${ayNo}`;
+          const url1 = `https://node4sina.saglik.gov.tr/api/v1/data/?id=DL-414727O41003S03&type=info_cell&refresh_cache=false&dashboard=db-e319dcd344pk5at&filters=${ortakFiltreler}`;
+          const url2 = `https://node7sina.saglik.gov.tr/api/v1/data/?id=DL-9L2Q9CDF8A92Q6T&type=info_cell&refresh_cache=false&dashboard=db-e319dcd344pk5at&filters=${ortakFiltreler}`;
 
-              const encode = encodeURIComponent;
-              const filters = [
-                `dbfl-8bdxh2f6ggcf9d8=${period}`,
-                `dbfl-rfa1t6x79dakfsc=__latest_period__month__movement__0`,
-                `dbfl-7f19d5fhd73e374=${encode(il)}`,
-                `dbfl-e2ax0ef5ede3aoa=${encode(ilce)}`,
-                `dbfl-4ly5i4cud9d19no=${encode(tamAd)}`,
-              ].join("%26");
+          console.log("🔄 Otizm API çağrılıyor...");
+          try {
+            const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+            const token = auth._accessToken;
+            if (token) {
+              const headers = {
+                accept: "application/json, text/plain, */*",
+                authorization: `Token ${token}`,
+              };
 
-              const otizmUrl = `https://node3sina.saglik.gov.tr/api/v1/data/?id=DL-414727O41003S03&type=info_cell&refresh_cache=false&dashboard=db-5q98b0nfa3d119b&filters=${filters}`;
+              const [res1, res2] = await Promise.all([
+                fetch(url1, { headers, method: "GET", mode: "cors" }),
+                fetch(url2, { headers, method: "GET", mode: "cors" })
+              ]);
 
-              console.log("🔄 Otizm API çağrılıyor...");
-              try {
-                const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-                const token = auth._accessToken;
-                if (token) {
-                  const resp = await fetch(otizmUrl, {
-                    headers: {
-                      accept: "application/json, text/plain, */*",
-                      authorization: `Token ${token}`,
-                    },
-                    method: "GET",
-                    mode: "cors",
-                  });
-                  if (resp.ok) {
-                    const json = await resp.json();
-                    const items = json?.data || [];
-                    if (items.length >= 3) {
-                      const gereken = items[0]?.attributes?.rows?.m0?.[0];
-                      const yapilan = items[1]?.attributes?.rows?.m0?.[0];
-                      if (gereken != null && yapilan != null) {
-                        const otizmData = {
-                          birimAdi: ilkBirimAdi,
-                          ad: "OTİZM TARAMASI",
-                          gereken: String(gereken),
-                          yapilan: String(yapilan),
-                          devreden: "0",
-                        };
-                        console.log("✅ Otizm verisi API'den çekildi:", otizmData);
-                        results.push(otizmData);
-                      }
-                    }
-                  } else {
-                    console.warn("⚠️ Otizm API HTTP hatası:", resp.status);
-                  }
-                } else {
-                  console.warn("⚠️ Otizm API: Token bulunamadı");
+              if (res1.ok && res2.ok) {
+                const data1 = await res1.json();
+                const data2 = await res2.json();
+
+                const getByMeasureId = (items, measureId) => {
+                  const item = items.find(i => i.attributes?.meta?.measure_id === measureId);
+                  return item?.attributes?.meta?.value?.[0] || 0;
+                };
+
+                const items1 = data1?.data || [];
+                const items2 = data2?.data || [];
+
+                const gereken   = getByMeasureId(items1, 'dm-dh7dfjad3d67dwc');
+                const yapilan   = getByMeasureId(items1, 'dm-rya8d12yh77wc66');
+                const devreden  = getByMeasureId(items2, 'de-8ear7qdf7e07cf7');
+                const yapilanAlt = getByMeasureId(items2, 'de-1bra511ddu81fv1');
+
+                // yapilanAlt > 0 ise güncel değer olarak onu kullan
+                const finalYapilan = (yapilanAlt > 0) ? yapilanAlt : yapilan;
+
+                if (gereken != null) {
+                  const birimAdi = results.length > 0 ? results[0].birimAdi : "";
+                  const otizmData = {
+                    birimAdi: birimAdi,
+                    ad: "OTİZM TARAMASI",
+                    gereken: String(gereken),
+                    yapilan: String(finalYapilan),
+                    devreden: String(devreden),
+                  };
+                  console.log("✅ Otizm verisi API'den çekildi:", otizmData);
+                  results.push(otizmData);
                 }
-              } catch (e) {
-                console.warn("⚠️ Otizm API hatası (sessiz):", e.message);
+              } else {
+                console.warn("⚠️ Otizm API HTTP hatası:", res1.status, res2.status);
               }
+            } else {
+              console.warn("⚠️ Otizm API: Token bulunamadı");
             }
+          } catch (e) {
+            console.warn("⚠️ Otizm API hatası (sessiz):", e.message);
           }
         }
 
