@@ -485,8 +485,8 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
                 const devreden  = getByMeasureId(items2, 'de-8ear7qdf7e07cf7');
                 const yapilanAlt = getByMeasureId(items2, 'de-1bra511ddu81fv1');
 
-                // yapilanAlt > 0 ise güncel değer olarak onu kullan
-                const finalYapilan = (yapilanAlt > 0) ? yapilanAlt : yapilan;
+                // Asıl yapilan değerini kullan, yoksa yapilanAlt yedek
+                const finalYapilan = (yapilan > 0) ? yapilan : yapilanAlt;
 
                 if (gereken != null) {
                   const birimAdi = results.length > 0 ? results[0].birimAdi : "";
