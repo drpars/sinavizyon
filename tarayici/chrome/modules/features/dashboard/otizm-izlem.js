@@ -151,6 +151,12 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
       const yasAy = ayOlarakYas(dogum, referans);
 
       aktifPeriyotlar.forEach((periyot) => {
+        const bugun = new Date();
+        bugun.setHours(0, 0, 0, 0);
+        const bitisTarih = new Date(periyot.bitis);
+        bitisTarih.setHours(0, 0, 0, 0);
+        const sureDoldu = bitisTarih < bugun;
+
         sonuc.push({
           hasta: hasta,
           yasAy: yasAy,
@@ -159,6 +165,8 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
           baslangic: periyot.baslangic,
           bitis: periyot.bitis,
           donemAralik: `${formatTarih(periyot.baslangic)} - ${formatTarih(periyot.bitis)}`,
+          sureDoldu: sureDoldu,
+          durum: sureDoldu ? "Süre Doldu" : "Yapılabilir",
         });
       });
     } else {
@@ -205,6 +213,7 @@ function ayTablosuOlustur(baslik, satirlar, renk) {
   satirlar.forEach((satir, index) => {
     const adSoyad = `${satir.hasta.GivenName} ${satir.hasta.FamilyName}`;
     const cinsiyet = satir.hasta.Gender === "male" ? "♂" : satir.hasta.Gender === "female" ? "♀" : "";
+    const durumClass = satir.sureDoldu ? "otizm-sure-doldu" : "otizm-yapilabilir";
 
     rowsHtml += `
       <tr>
@@ -216,6 +225,7 @@ function ayTablosuOlustur(baslik, satirlar, renk) {
         <td>${satir.yasAy} ay</td>
         <td><span class="otizm-periyot-badge periyot-${satir.periyotNo}">${satir.periyotAd}</span></td>
         <td class="otizm-donem-aralik">${satir.donemAralik}</td>
+        <td class="otizm-durum ${durumClass}">${satir.durum}</td>
       </tr>
     `;
   });
@@ -235,6 +245,7 @@ function ayTablosuOlustur(baslik, satirlar, renk) {
               <th>Yaş</th>
               <th>Periyot</th>
               <th>Tarama Aralığı</th>
+              <th>Durum</th>
             </tr>
           </thead>
           <tbody>${rowsHtml}</tbody>
