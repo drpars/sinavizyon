@@ -134,13 +134,9 @@ function ayAdi(ay) {
  */
 function hastalariAyIcinFiltrele(hastalar, yil, ay) {
   const sonuc = [];
-  let toplamHasta = 0;
-  let dogumYok = 0;
-  let periyotYok = 0;
 
   hastalar.forEach((hasta) => {
-    if (!hasta.BirthDate) { dogumYok++; return; }
-    toplamHasta++;
+    if (!hasta.BirthDate) return;
 
     const donemler = hesaplaOtizmDonemleri(hasta.BirthDate);
     const aktifPeriyotlar = periyotlariBul(donemler, yil, ay);
@@ -169,12 +165,8 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
           durum: sureDoldu ? "Süre Doldu" : "Yapılabilir",
         });
       });
-    } else {
-      periyotYok++;
     }
   });
-
-  console.log(`🧩 Filtre [${ayAdi(ay)} ${yil}]: toplam=${toplamHasta} dogumYok=${dogumYok} periyotYok=${periyotYok} sonuc=${sonuc.length}`);
 
   // Önce periyot numarasına, sonra isme göre sırala
   sonuc.sort((a, b) => {
@@ -263,8 +255,6 @@ export function renderOtizmIzlem(hastalar) {
   const container = document.getElementById("otizmIzlemContainer");
   if (!container) return;
 
-  console.log(`🧩 renderOtizmIzlem: ${hastalar?.length || 0} hasta alındı`);
-
   if (!hastalar || hastalar.length === 0) {
     container.innerHTML = `
       <div class="otizm-izlem-section">
@@ -293,9 +283,6 @@ export function renderOtizmIzlem(hastalar) {
 
   const buAySatirlar = hastalariAyIcinFiltrele(hastalar, buYil, buAy);
   const gelecekAySatirlar = hastalariAyIcinFiltrele(hastalar, gelecekYil, gelecekAy);
-
-  console.log(`🧩 Bu ay (${ayAdi(buAy)} ${buYil}): ${buAySatirlar.length} hasta`);
-  console.log(`🧩 Gelecek ay (${ayAdi(gelecekAy)} ${gelecekYil}): ${gelecekAySatirlar.length} hasta`);
 
   const buAyBaslik = `📅 BU AY (${ayAdi(buAy)} ${buYil})`;
   const gelecekAyBaslik = `📅 GELECEK AY (${ayAdi(gelecekAy)} ${gelecekYil})`;

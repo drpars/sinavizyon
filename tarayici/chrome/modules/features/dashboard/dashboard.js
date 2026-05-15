@@ -398,10 +398,7 @@ function fetchOtizmIzlem(birimId) {
   if (!birimId) return;
 
   // Zaten bir çekme işlemi devam ediyorsa tekrar başlatma
-  if (otizmFetchInProgress) {
-    console.log("🧩 Otizm hasta listesi: Zaten çekiliyor, tekrar denenmiyor.");
-    return;
-  }
+  if (otizmFetchInProgress) return;
   otizmFetchInProgress = true;
 
   // Önce eski HYP sekmemizi temizleyelim
@@ -422,7 +419,6 @@ function fetchOtizmIzlem(birimId) {
 
           // Sayfa tam yüklendikten sonra content.js'e mesaj gönder
           setTimeout(() => {
-            console.log(`🧩 Otizm: Sekme ${tabId} üzerinden content.js'e mesaj gönderiliyor...`);
             chrome.tabs.sendMessage(tabId, {
               action: "fetchOtizmHastalari",
               birimId: birimId,
@@ -430,8 +426,6 @@ function fetchOtizmIzlem(birimId) {
               if (chrome.runtime.lastError) {
                 console.warn("⚠️ Otizm hasta listesi: content.js ile iletişim kurulamadı", chrome.runtime.lastError.message);
                 kapatOtizmHypSekmesi();
-              } else {
-                console.log("🧩 Otizm: content.js'ten yanıt alındı:", response);
               }
             });
           }, 2000); // 2 saniye bekle (güvenli tarafta)
@@ -452,8 +446,6 @@ function kapatOtizmHypSekmesi() {
 // content.js'ten gelen otizm hasta listesi mesajını dinle
 chrome.runtime.onMessage.addListener((msg, _sender) => {
   if (msg.action === "otizmHastalariYuklendi") {
-    console.log(`🧩 Otizm hasta listesi alındı: ${msg.hastalar?.length || 0} hasta`);
-
     // otizm-izlem.js modülünü dinamik import ile yükle
     const moduleUrl = chrome.runtime.getURL("modules/features/dashboard/otizm-izlem.js");
     import(moduleUrl).then(({ renderOtizmIzlem }) => {

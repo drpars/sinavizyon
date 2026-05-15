@@ -56,6 +56,17 @@
 
 ---
 
+## v2.3.0 Yapılanlar ✅ (2026-05-15)
+- **Otizm Tarama Takvimi:** Dashboard'a yeni panel eklendi. Bu ay ve gelecek ay tarama periyodundaki çocuklar listeleniyor.
+- **HYP Hasta Listesi API:** `status=all&careType=osb` ile OSB tanılı tüm çocuklar çekiliyor, sayfalama destekli.
+- **Periyot Hesaplama:** SİNA kuralına uygun (21.ay-1g, 27.ay-1g, 39.ay-1g). 15.09.2024 örneği ile birebir doğrulandı.
+- **Durum Sütunu:** Her çocuk için 🟢 Yapılabilir / 🔴 Süre Doldu renkli göstergesi.
+- **Yan Yana Tablolar:** Bu ay ve gelecek ay ayrı sütunlarda, responsive tasarım.
+- **content.js:** `fetchOtizmHastalari` mesaj handler'ı, HYP Population API entegrasyonu.
+- **dashboard.js:** Arka plan HYP sekmesi açıp content.js üzerinden veri çekme, sekme yönetimi.
+- **otizm-izlem.js:** Yeni modül - hesaplama, filtreleme, render.
+- **changelog.json / whatsnew.js:** v2.3.0 için güncellendi.
+
 ## v2.2.6 Yapılanlar ✅ (2026-05-15)
 - **Node'lar hardcoded**: node4 + node7 sabit, v2.2.3'teki node fallback (4→1→2→3) yok. Gerekirse eklenmeli.
 - **Otizm API yeniden yazıldı**: birimId tabanlı filtreleme, çift endpoint (node4 + node7) ile paralel veri çekme
@@ -78,7 +89,7 @@
 ---
 
 ## İstatistik
-- **Toplam:** 26 görev
-- **Tamamlanan:** 7 (#2, #3, #4 faz1 + #1, #8 faz2 + v2.2.3 + v2.2.6 otizm API yenileme)
-- **Devam eden:** 17
+- **Toplam:** 27 görev
+- **Tamamlanan:** 8 (#2, #3, #4 faz1 + #1, #8 faz2 + v2.2.3 + v2.2.6 + v2.3.0 otizm tarama takvimi)
+- **Devam eden:** 16
 - **Pasif:** 3 (Faz 2: #5, #6, #7)
