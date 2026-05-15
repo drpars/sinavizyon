@@ -198,7 +198,7 @@ async function fetchOtizmHastaListesi(birimId) {
     const pageSize = 100;
 
     do {
-      const url = `https://hyp.saglik.gov.tr/api/Population/$query-population?status=is-first&careType=osb&count=${pageSize}&page=${page}`;
+      const url = `https://hyp.saglik.gov.tr/api/Population/$query-population?status=all&careType=osb&count=${pageSize}&page=${page}`;
       const response = await fetch(url, { credentials: "include" });
 
       const contentType = response.headers.get("content-type");
