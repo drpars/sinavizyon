@@ -73,6 +73,9 @@ function renderDashboard(record, birimId) {
 
   renderCards(data, birimId, ay, yil);
   renderTables(data, ay, yil, birimAdi);
+
+  // Otizm izlem takvimi - arka planda HYP'den hasta listesini çek
+  fetchOtizmIzlem(birimId);
 }
 
 async function renderCards(data, birimId, ay, yil) {
@@ -379,6 +382,108 @@ document.getElementById("aboutModalClose").addEventListener("click", (e) => {
 
 document.getElementById("aboutModal").addEventListener("click", function (e) {
   if (e.target === this) this.classList.remove("show");
+});
+
+// ========== OTİZM İZLEM TAKVİMİ ==========
+
+let otizmHypTabId = null;
+
+/**
+ * Otizm hasta listesini HYP'den çeker.
+ * Dashboard doğrudan HYP API'ye erişemediği için,
+ * arka planda HYP sekmesi açıp content.js üzerinden veri çeker.
+ */
+function fetchOtizmIzlem(birimId) {
+  if (!birimId) return;
+
+  // Önce eski HYP sekmemizi temizleyelim
+  if (otizmHypTabId) {
+    chrome.tabs.remove(otizmHypTabId).catch(() => {});
+    otizmHypTabId = null;
+  }
+
+  // HYP sayfasında content.js'e mesaj göndermek için HYP sekmesi aç
+  chrome.tabs.create(
+    { url: "https://hyp.saglik.gov.tr", active: false },
+    (tab) => {
+      otizmHypTabId = tab.id;
+
+      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+        if (tabId === otizmHypTabId && info.status === "complete") {
+          chrome.tabs.onUpdated.removeListener(listener);
+
+          // Sayfa tam yüklendikten sonra content.js'e mesaj gönder
+          setTimeout(() => {
+            chrome.tabs.sendMessage(tabId, {
+              action: "fetchOtizmHastalari",
+              birimId: birimId,
+            }, (response) => {
+              if (chrome.runtime.lastError) {
+                console.warn("⚠️ Otizm hasta listesi: content.js ile iletişim kurulamadı");
+                kapatOtizmHypSekmesi();
+              }
+            });
+          }, 1500);
+        }
+      });
+    }
+  );
+}
+
+function kapatOtizmHypSekmesi() {
+  if (otizmHypTabId) {
+    chrome.tabs.remove(otizmHypTabId).catch(() => {});
+    otizmHypTabId = null;
+  }
+}
+
+// content.js'ten gelen otizm hasta listesi mesajını dinle
+chrome.runtime.onMessage.addListener((msg, _sender) => {
+  if (msg.action === "otizmHastalariYuklendi") {
+    console.log(`🧩 Otizm hasta listesi alındı: ${msg.hastalar?.length || 0} hasta`);
+
+    // otizm-izlem.js modülünü dinamik import ile yükle
+    const moduleUrl = chrome.runtime.getURL("modules/features/dashboard/otizm-izlem.js");
+    import(moduleUrl).then(({ renderOtizmIzlem }) => {
+      renderOtizmIzlem(msg.hastalar);
+    }).catch((e) => {
+      console.error("❌ otizm-izlem modülü yüklenemedi:", e);
+    });
+
+    // HYP sekmesini kapat
+    kapatOtizmHypSekmesi();
+  } else if (msg.action === "otizmHastalariHata") {
+    console.warn("⚠️ Otizm hasta listesi hatası:", msg.error);
+
+    kapatOtizmHypSekmesi();
+
+    const container = document.getElementById("otizmIzlemContainer");
+    if (container) {
+      if (msg.error === "OTURUM_YOK") {
+        container.innerHTML = `
+          <div class="otizm-izlem-section">
+            <div class="otizm-section-header">
+              <span>🧩 OTİZM İZLEM TAKVİMİ</span>
+            </div>
+            <div class="otizm-empty-state">
+              <span>⚠️ HYP oturumu bulunamadı. Lütfen HYP'ye giriş yapın.</span>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="otizm-izlem-section">
+            <div class="otizm-section-header">
+              <span>🧩 OTİZM İZLEM TAKVİMİ</span>
+            </div>
+            <div class="otizm-empty-state">
+              <span>❌ Veri çekilirken hata oluştu: ${msg.error}</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+  }
 });
 
 // ESC ile kapat

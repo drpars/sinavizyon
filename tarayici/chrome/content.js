@@ -192,6 +192,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     fetchHypAndSend(msg.expectedBirimId, msg.ay, msg.yil, msg.tabId);
     sendResponse({ status: "ok" });
   }
+  if (msg.action === "fetchOtizmHastalari" && isHyp) {
+    fetchOtizmHastaListesi(msg.birimId);
+    sendResponse({ status: "ok" });
+  }
   return true;
 });
 
@@ -598,4 +602,67 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
   } else if (isSina && !hasCopyHash) {
     console.log("ℹ️ SİNA sayfası açıldı ama #kopyala yok, veri çekme işlemi başlatılmadı.");
   }
+
+  // --- OTİZM HASTA LİSTESİ (Dashboard için) ---
+  const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
+
+  async function fetchOtizmHastaListesi(birimId) {
+    console.log("🧩 Otizm hasta listesi çekiliyor...");
+
+    try {
+      const allPatients = [];
+      let page = 1;
+      let totalCount = 0;
+      const pageSize = 100;
+
+      do {
+        const url = `https://hyp.saglik.gov.tr/api/Population/$query-population?status=is-first&careType=osb&count=${pageSize}&page=${page}`;
+        const response = await fetch(url, { credentials: "include" });
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("OTURUM_YOK");
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (page === 1) {
+          totalCount = data.TotalCount || 0;
+          console.log(`🧩 Toplam otizm hastası: ${totalCount}`);
+        }
+
+        const patients = data.Patients || [];
+        allPatients.push(...patients);
+
+        page++;
+      } while (allPatients.length < totalCount);
+
+      console.log(`✅ Otizm hasta listesi çekildi: ${allPatients.length} hasta`);
+
+      chrome.runtime.sendMessage({
+        action: "otizmHastalariYuklendi",
+        hastalar: allPatients,
+      }).catch(() => {});
+
+    } catch (e) {
+      if (e.message === "OTURUM_YOK") {
+        console.warn("⚠️ Otizm hasta listesi: HYP oturumu yok");
+        chrome.runtime.sendMessage({
+          action: "otizmHastalariHata",
+          error: "OTURUM_YOK",
+        }).catch(() => {});
+      } else {
+        console.error("❌ Otizm hasta listesi hatası:", e.message);
+        chrome.runtime.sendMessage({
+          action: "otizmHastalariHata",
+          error: e.message,
+        }).catch(() => {});
+      }
+    }
+  }
+
 })();
