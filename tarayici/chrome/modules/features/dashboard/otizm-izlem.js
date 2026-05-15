@@ -11,7 +11,13 @@ export function hesaplaOtizmDonemleri(birthDate) {
 
   const addMonths = (date, months) => {
     const d = new Date(date);
-    d.setMonth(d.getMonth() + months);
+    const targetMonth = d.getMonth() + months;
+    d.setMonth(targetMonth);
+    // setMonth kaymasını düzelt: ay doğru değilse (örn: 31 Ocak + 1 ay → 3 Mart),
+    // hedef ayın son gününe çek
+    if (d.getMonth() !== targetMonth % 12) {
+      d.setDate(0); // Hedef ayın son günü
+    }
     return d;
   };
 
@@ -237,6 +243,8 @@ export function renderOtizmIzlem(hastalar) {
   const container = document.getElementById("otizmIzlemContainer");
   if (!container) return;
 
+  console.log(`🧩 renderOtizmIzlem: ${hastalar?.length || 0} hasta alındı`);
+
   if (!hastalar || hastalar.length === 0) {
     container.innerHTML = `
       <div class="otizm-izlem-section">
@@ -265,6 +273,9 @@ export function renderOtizmIzlem(hastalar) {
 
   const buAySatirlar = hastalariAyIcinFiltrele(hastalar, buYil, buAy);
   const gelecekAySatirlar = hastalariAyIcinFiltrele(hastalar, gelecekYil, gelecekAy);
+
+  console.log(`🧩 Bu ay (${ayAdi(buAy)} ${buYil}): ${buAySatirlar.length} hasta`);
+  console.log(`🧩 Gelecek ay (${ayAdi(gelecekAy)} ${gelecekYil}): ${gelecekAySatirlar.length} hasta`);
 
   const buAyBaslik = `📅 BU AY (${ayAdi(buAy)} ${buYil})`;
   const gelecekAyBaslik = `📅 GELECEK AY (${ayAdi(gelecekAy)} ${gelecekYil})`;
