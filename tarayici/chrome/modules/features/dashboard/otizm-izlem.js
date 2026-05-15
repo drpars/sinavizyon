@@ -167,13 +167,11 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
 
   console.log(`🧩 Filtre [${ayAdi(ay)} ${yil}]: toplam=${toplamHasta} dogumYok=${dogumYok} periyotYok=${periyotYok} bugunElenen=${bugunElenen} sonuc=${sonuc.length}`);
 
-  // Debug: ilk 5 örnek hastanın detayını göster (isim olmadan)
-  let debugCount = 0;
-  hastalar.forEach((hasta) => {
-    if (!hasta.BirthDate || debugCount >= 5) return;
+  // Debug: tüm hastaların periyot bitişlerini logla (isim olmadan)
+  hastalar.forEach((hasta, idx) => {
+    if (!hasta.BirthDate) return;
     const donemler = hesaplaOtizmDonemleri(hasta.BirthDate);
-    console.log(`  Örnek Doğum:${hasta.BirthDate} → 1P bitiş:${formatTarih(donemler.donem20)} (${ayAdi(donemler.donem20.getMonth())}${donemler.donem20.getFullYear()}) 2P bitiş:${formatTarih(donemler.donem26)} (${ayAdi(donemler.donem26.getMonth())}${donemler.donem26.getFullYear()}) 3P bitiş:${formatTarih(donemler.donem38)} (${ayAdi(donemler.donem38.getMonth())}${donemler.donem38.getFullYear()})`);
-    debugCount++;
+    console.log(`  [${idx+1}] Doğum:${hasta.BirthDate} | 1P bitiş:${formatTarih(donemler.donem20)} (${ayAdi(donemler.donem20.getMonth())}${donemler.donem20.getFullYear()}) | 2P bitiş:${formatTarih(donemler.donem26)} (${ayAdi(donemler.donem26.getMonth())}${donemler.donem26.getFullYear()}) | 3P bitiş:${formatTarih(donemler.donem38)} (${ayAdi(donemler.donem38.getMonth())}${donemler.donem38.getFullYear()})`);
   });
 
   // Önce periyot numarasına, sonra isme göre sırala
