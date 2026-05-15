@@ -250,10 +250,17 @@ function ayTablosuOlustur(baslik, satirlar, renk) {
 /**
  * Ana render fonksiyonu - Dashboard'dan çağrılır.
  * @param {Array} hastalar - HYP API'den gelen hasta listesi
+ * @param {string} [durum] - Opsiyonel durum mesajı (hata/uyarı)
  */
-export function renderOtizmIzlem(hastalar) {
+export function renderOtizmIzlem(hastalar, durum) {
   const container = document.getElementById("otizmIzlemContainer");
   if (!container) return;
+
+  // Durum çubuğu HTML'i (sadece sorun varsa)
+  let durumHtml = "";
+  if (durum) {
+    durumHtml = `<div class="otizm-durum-cubuk">${durum}</div>`;
+  }
 
   if (!hastalar || hastalar.length === 0) {
     container.innerHTML = `
@@ -261,6 +268,7 @@ export function renderOtizmIzlem(hastalar) {
         <div class="otizm-section-header">
           <span>🧩 OTİZM TARAMA TAKVİMİ</span>
         </div>
+        ${durumHtml}
         <div class="otizm-empty-state">
           <span>Veri bulunamadı. HYP bağlantısı gereklidir.</span>
         </div>
@@ -293,6 +301,7 @@ export function renderOtizmIzlem(hastalar) {
         <span>🧩 OTİZM TARAMA TAKVİMİ</span>
         <span class="otizm-section-subtitle">Tarama periyodundaki hastalar</span>
       </div>
+      ${durumHtml}
       <div class="otizm-tablolar-grid">
         ${ayTablosuOlustur(buAyBaslik, buAySatirlar, "#8b5cf6")}
         ${ayTablosuOlustur(gelecekAyBaslik, gelecekAySatirlar, "#6366f1")}

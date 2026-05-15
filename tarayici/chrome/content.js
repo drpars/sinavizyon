@@ -188,9 +188,58 @@ async function fetchHypAndSend(expectedBirimId, ay, yil, tabId) {
 
 // ========== OTİZM HASTA LİSTESİ (Dashboard için) ==========
 
-async function fetchOtizmHastaListesi(birimId) {
+async function fetchOtizmHastaListesi(expectedBirimId) {
   console.log("🧩 Otizm hasta listesi çekiliyor...");
 
+  // 1. Oturum kontrolü
+  try {
+    const testRes = await fetch(
+      "https://hyp.saglik.gov.tr/api/Population/$query-population?status=all&careType=osb&count=1&page=1",
+      { credentials: "include" }
+    );
+    const ct = testRes.headers.get("content-type");
+    if (!ct || !ct.includes("application/json")) {
+      throw new Error("OTURUM_YOK");
+    }
+  } catch (e) {
+    if (e.message === "OTURUM_YOK") {
+      chrome.runtime.sendMessage({
+        action: "otizmHastalariHata",
+        error: "OTURUM_YOK",
+      }).catch(() => {});
+    } else {
+      chrome.runtime.sendMessage({
+        action: "otizmHastalariHata",
+        error: e.message,
+      }).catch(() => {});
+    }
+    return;
+  }
+
+  // 2. Birim ID kontrolü
+  const selectedBirimId = getHypSelectedBirimId();
+  if (!selectedBirimId) {
+    chrome.runtime.sendMessage({
+      action: "otizmHastalariHata",
+      error: "BIRIM_BULUNAMADI",
+    }).catch(() => {});
+    return;
+  }
+
+  if (selectedBirimId !== expectedBirimId) {
+    const orgs = JSON.parse(localStorage.getItem("hyp-user-organizations") || "[]");
+    const selected = orgs.find((o) => o.OrganizationId === selectedBirimId);
+    const selectedName = selected?.OrganizationName || selectedBirimId;
+
+    chrome.runtime.sendMessage({
+      action: "otizmHastalariHata",
+      error: "BIRIM_FARKLI",
+      selectedName: selectedName,
+    }).catch(() => {});
+    return;
+  }
+
+  // 3. Veriyi çek
   try {
     const allPatients = [];
     let page = 1;
@@ -231,19 +280,10 @@ async function fetchOtizmHastaListesi(birimId) {
     }).catch(() => {});
 
   } catch (e) {
-    if (e.message === "OTURUM_YOK") {
-      console.warn("⚠️ Otizm hasta listesi: HYP oturumu yok");
-      chrome.runtime.sendMessage({
-        action: "otizmHastalariHata",
-        error: "OTURUM_YOK",
-      }).catch(() => {});
-    } else {
-      console.error("❌ Otizm hasta listesi hatası:", e.message);
-      chrome.runtime.sendMessage({
-        action: "otizmHastalariHata",
-        error: e.message,
-      }).catch(() => {});
-    }
+    chrome.runtime.sendMessage({
+      action: "otizmHastalariHata",
+      error: e.message === "OTURUM_YOK" ? "OTURUM_YOK" : e.message,
+    }).catch(() => {});
   }
 }
 

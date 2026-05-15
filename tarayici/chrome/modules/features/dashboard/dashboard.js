@@ -463,32 +463,37 @@ chrome.runtime.onMessage.addListener((msg, _sender) => {
     kapatOtizmHypSekmesi();
     otizmFetchInProgress = false;
 
-    const container = document.getElementById("otizmIzlemContainer");
-    if (container) {
-      if (msg.error === "OTURUM_YOK") {
+    let durumMesaji = "";
+    if (msg.error === "OTURUM_YOK") {
+      durumMesaji = "⚠️ HYP oturumu bulunamadı. Lütfen HYP'ye giriş yapın.";
+    } else if (msg.error === "BIRIM_FARKLI") {
+      durumMesaji = `⚠️ HYP'de farklı birim seçili: "${msg.selectedName}". Lütfen doğru birimi seçin.`;
+    } else if (msg.error === "BIRIM_BULUNAMADI") {
+      durumMesaji = "⚠️ HYP'de seçili birim bulunamadı. Lütfen HYP'ye giriş yaptığınızdan emin olun.";
+    } else {
+      durumMesaji = `❌ Veri çekilirken hata oluştu: ${msg.error}`;
+    }
+
+    // otizm-izlem.js modülünü yükle ve boş veri + durum mesajı ile render et
+    const moduleUrl = chrome.runtime.getURL("modules/features/dashboard/otizm-izlem.js");
+    import(moduleUrl).then(({ renderOtizmIzlem }) => {
+      renderOtizmIzlem([], durumMesaji);
+    }).catch(() => {
+      const container = document.getElementById("otizmIzlemContainer");
+      if (container) {
         container.innerHTML = `
           <div class="otizm-izlem-section">
             <div class="otizm-section-header">
               <span>🧩 OTİZM TARAMA TAKVİMİ</span>
             </div>
+            <div class="otizm-durum-cubuk">${durumMesaji}</div>
             <div class="otizm-empty-state">
-              <span>⚠️ HYP oturumu bulunamadı. Lütfen HYP'ye giriş yapın.</span>
-            </div>
-          </div>
-        `;
-      } else {
-        container.innerHTML = `
-          <div class="otizm-izlem-section">
-            <div class="otizm-section-header">
-              <span>🧩 OTİZM TARAMA TAKVİMİ</span>
-            </div>
-            <div class="otizm-empty-state">
-              <span>❌ Veri çekilirken hata oluştu: ${msg.error}</span>
+              <span>Veri bulunamadı.</span>
             </div>
           </div>
         `;
       }
-    }
+    });
   }
 });
 

@@ -699,6 +699,22 @@ body.dark-mode .dash-table .row-done td {
   opacity: 0.85;
 }
 
+/* Durum çubuğu (hata/uyarı mesajları) */
+.otizm-durum-cubuk {
+  background: rgba(239, 68, 68, 0.1);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  color: #dc2626;
+  text-align: center;
+  font-weight: 500;
+}
+
+body.dark-mode .otizm-durum-cubuk {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+}
+
 /* Yan yana iki tablo */
 .otizm-tablolar-grid {
   display: grid;
