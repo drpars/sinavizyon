@@ -68,7 +68,7 @@ export const SINA_ENDPOINTS = {
         `dbfl-y0athdfbb05282b=${donem}`,
         `dbfl-690d338da4xeu40=${birimId}`,
         `dbmfl-0eebb5447f112m8=${donem}`,
-      ].join("&");
+      ].join("%26");
     },
 
     /**

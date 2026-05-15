@@ -448,7 +448,7 @@ console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
           const ayNo = aylar[ay] || ay.padStart(2, "0");
           const donem = `${yil}-${ayNo}`;
 
-          const ortakFiltreler = `dbfl-ayffa266fbaeep7=${donem}&dbfl-y0athdfbb05282b=${donem}&dbfl-690d338da4xeu40=${birimId}&dbmfl-0eebb5447f112m8=${donem}`;
+          const ortakFiltreler = `dbfl-ayffa266fbaeep7=${donem}%26dbfl-y0athdfbb05282b=${donem}%26dbfl-690d338da4xeu40=${birimId}%26dbmfl-0eebb5447f112m8=${donem}`;
 
           const url1 = `https://node4sina.saglik.gov.tr/api/v1/data/?id=DL-414727O41003S03&type=info_cell&refresh_cache=false&dashboard=db-e319dcd344pk5at&filters=${ortakFiltreler}`;
           const url2 = `https://node7sina.saglik.gov.tr/api/v1/data/?id=DL-9L2Q9CDF8A92Q6T&type=info_cell&refresh_cache=false&dashboard=db-e319dcd344pk5at&filters=${ortakFiltreler}`;
