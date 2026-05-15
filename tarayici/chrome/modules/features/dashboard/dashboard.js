@@ -387,6 +387,7 @@ document.getElementById("aboutModal").addEventListener("click", function (e) {
 // ========== OTİZM İZLEM TAKVİMİ ==========
 
 let otizmHypTabId = null;
+let otizmFetchInProgress = false;
 
 /**
  * Otizm hasta listesini HYP'den çeker.
@@ -395,6 +396,13 @@ let otizmHypTabId = null;
  */
 function fetchOtizmIzlem(birimId) {
   if (!birimId) return;
+
+  // Zaten bir çekme işlemi devam ediyorsa tekrar başlatma
+  if (otizmFetchInProgress) {
+    console.log("🧩 Otizm hasta listesi: Zaten çekiliyor, tekrar denenmiyor.");
+    return;
+  }
+  otizmFetchInProgress = true;
 
   // Önce eski HYP sekmemizi temizleyelim
   if (otizmHypTabId) {
@@ -435,6 +443,7 @@ function kapatOtizmHypSekmesi() {
     chrome.tabs.remove(otizmHypTabId).catch(() => {});
     otizmHypTabId = null;
   }
+  otizmFetchInProgress = false;
 }
 
 // content.js'ten gelen otizm hasta listesi mesajını dinle
@@ -450,12 +459,14 @@ chrome.runtime.onMessage.addListener((msg, _sender) => {
       console.error("❌ otizm-izlem modülü yüklenemedi:", e);
     });
 
-    // HYP sekmesini kapat
+    // HYP sekmesini kapat ve durumu sıfırla
     kapatOtizmHypSekmesi();
+    otizmFetchInProgress = false;
   } else if (msg.action === "otizmHastalariHata") {
     console.warn("⚠️ Otizm hasta listesi hatası:", msg.error);
 
     kapatOtizmHypSekmesi();
+    otizmFetchInProgress = false;
 
     const container = document.getElementById("otizmIzlemContainer");
     if (container) {

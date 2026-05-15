@@ -192,14 +192,19 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     fetchHypAndSend(msg.expectedBirimId, msg.ay, msg.yil, msg.tabId);
     sendResponse({ status: "ok" });
   }
-  if (msg.action === "fetchOtizmHastalari" && isHyp) {
+  if (msg.action === "fetchOtizmHastalari") {
+    // Sadece HYP sayfasında çalış
+    if (!window.location.href.includes("hyp.saglik.gov.tr")) {
+      sendResponse({ status: "error", message: "Sadece HYP sayfasında çalışır" });
+      return true;
+    }
     fetchOtizmHastaListesi(msg.birimId);
     sendResponse({ status: "ok" });
   }
   return true;
 });
 
-console.log("📦 content.js sürüm: v2.0.1 - 2026-04-09");
+console.log("📦 content.js sürüm: v2.3.0 - 2026-05-15");
 (function () {
   // const isHyp = window.location.href.includes("hyp.saglik.gov.tr");
   const isSina = window.location.href.includes("sina.saglik.gov.tr");
