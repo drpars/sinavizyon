@@ -126,25 +126,29 @@ function ayAdi(ay) {
  */
 function hastalariAyIcinFiltrele(hastalar, yil, ay) {
   const sonuc = [];
+  let toplamHasta = 0;
+  let dogumYok = 0;
+  let periyotYok = 0;
+  let bugunElenen = 0;
 
   hastalar.forEach((hasta) => {
-    if (!hasta.BirthDate) return;
+    if (!hasta.BirthDate) { dogumYok++; return; }
+    toplamHasta++;
 
     const donemler = hesaplaOtizmDonemleri(hasta.BirthDate);
     const aktifPeriyotlar = periyotlariBul(donemler, yil, ay);
 
     if (aktifPeriyotlar.length > 0) {
       const dogum = new Date(hasta.BirthDate);
-      const referans = new Date(yil, ay + 1, 0); // Ayın son günü
+      const referans = new Date(yil, ay + 1, 0);
       const yasAy = ayOlarakYas(dogum, referans);
       const bugun = new Date();
-      bugun.setHours(0, 0, 0, 0); // Bugün başlangıcı (saat sıfır)
+      bugun.setHours(0, 0, 0, 0);
 
       aktifPeriyotlar.forEach((periyot) => {
-        // Periyodun bitiş tarihi bugünden önceyse listeleme (kapanmış periyot)
         const bitisTarih = new Date(periyot.bitis);
         bitisTarih.setHours(0, 0, 0, 0);
-        if (bitisTarih <= bugun) return;
+        if (bitisTarih <= bugun) { bugunElenen++; return; }
 
         sonuc.push({
           hasta: hasta,
@@ -156,8 +160,12 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
           donemAralik: `${formatTarih(periyot.baslangic)} - ${formatTarih(periyot.bitis)}`,
         });
       });
+    } else {
+      periyotYok++;
     }
   });
+
+  console.log(`🧩 Filtre [${ayAdi(ay)} ${yil}]: toplam=${toplamHasta} dogumYok=${dogumYok} periyotYok=${periyotYok} bugunElenen=${bugunElenen} sonuc=${sonuc.length}`);
 
   // Önce periyot numarasına, sonra isme göre sırala
   sonuc.sort((a, b) => {
