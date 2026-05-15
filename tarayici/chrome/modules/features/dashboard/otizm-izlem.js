@@ -132,8 +132,15 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
       const dogum = new Date(hasta.BirthDate);
       const referans = new Date(yil, ay + 1, 0); // Ayın son günü
       const yasAy = ayOlarakYas(dogum, referans);
+      const bugun = new Date();
+      bugun.setHours(0, 0, 0, 0); // Bugün başlangıcı (saat sıfır)
 
       aktifPeriyotlar.forEach((periyot) => {
+        // Periyodun bitiş tarihi bugünden önceyse listeleme (kapanmış periyot)
+        const bitisTarih = new Date(periyot.bitis);
+        bitisTarih.setHours(0, 0, 0, 0);
+        if (bitisTarih < bugun) return;
+
         sonuc.push({
           hasta: hasta,
           yasAy: yasAy,
