@@ -57,6 +57,7 @@
 ---
 
 ## v2.2.6 Yapılanlar ✅ (2026-05-15)
+- **Node'lar hardcoded**: node4 + node7 sabit, v2.2.3'teki node fallback (4→1→2→3) yok. Gerekirse eklenmeli.
 - **Otizm API yeniden yazıldı**: birimId tabanlı filtreleme, çift endpoint (node4 + node7) ile paralel veri çekme
 - **Otizm response parse**: positional index yerine measure_id eşleştirmesi (`dm-dh7dfjad3d67dwc` vb.)
 - **yapilanAlt yedek**: Asıl yapilan değeri öncelikli, yapilanAlt sadece fallback
