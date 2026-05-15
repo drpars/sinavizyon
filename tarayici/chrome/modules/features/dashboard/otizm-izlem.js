@@ -167,6 +167,15 @@ function hastalariAyIcinFiltrele(hastalar, yil, ay) {
 
   console.log(`🧩 Filtre [${ayAdi(ay)} ${yil}]: toplam=${toplamHasta} dogumYok=${dogumYok} periyotYok=${periyotYok} bugunElenen=${bugunElenen} sonuc=${sonuc.length}`);
 
+  // Debug: ilk 5 örnek hastanın detayını göster
+  let debugCount = 0;
+  hastalar.forEach((hasta) => {
+    if (!hasta.BirthDate || debugCount >= 5) return;
+    const donemler = hesaplaOtizmDonemleri(hasta.BirthDate);
+    console.log(`  Örnek ${hasta.GivenName} ${hasta.FamilyName} Doğum:${hasta.BirthDate} → 1P bitiş:${formatTarih(donemler.donem20)} ${ayAdi(donemler.donem20.getMonth())}${donemler.donem20.getFullYear()} 2P bitiş:${formatTarih(donemler.donem26)} ${ayAdi(donemler.donem26.getMonth())}${donemler.donem26.getFullYear()} 3P bitiş:${formatTarih(donemler.donem38)} ${ayAdi(donemler.donem38.getMonth())}${donemler.donem38.getFullYear()}`);
+    debugCount++;
+  });
+
   // Önce periyot numarasına, sonra isme göre sırala
   sonuc.sort((a, b) => {
     if (a.periyotNo !== b.periyotNo) return a.periyotNo - b.periyotNo;
