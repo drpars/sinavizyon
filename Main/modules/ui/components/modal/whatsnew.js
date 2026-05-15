@@ -14,6 +14,12 @@ export async function showWhatsNewModal(version) {
         "🐛 ASÇ başarı katsayısındaki süreç katsayısı hatası giderildi.",
         "🐛 ASÇ kendi verisi yokken doktor katsayısına eşitlenme sorunu düzeltildi.",
       ];
+    } else if (version === "2.2.6") {
+      whatsNewItems = [
+        "🔄 Otizm verileri artık yeni API ile çekiliyor",
+        "🧹 Yeni sisteme uyum için eski verileriniz temizlendi",
+        "🐛 Otizm verilerindeki hatalı değerler düzeltildi",
+      ];
     } else if (version === "2.2.3") {
       whatsNewItems = [
         "🖼️ Dashboard ikonu yenilendi, tablodan kolayca erişin.",

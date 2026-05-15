@@ -81,9 +81,58 @@ async function tryAllNodes(urlBuilder) {
 }
 
 /**
- * Bir SİNA endpoint'ini çağırır
+ * Otizm verisini çeker (çift endpoint, paralel fetch)
+ * @param {object} params - { birimId, ay, yil }
+ * @returns {Promise<{ ad: string, gereken: string, yapilan: string, devreden: string } | null>}
+ */
+export async function fetchOtizmData(params) {
+  const { birimId, ay, yil } = params;
+  if (!birimId || !ay || !yil) return null;
+
+  const token = getSinaAuthToken();
+  if (!token) {
+    console.warn("⚠️ fetchOtizmData: Token bulunamadı");
+    return null;
+  }
+
+  const aylar = { OCAK: "01", SUBAT: "02", MART: "03", NISAN: "04", MAYIS: "05", HAZIRAN: "06", TEMMUZ: "07", AGUSTOS: "08", EYLUL: "09", EKIM: "10", KASIM: "11", ARALIK: "12" };
+  const ayNo = /^\d{1,2}$/.test(ay) ? ay.padStart(2, "0") : (aylar[ay] || ay);
+  const donem = `${yil}-${ayNo}`;
+
+  const endpoint = SINA_ENDPOINTS.OTIZM;
+  const urls = endpoint.buildUrls({ birimId, donem });
+
+  console.log("🔄 fetchOtizmData: paralel çağrı başlatılıyor...");
+
+  try {
+    const responses = await Promise.all(
+      urls.map((url, i) =>
+        fetch(url, {
+          headers: {
+            accept: "application/json, text/plain, */*",
+            authorization: `Token ${token}`,
+          },
+          method: "GET",
+          mode: "cors",
+        }).then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          return { endpointIndex: i, json };
+        })
+      )
+    );
+
+    return endpoint.mapResponse(responses);
+  } catch (e) {
+    console.warn("⚠️ fetchOtizmData hatası:", e.message);
+    return null;
+  }
+}
+
+/**
+ * Tek endpoint'li SİNA API çağrısı (genel amaçlı)
  * @param {object} endpointConfig - SINA_ENDPOINTS'ten bir endpoint tanımı
- * @param {object} params - buildUrl için parametreler (ay, yil, il, ilce, birimAdi)
+ * @param {object} params - buildUrl için parametreler
  * @returns {Promise<{ ad: string, gereken: string, yapilan: string, devreden: string } | null>}
  */
 export async function callSinaEndpoint(endpointConfig, params) {
@@ -96,13 +145,4 @@ export async function callSinaEndpoint(endpointConfig, params) {
     console.error(`❌ SİNA API hatası (${endpointConfig.id}):`, e.message);
     return null;
   }
-}
-
-/**
- * Otizm verisini çeker (kolay kullanım wrapper)
- * @param {object} params - { ay, yil, il, ilce, birimAdi }
- * @returns {Promise<{ ad: string, gereken: string, yapilan: string, devreden: string } | null>}
- */
-export async function fetchOtizmData(params) {
-  return callSinaEndpoint(SINA_ENDPOINTS.OTIZM, params);
 }

@@ -1,6 +1,16 @@
 {
   "changelogData": [
     {
+      "version": "2.2.6",
+      "date": "2026-05-15",
+      "changes": [
+        "🔄 **Otizm API Yenilendi:** birimId tabanlı filtreleme, çift endpoint ile paralel veri çekme.",
+        "🧹 **Veri Temizliği:** Yeni otizm API'sine geçiş için eski veriler otomatik temizlendi.",
+        "🔧 **HYP'den Otizm Kaldırıldı:** Otizm verileri artık sadece SİNA API'den çekiliyor.",
+        "🐛 **Otizm Veri Düzeltmesi:** API değişikliği sonrası hatalı otizm değerleri giderildi."
+      ]
+    },
+    {
       "version": "2.2.4",
       "date": "2026-05-12",
       "changes": [

@@ -128,6 +128,35 @@ export function migrateFromOldStorage() {
       return;
     }
 
+    // 2.5 Aşama: v2.2.6 otizm API düzeltmesi — eski veriler temizlenmeli
+    if (oldVersion < "2.2.6") {
+      console.log(`🧹 v2.2.6 otizm API geçişi - veriler temizleniyor...`);
+
+      chrome.storage.local.get(null, (items) => {
+        const keysToRemove = Object.keys(items).filter(
+          (key) =>
+            key.startsWith("savedResults_") ||
+            key.startsWith("sinaLastTime_") ||
+            key.startsWith("hypLastTime_")
+        );
+
+        const onComplete = () => {
+          chrome.storage.local.set({ storageVersion: currentVersion });
+          showOtizmMigrationMessage();
+        };
+
+        if (keysToRemove.length > 0) {
+          chrome.storage.local.remove(keysToRemove, () => {
+            console.log(`✅ v2.2.6: ${keysToRemove.length} adet veri temizlendi.`);
+            onComplete();
+          });
+        } else {
+          onComplete();
+        }
+      });
+      return;
+    }
+
     // 3. Aşama: Versiyon güncellemesi (yapısal değişiklik yoksa bile)
     if (oldVersion < currentVersion) {
       console.log(`⬆️ Storage sürümü güncelleniyor: ${oldVersion} → ${currentVersion}`);
@@ -144,5 +173,16 @@ function showMigrationMessage() {
       "Verileriniz, yeni sürüme uyum için temizlendi.\n\n" +
       "Lütfen SİNA ve HYP butonlarını kullanarak verilerinizi yeniden çekin.",
     "Bilgilendirme"
+  );
+}
+
+function showOtizmMigrationMessage() {
+  messageDialog(
+    "📢 v2.2.6 Güncellemesi\n\n" +
+      "Otizm veri çekme altyapısı yenilendi.\n" +
+      "Eski verileriniz temizlendi.\n\n" +
+      "Lütfen SİNA ve HYP butonlarını kullanarak\n" +
+      "verilerinizi yeniden çekin.",
+    "Güncelleme"
   );
 }
