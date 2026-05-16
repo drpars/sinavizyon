@@ -8,7 +8,15 @@ export async function showWhatsNewModal(version) {
 
     let whatsNewItems = [];
 
-    if (version === "2.2.4") {
+    if (version === "2.3.0") {
+      whatsNewItems = [
+        "🧩 Dashboard'a Otizm Tarama Takvimi eklendi.",
+        "👶 HYP'den OSB tanılı çocuk listesi çekiliyor.",
+        "📊 Bu ay ve gelecek ay için tarama periyotları yan yana gösteriliyor.",
+        "🟢 Durum sütunu: Yapılabilir / Süre Doldu.",
+        "🔧 Periyot hesaplaması SİNA kuralına uygun (21.ay-1g, 27.ay-1g, 39.ay-1g).",
+      ];
+    } else if (version === "2.2.4") {
       whatsNewItems = [
         "🔄 SİNA çekimiyle eş zamanlı Otizm verisi artık API'den alınıyor.",
         "🐛 ASÇ başarı katsayısındaki süreç katsayısı hatası giderildi.",
