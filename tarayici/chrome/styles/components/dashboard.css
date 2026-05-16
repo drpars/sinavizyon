@@ -880,3 +880,72 @@ body.dark-mode .otizm-durum-cubuk {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- SCROLLBAR (Dashboard geneli + Otizm tablo) ---------- */
+
+/* Firefox */
+@-moz-document url-prefix() {
+  body, .otizm-ay-body {
+    scrollbar-width: thin;
+    scrollbar-color: #0ea5e9 var(--dborder);
+  }
+  body.dark-mode, body.dark-mode .otizm-ay-body {
+    scrollbar-color: #7aa2f7 var(--dborder);
+  }
+}
+
+/* Chrome */
+body::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+body::-webkit-scrollbar-track {
+  background: #e2e8f0 !important;
+  border-radius: 10px !important;
+}
+body::-webkit-scrollbar-thumb {
+  background: #0ea5e9 !important;
+  border-radius: 10px !important;
+  border: none !important;
+}
+body::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b !important;
+}
+body.dark-mode::-webkit-scrollbar-track {
+  background: #414868 !important;
+}
+body.dark-mode::-webkit-scrollbar-thumb {
+  background: #7aa2f7 !important;
+}
+
+/* Otizm tablo içi scrollbar */
+.otizm-ay-body::-webkit-scrollbar {
+  width: 5px !important;
+}
+.otizm-ay-body::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.otizm-ay-body::-webkit-scrollbar-thumb {
+  background: #0ea5e9 !important;
+  border-radius: 8px !important;
+}
+body.dark-mode .otizm-ay-body::-webkit-scrollbar-thumb {
+  background: #7aa2f7 !important;
+}
+
+/* Okları gizle (genel) */
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:vertical:start,
+::-webkit-scrollbar-button:vertical:end,
+::-webkit-scrollbar-button:horizontal:start,
+::-webkit-scrollbar-button:horizontal:end {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+::-webkit-scrollbar-track-piece {
+  background-color: transparent !important;
+}
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
