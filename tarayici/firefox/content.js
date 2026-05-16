@@ -292,6 +292,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "fetchHypData") {
     fetchHypAndSend(msg.expectedBirimId, msg.ay, msg.yil, msg.tabId);
     sendResponse({ status: "ok" });
+    return true;
   }
   if (msg.action === "fetchOtizmHastalari") {
     // Sadece HYP sayfasında çalış
@@ -301,8 +302,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
     fetchOtizmHastaListesi(msg.birimId);
     sendResponse({ status: "ok" });
+    return true;
   }
-  return true;
 });
 
 console.log("📦 content.js sürüm: v2.3.0 - 2026-05-15");
