@@ -547,24 +547,50 @@ body.dark-mode .dash-table .row-done td {
   animation: modalPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.about-modal-quote {
-  font-size: 0.78rem;
-  font-style: italic;
-  opacity: 0.75;
-  line-height: 1.5;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--dborder);
+/* İbn-i Sina sözü - sanatsal tasarım */
+.about-modal-divider {
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--daccent), transparent);
+  margin: 18px auto;
   position: relative;
   z-index: 1;
 }
 
-.about-modal-quote-author {
-  display: block;
-  font-size: 0.7rem;
+.about-modal-quote-container {
+  position: relative;
+  z-index: 1;
   margin-top: 4px;
-  font-style: normal;
-  opacity: 0.6;
+}
+
+.about-modal-quote-mark {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 3.5rem;
+  line-height: 0.6;
+  color: var(--daccent);
+  opacity: 0.25;
+  font-style: italic;
+}
+
+.about-modal-quote {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.7;
+  color: var(--dfg);
+  margin: -4px 0 12px 0;
+  opacity: 0.9;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+.about-modal-quote-author {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--daccent);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
 .about-modal-glow {
