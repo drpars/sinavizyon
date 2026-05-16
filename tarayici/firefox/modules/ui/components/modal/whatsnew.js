@@ -15,6 +15,8 @@ export async function showWhatsNewModal(version) {
         "📊 Bu ay ve gelecek ay için tarama periyotları yan yana gösteriliyor.",
         "🟢 Durum sütunu: Yapılabilir / Süre Doldu.",
         "🔧 Periyot hesaplaması SİNA kuralına uygun (21.ay-1g, 27.ay-1g, 39.ay-1g).",
+        "⚠️ Oturum/birim uyuşmazlığında tablo içinde bilgilendirme çubuğu.",
+        "🎨 Dashboard ve otizm tablosu için ince, temalı scrollbar.",
       ];
     } else if (version === "2.2.4") {
       whatsNewItems = [

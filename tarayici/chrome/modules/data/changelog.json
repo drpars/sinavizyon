@@ -8,7 +8,11 @@
         "👶 **Hasta Listesi:** HYP API'den OSB tanılı tüm çocuklar çekiliyor, periyot hesaplamaları SİNA kuralına uygun.",
         "📊 **Durum Göstergesi:** Her çocuk için periyot durumu (Yapılabilir / Süre Doldu) renkli olarak gösteriliyor.",
         "🔧 **Periyot Hesabı Düzeltildi:** 21.ay-1g, 27.ay-1g, 39.ay-1g penceresi (SİNA örneği ile birebir doğrulandı).",
-        "📋 **Yan Yana Tablolar:** Bu ay ve gelecek ay ayrı sütunlarda, responsive tasarım."
+        "📋 **Yan Yana Tablolar:** Bu ay ve gelecek ay ayrı sütunlarda, responsive tasarım.",
+        "⚠️ **Durum Çubuğu:** Oturum ya da birim uyuşmazlığında tablo içinde bilgilendirme çubuğu gösteriliyor.",
+        "🛡️ **Birim Kontrolü:** HYP'de seçili birim ile eklenti birimi karşılaştırılıyor.",
+        "🎨 **Dashboard Scrollbar:** Dashboard geneli ve otizm tablosu için ince, oksuz, temalı scrollbar.",
+        "🖌️ **About Modal:** İbn-i Sina sözü sanatsal tasarımla yenilendi, versiyon numarası kaldırıldı."
       ]
     },
     {

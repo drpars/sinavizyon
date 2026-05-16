@@ -65,6 +65,9 @@
 - **content.js:** `fetchOtizmHastalari` mesaj handler'ı, HYP Population API entegrasyonu.
 - **dashboard.js:** Arka plan HYP sekmesi açıp content.js üzerinden veri çekme, sekme yönetimi.
 - **otizm-izlem.js:** Yeni modül - hesaplama, filtreleme, render.
+- **Oturum ve Birim Kontrolü:** HYP oturumu ve seçili birim uyuşmazlığı durumunda durum çubuğu ile bilgilendirme.
+- **Dashboard Scrollbar:** Dashboard geneli ve otizm tablosu için ince, oksuz, temalı scrollbar eklendi.
+- **About Modal:** İbn-i Sina sözü sanatsal tasarımla yenilendi, versiyon numarası kaldırıldı.
 - **changelog.json / whatsnew.js:** v2.3.0 için güncellendi.
 
 ## v2.2.6 Yapılanlar ✅ (2026-05-15)
