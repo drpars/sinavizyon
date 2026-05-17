@@ -2,17 +2,17 @@
   "changelogData": [
     {
       "version": "2.3.0",
-      "date": "2026-05-15",
+      "date": "2026-05-17",
       "changes": [
         "🧩 **Otizm Tarama Takvimi:** Dashboard'a yeni panel eklendi. Bu ay ve gelecek ay tarama periyodundaki çocuklar listeleniyor.",
-        "👶 **Hasta Listesi:** HYP API'den OSB tanılı tüm çocuklar çekiliyor, periyot hesaplamaları SİNA kuralına uygun.",
-        "📊 **Durum Göstergesi:** Her çocuk için periyot durumu (Yapılabilir / Süre Doldu) renkli olarak gösteriliyor.",
-        "🔧 **Periyot Hesabı Düzeltildi:** 21.ay-1g, 27.ay-1g, 39.ay-1g penceresi (SİNA örneği ile birebir doğrulandı).",
-        "📋 **Yan Yana Tablolar:** Bu ay ve gelecek ay ayrı sütunlarda, responsive tasarım.",
-        "⚠️ **Durum Çubuğu:** Oturum ya da birim uyuşmazlığında tablo içinde bilgilendirme çubuğu gösteriliyor.",
-        "🛡️ **Birim Kontrolü:** HYP'de seçili birim ile eklenti birimi karşılaştırılıyor.",
-        "🎨 **Dashboard Scrollbar:** Dashboard geneli ve otizm tablosu için ince, oksuz, temalı scrollbar.",
-        "🖌️ **About Modal:** İbn-i Sina sözü sanatsal tasarımla yenilendi, versiyon numarası kaldırıldı."
+        "🎨 **Simülatör Yeniden Tasarım:** Başlıkta canlı katsayı, kompakt öneri barı, inline popup.",
+        "🧠 **Akıllı Öneri İyileştirmesi:** Binary search ile tavana tam yetecek minimum öneri.",
+        "🔢 **Slider Badge:** Eklenen miktarı gösterir (+1, +2, +3...), başlangıç +0.",
+        "🖼️ **Slider İkonları:** Emoji yerine özel PNG ikonlar eklendi.",
+        "🔗 **Dashboard Canlı Bağlantı:** SİNA/HYP çekimi sonrası dashboard otomatik güncellenir.",
+        "🐛 **Otizm API Düzeltmesi:** birimId tabanlı filtreleme, çift endpoint ile güncel veri.",
+        "🖌️ **About Modal:** İbn-i Sina sözü sanatsal tasarımla yenilendi.",
+        "🧩 **Otizm Tarama Takvimi:** Dashboard'da bu ay/gelecek ay periyodundaki çocuklar."
       ]
     },
     {

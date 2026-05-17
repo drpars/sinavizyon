@@ -48,6 +48,26 @@ import { normalizeText } from "./modules/utils/text-utils.js";
 import { markNewFeature } from "./modules/utils/notifications.js";
 
 // ========== HELPER FUNCTIONS ==========
+
+/**
+ * Dashboard sekmesi aciksa yeniler.
+ * createOrFocusTab'in storage'da sakladigi tabId'yi kullanir.
+ */
+function refreshDashboardIfOpen() {
+  const dashboardUrl = chrome.runtime.getURL("modules/features/dashboard/dashboard.html");
+  const urlObj = new URL(dashboardUrl);
+  const storageKey = `tabId_${urlObj.origin}${urlObj.pathname}`;
+
+  chrome.storage.local.get([storageKey], (res) => {
+    const tabId = res[storageKey];
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { action: "refreshData" }, () => {
+        if (chrome.runtime.lastError) { /* sekme kapanmis, sessiz */ }
+      });
+    }
+  });
+}
+
 let spinnerTimeout = null;
 
 function showLoadingSpinner() {
@@ -792,6 +812,9 @@ document.addEventListener("DOMContentLoaded", async function () {
               setPendingShowAll(false);
               setPendingStorageType("nurse");
 
+              // Dashboard aciksa yenile
+              refreshDashboardIfOpen();
+
               if (sendResponse) sendResponse({ status: "ok", data: finalData });
             });
           });
@@ -912,6 +935,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // ✅ TABLOYU GÜNCELLE
         loadDataForCurrentBirimWithMerge(updateTable, userType, birimId, null, showAll, ayStr, yil);
+
+        // Dashboard aciksa yenile
+        refreshDashboardIfOpen();
 
         // Simülatör açıksa güncelle
         if (window.simulatorModal && simulatorModal.style.display === "flex") {

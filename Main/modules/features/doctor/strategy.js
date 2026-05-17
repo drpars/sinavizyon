@@ -246,38 +246,70 @@ export function calculateSmartStrategy(data, tavanKatsayi, katsayiMapNorm = null
 }
 
 function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi, katsayiMapNorm = null) {
+  // Zorluk puanına göre sırala (en kolay önce), eşitlikte mevcut yapılana göre
   const sortedItems = [...data]
     .filter((item) => isAktifIslem(item.ad))
-    .filter((item) => getNeededForMax(item, katsayiMapNorm) > 0)
     .sort((a, b) => {
       const zorlukA = getZorlukPuani(a.ad, a);
       const zorlukB = getZorlukPuani(b.ad, b);
-      if (zorlukA !== zorlukB) return zorlukA - zorlukB;
-      return getNeededForMax(a, katsayiMapNorm) - getNeededForMax(b, katsayiMapNorm);
+      if (zorlukA !== zorlukB) return zorlukA - zorlukB;  // en kolay önce
+      return (parseFloat(a.yapilan) || 0) - (parseFloat(b.yapilan) || 0);
     });
 
   const steps = [];
-  let simData = [...data];
+  let simData = JSON.parse(JSON.stringify(data));  // derin kopya
   let simKatsayi = currentKatsayi;
 
   for (const item of sortedItems) {
     if (simKatsayi >= tavanKatsayi) break;
 
-    const maxYapilan = getMaxYapilanForIslem(item, katsayiMapNorm);
     const currentYapilan = parseFloat(item.yapilan) || 0;
+    const neededForMax = getNeededForMax(item, katsayiMapNorm);
+    if (neededForMax === 0) continue;
+    const maxYapilan = getMaxYapilanForIslem(item, katsayiMapNorm);
 
-    // ✅ Eğer mevcut değer zaten maksimumdaysa atla
-    if (currentYapilan >= maxYapilan) continue;
+    // Binary search ile tavana ulaşmak için gereken minimum yapılanı bul
+    let low = currentYapilan;
+    let high = maxYapilan;
+    let bestYapilan = maxYapilan;
 
-    // ✅ Bu işlemi maksimuma çek
-    const result = simulateSingleChange(simData, item.ad, maxYapilan, katsayiMapNorm);
+    // Önce max'ın tavana ulaşıp ulaşmadığını kontrol et
+    const maxSim = simulateSingleChange(simData, item.ad, maxYapilan, katsayiMapNorm);
+    if (maxSim.katsayi < tavanKatsayi) {
+      // Bu işlem max'ta bile tavana ulaşamıyor, yine de max'a çek (ilerleme kaydet)
+      const needed = maxYapilan - currentYapilan;
+      steps.push({
+        islem: item.ad,
+        currentYapilan: currentYapilan,
+        targetYapilan: maxYapilan,
+        needed: needed,
+        gereken: parseFloat(item.gereken) || 0,
+        newKatsayi: maxSim.katsayi,
+      });
+      simData = maxSim.data;
+      simKatsayi = maxSim.katsayi;
+      continue;
+    }
 
-    const needed = maxYapilan - currentYapilan;
+    // Binary search: tavana ulaşan en küçük yapılanı bul
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const midSim = simulateSingleChange(simData, item.ad, mid, katsayiMapNorm);
+      if (midSim.katsayi >= tavanKatsayi) {
+        bestYapilan = mid;
+        high = mid - 1;
+      } else {
+        low = mid + 1;
+      }
+    }
+
+    const result = simulateSingleChange(simData, item.ad, bestYapilan, katsayiMapNorm);
+    const needed = bestYapilan - currentYapilan;
 
     steps.push({
       islem: item.ad,
       currentYapilan: currentYapilan,
-      targetYapilan: maxYapilan,
+      targetYapilan: bestYapilan,
       needed: needed,
       gereken: parseFloat(item.gereken) || 0,
       newKatsayi: result.katsayi,

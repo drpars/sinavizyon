@@ -445,6 +445,17 @@ function kapatOtizmHypSekmesi() {
 
 // content.js'ten gelen otizm hasta listesi mesajını dinle
 chrome.runtime.onMessage.addListener((msg, _sender) => {
+  // Sidepanel'den gelen veri güncelleme mesajı — sadece kartları/tabloyu yenile
+  if (msg.action === "refreshData") {
+    chrome.storage.local.get(["birimId"], (s) => {
+      const birimId = s.birimId;
+      if (birimId) {
+        const key = `${STORAGE_PREFIX}${birimId}`;
+        chrome.storage.local.get([key], (res) => renderDashboard(res[key], birimId));
+      }
+    });
+    return;
+  }
   if (msg.action === "otizmHastalariYuklendi") {
     // otizm-izlem.js modülünü dinamik import ile yükle
     const moduleUrl = chrome.runtime.getURL("modules/features/dashboard/otizm-izlem.js");
