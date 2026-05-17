@@ -23,7 +23,7 @@ function createSimulatorModal() {
       <div class="simulator-header-bar">
         <span class="header-spacer"></span>
         <span class="header-katsayi-value" id="simHeaderKatsayi">1.00000</span>
-        <button class="simulator-modal-close" id="closeSimulatorModalBtn">&times;</button>
+        <span class="header-spacer"></span>
       </div>
 
       <div class="simulator-modal-body scrollbar-custom">
@@ -77,14 +77,12 @@ export function closeSimulatorModal() {
 }
 
 function bindSimulatorEvents() {
-  const closeBtn = document.getElementById("closeSimulatorModalBtn");
   const closeFooterBtn = document.getElementById("closeSimulatorBtn");
   const overlay = simulatorModal.querySelector(".simulator-modal-overlay");
   const resetBtn = document.getElementById("resetSimulationBtn");
   const applySuggestionBtn = document.getElementById("applySuggestionBtn");
   const suggestionBar = document.getElementById("simSuggestionBar");
 
-  closeBtn?.addEventListener("click", closeSimulatorModal);
   closeFooterBtn?.addEventListener("click", closeSimulatorModal);
   overlay?.addEventListener("click", closeSimulatorModal);
 
@@ -157,7 +155,7 @@ function updateHeaderKatsayi() {
   const el = document.getElementById("simHeaderKatsayi");
   if (el) {
     el.textContent = simKatsayi.toFixed(5);
-    el.style.color = reached ? "var(--green)" : "var(--orange)";
+    el.style.color = reached ? "var(--green)" : "var(--red)";
     el.style.textShadow = reached
       ? "0 0 10px rgba(30, 180, 130, 0.4)"
       : "0 0 10px rgba(237, 146, 27, 0.35)";
