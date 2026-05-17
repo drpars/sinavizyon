@@ -19,10 +19,10 @@
 ## Faz 3: Akıllı Öneri ve Simülatör ⏳
 | # | Görev | Durum |
 |---|------|-------|
-| 9 | Akıllı öneri - eş zamanlı parametre değerlendirme + zorluk ağırlığı | ⏳ |
-| 10 | Slider badge dinamik ekleme sayısı (0 → +1 → +2 ...) | ⏳ |
-| 11 | Düşük Nüfus desteği (2400/Nüfus + radio buton) | ⏳ |
-| 12 | Simülasyon modalı yeniden tasarım (başlıkta katsayı + öneri barı + popup) | ⏳ |
+| 9 | Akıllı öneri - eş zamanlı parametre değerlendirme + zorluk ağırlığı | ✅ (v2.3.0 redesign: öneri barı + popup) |
+| 10 | Slider badge dinamik ekleme sayısı (0 → +1 → +2 ...) | ✅ (zaten çalışıyordu) |
+| 11 | Düşük Nüfus desteği (2400/Nüfus + radio buton) | ⏸️ (bilgi eksik) |
+| 12 | Simülasyon modalı yeniden tasarım (başlıkta katsayı + öneri barı + popup) | ✅ (v2.3.0 redesign) |
 
 ## Faz 4: Dashboard ✅ (Kısmen)
 | # | Görev | Durum |
@@ -93,6 +93,6 @@
 
 ## İstatistik
 - **Toplam:** 27 görev
-- **Tamamlanan:** 8 (#2, #3, #4 faz1 + #1, #8 faz2 + v2.2.3 + v2.2.6 + v2.3.0 otizm tarama takvimi)
-- **Devam eden:** 16
+- **Tamamlanan:** 11 (#2, #3, #4 faz1 + #1, #8 faz2 + #9, #10, #12 faz3 + v2.2.3 + v2.2.6 + v2.3.0)
+- **Devam eden:** 13
 - **Pasif:** 3 (Faz 2: #5, #6, #7)
