@@ -51,8 +51,8 @@
 ## Faz 7: Dashboard-Canlı Bağlantı (v2.2.4) ⏳
 | # | Görev | Durum |
 |---|------|-------|
-| 25 | HYP/SİNA butonuna basıldığında Dashboard açıksa otomatik yenileme | ⏳ |
-| 26 | SİNA butonuna basıldığında Dashboard açıksa otomatik yenileme (HYP gibi) | ⏳ |
+| 25 | HYP/SİNA butonuna basıldığında Dashboard açıksa otomatik yenileme | ✅ (v2.3.0) |
+| 26 | SİNA butonuna basıldığında Dashboard açıksa otomatik yenileme (HYP gibi) | ✅ (v2.3.0) |
 
 ---
 
@@ -98,6 +98,6 @@
 
 ## İstatistik
 - **Toplam:** 27 görev
-- **Tamamlanan:** 11 (#2, #3, #4 faz1 + #1, #8 faz2 + #9, #10, #12 faz3 + v2.2.3 + v2.2.6 + v2.3.0)
-- **Devam eden:** 13
+- **Tamamlanan:** 13 (#2, #3, #4 faz1 + #1, #8 faz2 + #9, #10, #12 faz3 + #25, #26 faz7 + v2.2.3 + v2.2.6 + v2.3.0)
+- **Devam eden:** 11
 - **Pasif:** 3 (Faz 2: #5, #6, #7)
