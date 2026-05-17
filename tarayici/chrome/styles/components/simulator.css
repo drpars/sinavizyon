@@ -155,7 +155,7 @@ body.dark-mode .slider-item.priority-kanser { border-left-color: var(--orange); 
   margin-bottom: 4px;
 }
 
-.slider-icon { font-size: 0.95rem; }
+.slider-group-icon { width: 16px; height: 16px; opacity: 0.8; }
 
 .slider-islem {
   font-size: 0.78rem;

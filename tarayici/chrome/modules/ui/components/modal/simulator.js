@@ -366,8 +366,14 @@ function updateSlidersList() {
 }
 
 function getGroupIcon(group) {
-  const icons = { Tarama: "🔍", İzlem: "📋", Kanser: "🎗️", Diğer: "📌" };
-  return icons[group] || "📌";
+  const iconMap = {
+    Tarama: "icons/screening.png",
+    İzlem: "icons/monitoring.png",
+    Kanser: "icons/cancer.png",
+    Diğer: "icons/other.png",
+  };
+  const src = iconMap[group] || "icons/other.png";
+  return `<img src="${src}" class="slider-group-icon" alt="">`;
 }
 
 document.addEventListener("keydown", (e) => {
