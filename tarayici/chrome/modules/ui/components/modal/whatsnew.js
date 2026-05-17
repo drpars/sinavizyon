@@ -10,13 +10,12 @@ export async function showWhatsNewModal(version) {
 
     if (version === "2.3.0") {
       whatsNewItems = [
-        "🧩 Dashboard'a Otizm Tarama Takvimi eklendi.",
-        "👶 HYP'den OSB tanılı çocuk listesi çekiliyor.",
-        "📊 Bu ay ve gelecek ay için tarama periyotları yan yana gösteriliyor.",
-        "🟢 Durum sütunu: Yapılabilir / Süre Doldu.",
-        "🔧 Periyot hesaplaması SİNA kuralına uygun (21.ay-1g, 27.ay-1g, 39.ay-1g).",
-        "⚠️ Oturum/birim uyuşmazlığında tablo içinde bilgilendirme çubuğu.",
-        "🎨 Dashboard ve otizm tablosu için ince, temalı scrollbar.",
+        "🎨 Simülatör tamamen yenilendi — daha sade, daha hızlı",
+        "🧠 Akıllı Öneri artık hedefi tam tutturan öneriler sunar",
+        "🔢 Slider'larda ne kadar ekleme yaptığınızı görün",
+        "🧩 Dashboard'a Otizm Tarama Takvimi eklendi",
+        "🔗 SİNA veya HYP çekince Dashboard otomatik güncellenir",
+        "🐛 Otizm verileri yeni API ile doğru çekiliyor",
       ];
     } else if (version === "2.2.4") {
       whatsNewItems = [
