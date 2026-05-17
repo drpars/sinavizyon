@@ -45,7 +45,7 @@ function updateTimes(birimId, userType) {
   });
 }
 
-function renderDashboard(record, birimId) {
+function renderDashboard(record, birimId, skipOtizm = false) {
   if (!record?.data) {
     document.getElementById("dashboardCards").innerHTML = "<p>Veri bulunamadı.</p>";
     return;
@@ -74,8 +74,7 @@ function renderDashboard(record, birimId) {
   renderCards(data, birimId, ay, yil);
   renderTables(data, ay, yil, birimAdi);
 
-  // Otizm izlem takvimi - arka planda HYP'den hasta listesini çek
-  fetchOtizmIzlem(birimId);
+  if (!skipOtizm) fetchOtizmIzlem(birimId);
 }
 
 async function renderCards(data, birimId, ay, yil) {
@@ -451,7 +450,7 @@ chrome.runtime.onMessage.addListener((msg, _sender) => {
       const birimId = s.birimId;
       if (birimId) {
         const key = `${STORAGE_PREFIX}${birimId}`;
-        chrome.storage.local.get([key], (res) => renderDashboard(res[key], birimId));
+        chrome.storage.local.get([key], (res) => renderDashboard(res[key], birimId, true));
       }
     });
     return;
