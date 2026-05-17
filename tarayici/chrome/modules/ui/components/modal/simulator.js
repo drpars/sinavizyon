@@ -293,7 +293,9 @@ function updateSlidersList() {
         <div class="slider-title">
           <span class="slider-icon">${getGroupIcon(item.group)}</span>
           <span class="slider-islem">${item.ad}</span>
-          ${remaining > 0 ? `<span class="slider-badge needed">+${remaining}</span>` : '<span class="slider-badge complete">✓</span>'}
+          ${currentValue > etkiliYapilan
+            ? `<span class="slider-badge added">+${currentValue - etkiliYapilan}</span>`
+            : '<span class="slider-badge complete">✓</span>'}
         </div>
         <div class="slider-stats">
           <span>${currentValue} / ${item.gereken}</span>
@@ -322,10 +324,11 @@ function updateSlidersList() {
       const mb = sliderItem.querySelector(".slider-max-btn");
       if (mb) mb.textContent = rem > 0 ? `+${rem}` : "✓";
 
+      const added = newValue - etkiliYapilan;
       const badge = sliderItem.querySelector(".slider-badge");
       if (badge) {
-        badge.textContent = rem > 0 ? `+${rem}` : "✓";
-        badge.className = rem > 0 ? "slider-badge needed" : "slider-badge complete";
+        badge.textContent = added > 0 ? `+${added}` : "✓";
+        badge.className = added > 0 ? "slider-badge added" : "slider-badge complete";
       }
 
       const stats = sliderItem.querySelector(".slider-stats span:first-child");
@@ -343,8 +346,12 @@ function updateSlidersList() {
       sliderStates.set(item.ad, maxValue);
 
       maxBtn.textContent = "✓";
+      const maxAdded = maxValue - etkiliYapilan;
       const badge = sliderItem.querySelector(".slider-badge");
-      if (badge) { badge.textContent = "✓"; badge.className = "slider-badge complete"; }
+      if (badge) {
+        badge.textContent = maxAdded > 0 ? `+${maxAdded}` : "✓";
+        badge.className = maxAdded > 0 ? "slider-badge added" : "slider-badge complete";
+      }
 
       const stats = sliderItem.querySelector(".slider-stats span:first-child");
       if (stats) stats.textContent = `${maxValue} / ${item.gereken}`;

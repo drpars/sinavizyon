@@ -36,7 +36,7 @@
 .simulator-header-bar {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
+  padding: 26px 16px 2px 18px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -44,36 +44,14 @@
 
 .header-spacer {
   flex: 1;
-  /* ×'in genişliği kadar sahte boşluk → katsayı header'ın ortasında kalır */
-  max-width: 32px;
 }
 
 .header-katsayi-value {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   font-family: monospace;
   letter-spacing: 0.5px;
   transition: color 0.4s ease, text-shadow 0.4s ease;
-}
-
-.simulator-modal-close {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: var(--fg);
-  opacity: 0.6;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-}
-
-.simulator-modal-close:hover {
-  opacity: 1;
-  background: var(--border);
 }
 
 /* === MODAL BODY === */
@@ -193,6 +171,7 @@ body.dark-mode .slider-item.priority-kanser { border-left-color: var(--orange); 
 }
 
 .slider-badge.needed { background: var(--orange); color: white; }
+.slider-badge.added { background: var(--blue); color: white; }
 .slider-badge.complete { background: var(--green); color: white; }
 
 .slider-stats {
