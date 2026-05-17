@@ -57,6 +57,11 @@
 ---
 
 ## v2.3.0 Yapılanlar ✅ (2026-05-15)
+- **Simülatör Modal Yeniden Tasarım:** Header sadece simüle katsayı (renk + glow), öneri barı (tek satır, tıklanabilir), inline popup, floating sonuç kaldırıldı.
+- **Slider Badge:** Kalan yerine eklenen miktarı gösterir (+1, +2, +3...), başlangıç +0, mavi renk.
+- **Slider İkonları:** Emoji yerine özel PNG ikonlar (screening, monitoring, cancer, other).
+- **Akıllı Öneri İyileştirmesi:** Kombinasyon stratejisinde binary search ile tavana tam yetecek minimum yapılan, etkili yapılan kontrolü.
+- **Sıfırla Butonu:** `reset.png` ikonu eklendi.
 - **Otizm Tarama Takvimi:** Dashboard'a yeni panel eklendi. Bu ay ve gelecek ay tarama periyodundaki çocuklar listeleniyor.
 - **HYP Hasta Listesi API:** `status=all&careType=osb` ile OSB tanılı tüm çocuklar çekiliyor, sayfalama destekli.
 - **Periyot Hesaplama:** SİNA kuralına uygun (21.ay-1g, 27.ay-1g, 39.ay-1g). 15.09.2024 örneği ile birebir doğrulandı.
