@@ -21,20 +21,18 @@ function createSimulatorModal() {
     <div class="simulator-modal-overlay"></div>
     <div class="simulator-modal-container">
       <div class="simulator-header-bar">
+        <span class="header-spacer"></span>
         <span class="header-katsayi-value" id="simHeaderKatsayi">1.00000</span>
         <button class="simulator-modal-close" id="closeSimulatorModalBtn">&times;</button>
       </div>
 
       <div class="simulator-modal-body scrollbar-custom">
-        <!-- Öneri Barı (tek satır) -->
         <div class="simulator-suggestion-bar" id="simSuggestionBar">
           <span class="suggestion-bar-icon">💡</span>
           <span class="suggestion-bar-text" id="simSuggestionText">Hesaplanıyor...</span>
-          <button class="suggestion-bar-detail" id="openSuggestionDetailBtn">Detay</button>
           <button class="suggestion-bar-apply" id="applySuggestionBtn">Uygula</button>
         </div>
 
-        <!-- Slider Listesi (maksimum alan) -->
         <div class="simulator-sliders-container">
           <div class="sliders-list scrollbar-custom" id="simSlidersList">
           </div>
@@ -53,7 +51,6 @@ function createSimulatorModal() {
   return modal;
 }
 
-// Modal'ı göster
 export function showSimulatorModal(data, tavanKatsayi) {
   currentData = JSON.parse(JSON.stringify(data));
   currentTavanKatsayi = tavanKatsayi;
@@ -73,21 +70,19 @@ export function showSimulatorModal(data, tavanKatsayi) {
   simulatorModal.style.display = "flex";
 }
 
-// Modal'ı kapat
 export function closeSimulatorModal() {
   if (simulatorModal) {
     simulatorModal.style.display = "none";
   }
 }
 
-// Event listener'ları bağla
 function bindSimulatorEvents() {
   const closeBtn = document.getElementById("closeSimulatorModalBtn");
   const closeFooterBtn = document.getElementById("closeSimulatorBtn");
   const overlay = simulatorModal.querySelector(".simulator-modal-overlay");
   const resetBtn = document.getElementById("resetSimulationBtn");
   const applySuggestionBtn = document.getElementById("applySuggestionBtn");
-  const detailBtn = document.getElementById("openSuggestionDetailBtn");
+  const suggestionBar = document.getElementById("simSuggestionBar");
 
   closeBtn?.addEventListener("click", closeSimulatorModal);
   closeFooterBtn?.addEventListener("click", closeSimulatorModal);
@@ -105,13 +100,12 @@ function bindSimulatorEvents() {
     applySmartSuggestion();
   });
 
-  detailBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
+  suggestionBar?.addEventListener("click", (e) => {
+    if (e.target === applySuggestionBtn || applySuggestionBtn?.contains(e.target)) return;
     openSuggestionPopup();
   });
 }
 
-// Akıllı öneriyi uygula
 function applySmartSuggestion() {
   const mapNorm = getKatsayiMapNorm();
   const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi, mapNorm);
@@ -132,7 +126,6 @@ function applySmartSuggestion() {
   updateSuggestionBar();
 }
 
-// Yardımcı: map oluştur
 function getKatsayiMapNorm() {
   const ay = getDomAy();
   const yil = getDomYil();
@@ -148,9 +141,8 @@ function getPasifListe() {
   return getPasifIslemler(ay, yil);
 }
 
-// ========== YENİ FONKSİYONLAR ==========
+// ========== HEADER ==========
 
-// Header katsayısını güncelle (sadece simüle katsayı)
 function updateHeaderKatsayi() {
   const mapNorm = getKatsayiMapNorm();
   let simData = JSON.parse(JSON.stringify(currentData));
@@ -165,11 +157,15 @@ function updateHeaderKatsayi() {
   const el = document.getElementById("simHeaderKatsayi");
   if (el) {
     el.textContent = simKatsayi.toFixed(5);
-    el.style.color = reached ? "var(--green)" : "";
+    el.style.color = reached ? "var(--green)" : "var(--orange)";
+    el.style.textShadow = reached
+      ? "0 0 10px rgba(30, 180, 130, 0.4)"
+      : "0 0 10px rgba(237, 146, 27, 0.35)";
   }
 }
 
-// Öneri barını güncelle (tek satır)
+// ========== ÖNERİ BARI ==========
+
 function updateSuggestionBar() {
   const mapNorm = getKatsayiMapNorm();
   const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi, mapNorm);
@@ -204,12 +200,12 @@ function updateSuggestionBar() {
   }
 }
 
-// Öneri popup'ını aç (modal içi inline overlay)
+// ========== INLINE POPUP ==========
+
 function openSuggestionPopup() {
   const mapNorm = getKatsayiMapNorm();
   const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi, mapNorm);
 
-  // Eski popup varsa kaldır
   document.getElementById("suggestionPopupOverlay")?.remove();
 
   if (strategy.reached && strategy.message) {
@@ -237,7 +233,6 @@ function openSuggestionPopup() {
   showInlinePopup(title, content, true);
 }
 
-// Modal içi inline popup (overlay + card)
 function showInlinePopup(title, body, showApply) {
   const overlay = document.createElement("div");
   overlay.id = "suggestionPopupOverlay";
@@ -266,7 +261,8 @@ function showInlinePopup(title, body, showApply) {
   });
 }
 
-// Slider listesini oluştur
+// ========== SLIDER LİSTESİ ==========
+
 function updateSlidersList() {
   const container = document.getElementById("simSlidersList");
   if (!container) return;
@@ -292,8 +288,7 @@ function updateSlidersList() {
       groupEn = item.group.replace(/İ/g, "I").replace(/ı/g, "i").toLowerCase();
     }
 
-    const groupClass = `priority-${groupEn}`;
-    sliderItem.classList.add(groupClass);
+    sliderItem.classList.add(`priority-${groupEn}`);
 
     sliderItem.innerHTML = `
       <div class="slider-header">
@@ -307,14 +302,9 @@ function updateSlidersList() {
           <span class="slider-percentage">%${Math.round(percentage)}</span>
         </div>
       </div>
-
       <div class="slider-control">
-        <input type="range"
-               class="sim-slider"
-               min="${etkiliYapilan}"
-               max="${maxValue}"
-               value="${currentValue}"
-               step="1"
+        <input type="range" class="sim-slider"
+               min="${etkiliYapilan}" max="${maxValue}" value="${currentValue}" step="1"
                data-islem="${item.ad}">
         <button class="slider-max-btn" data-islem="${item.ad}" data-max="${maxValue}">${remaining > 0 ? `+${remaining}` : "✓"}</button>
       </div>
@@ -327,36 +317,24 @@ function updateSlidersList() {
 
     slider.addEventListener("input", (e) => {
       const newValue = parseInt(e.target.value);
+      if (newValue === etkiliYapilan) sliderStates.delete(item.ad);
+      else sliderStates.set(item.ad, newValue);
 
-      if (newValue === etkiliYapilan) {
-        sliderStates.delete(item.ad);
-      } else {
-        sliderStates.set(item.ad, newValue);
-      }
-
-      const newRemaining = maxValue - newValue;
-
-      const maxBtn = sliderItem.querySelector(".slider-max-btn");
-      if (maxBtn) {
-        maxBtn.textContent = newRemaining > 0 ? `+${newRemaining}` : "✓";
-      }
+      const rem = maxValue - newValue;
+      const mb = sliderItem.querySelector(".slider-max-btn");
+      if (mb) mb.textContent = rem > 0 ? `+${rem}` : "✓";
 
       const badge = sliderItem.querySelector(".slider-badge");
       if (badge) {
-        badge.textContent = newRemaining > 0 ? `+${newRemaining}` : "✓";
-        badge.className = newRemaining > 0 ? "slider-badge needed" : "slider-badge complete";
+        badge.textContent = rem > 0 ? `+${rem}` : "✓";
+        badge.className = rem > 0 ? "slider-badge needed" : "slider-badge complete";
       }
 
-      const statsSpan = sliderItem.querySelector(".slider-stats span:first-child");
-      if (statsSpan) {
-        statsSpan.textContent = `${newValue} / ${item.gereken}`;
-      }
+      const stats = sliderItem.querySelector(".slider-stats span:first-child");
+      if (stats) stats.textContent = `${newValue} / ${item.gereken}`;
 
-      const percentSpan = sliderItem.querySelector(".slider-percentage");
-      if (percentSpan) {
-        const newPercentage = (newValue / item.gereken) * 100;
-        percentSpan.textContent = `%${Math.round(newPercentage)}`;
-      }
+      const pct = sliderItem.querySelector(".slider-percentage");
+      if (pct) pct.textContent = `%${Math.round((newValue / item.gereken) * 100)}`;
 
       updateHeaderKatsayi();
       updateSuggestionBar();
@@ -368,20 +346,13 @@ function updateSlidersList() {
 
       maxBtn.textContent = "✓";
       const badge = sliderItem.querySelector(".slider-badge");
-      if (badge) {
-        badge.textContent = "✓";
-        badge.className = "slider-badge complete";
-      }
+      if (badge) { badge.textContent = "✓"; badge.className = "slider-badge complete"; }
 
-      const statsSpan = sliderItem.querySelector(".slider-stats span:first-child");
-      if (statsSpan) {
-        statsSpan.textContent = `${maxValue} / ${item.gereken}`;
-      }
-      const percentSpan = sliderItem.querySelector(".slider-percentage");
-      if (percentSpan) {
-        const maxPercentage = (maxValue / item.gereken) * 100;
-        percentSpan.textContent = `%${Math.round(maxPercentage)}`;
-      }
+      const stats = sliderItem.querySelector(".slider-stats span:first-child");
+      if (stats) stats.textContent = `${maxValue} / ${item.gereken}`;
+
+      const pct = sliderItem.querySelector(".slider-percentage");
+      if (pct) pct.textContent = `%${Math.round((maxValue / item.gereken) * 100)}`;
 
       updateHeaderKatsayi();
       updateSuggestionBar();
@@ -390,12 +361,7 @@ function updateSlidersList() {
 }
 
 function getGroupIcon(group) {
-  const icons = {
-    Tarama: "🔍",
-    İzlem: "📋",
-    Kanser: "🎗️",
-    Diğer: "📌",
-  };
+  const icons = { Tarama: "🔍", İzlem: "📋", Kanser: "🎗️", Diğer: "📌" };
   return icons[group] || "📌";
 }
 

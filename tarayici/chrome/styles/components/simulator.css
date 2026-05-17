@@ -5,10 +5,7 @@
 
 .simulator-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -17,10 +14,7 @@
 
 .simulator-modal-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
 }
@@ -38,23 +32,28 @@
   flex-direction: column;
 }
 
-/* === HEADER (sadece simüle katsayı) === */
+/* === HEADER (katsayı ortada, × sağda) === */
 .simulator-header-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
+  padding: 10px 16px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
+.header-spacer {
+  flex: 1;
+  /* ×'in genişliği kadar sahte boşluk → katsayı header'ın ortasında kalır */
+  max-width: 32px;
+}
+
 .header-katsayi-value {
-  font-size: 1.05rem;
-  font-weight: bold;
+  font-size: 1.35rem;
+  font-weight: 700;
   font-family: monospace;
-  color: var(--blue);
-  transition: color 0.3s;
+  letter-spacing: 0.5px;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 
 .simulator-modal-close {
@@ -98,6 +97,12 @@
   color: white;
   font-size: 0.8rem;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.simulator-suggestion-bar:hover {
+  filter: brightness(1.08);
 }
 
 .suggestion-bar-icon { font-size: 1rem; }
@@ -110,7 +115,6 @@
   text-overflow: ellipsis;
 }
 
-.suggestion-bar-detail,
 .suggestion-bar-apply {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -123,7 +127,6 @@
   white-space: nowrap;
 }
 
-.suggestion-bar-detail:hover,
 .suggestion-bar-apply:hover {
   background: rgba(255, 255, 255, 0.35);
 }
@@ -268,16 +271,9 @@ body.dark-mode .slider-item.priority-kanser { border-left-color: var(--orange); 
   gap: 6px;
 }
 
-.btn-icon {
-  width: 14px;
-  height: 14px;
-  opacity: 0.8;
-}
+.btn-icon { width: 14px; height: 14px; opacity: 0.8; }
 
-.simulator-footer-btn-primary {
-  background: var(--blue);
-  color: white;
-}
+.simulator-footer-btn-primary { background: var(--blue); color: white; }
 
 .simulator-footer-btn-secondary {
   background: var(--bg-dark);
@@ -291,13 +287,10 @@ body.dark-mode .slider-item.priority-kanser { border-left-color: var(--orange); 
   transform: translateY(-1px);
 }
 
-/* === INLINE POPUP (öneri detayı) === */
+/* === INLINE POPUP === */
 .suggestion-popup-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
