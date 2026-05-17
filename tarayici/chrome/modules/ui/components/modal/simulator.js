@@ -21,13 +21,7 @@ function createSimulatorModal() {
     <div class="simulator-modal-overlay"></div>
     <div class="simulator-modal-container">
       <div class="simulator-header-bar">
-        <div class="header-katsayi-row">
-          <span class="header-katsayi-label">Mevcut Katsayı</span>
-          <span class="header-katsayi-value" id="simCurrentKatsayi">1.00000</span>
-          <span class="header-katsayi-arrow">→</span>
-          <span class="header-katsayi-label">Tavan</span>
-          <span class="header-katsayi-value header-tavan-value" id="simTavanKatsayi">1.00000</span>
-        </div>
+        <span class="header-katsayi-value" id="simHeaderKatsayi">1.00000</span>
         <button class="simulator-modal-close" id="closeSimulatorModalBtn">&times;</button>
       </div>
 
@@ -45,15 +39,12 @@ function createSimulatorModal() {
           <div class="sliders-list scrollbar-custom" id="simSlidersList">
           </div>
         </div>
-
-        <!-- Floating Sonuç Badge (sağ alt) -->
-        <div class="simulator-result-float" id="simResultFloat">
-          <span class="result-float-value" id="simResultFloatValue">1.00000</span>
-        </div>
       </div>
 
       <div class="simulator-modal-footer">
-        <button class="simulator-footer-btn simulator-footer-btn-secondary" id="resetSimulationBtn">🔄 Sıfırla</button>
+        <button class="simulator-footer-btn simulator-footer-btn-secondary" id="resetSimulationBtn">
+          <img src="icons/reset.png" class="btn-icon" alt=""> Sıfırla
+        </button>
         <button class="simulator-footer-btn simulator-footer-btn-primary" id="closeSimulatorBtn">Kapat</button>
       </div>
     </div>
@@ -76,9 +67,8 @@ export function showSimulatorModal(data, tavanKatsayi) {
   sliderStates.clear();
 
   updateSlidersList();
-  updateStatusBar();
+  updateHeaderKatsayi();
   updateSuggestionBar();
-  updateResultBadge();
 
   simulatorModal.style.display = "flex";
 }
@@ -106,9 +96,8 @@ function bindSimulatorEvents() {
   resetBtn?.addEventListener("click", () => {
     sliderStates.clear();
     updateSlidersList();
-    updateStatusBar();
+    updateHeaderKatsayi();
     updateSuggestionBar();
-    updateResultBadge();
   });
 
   applySuggestionBtn?.addEventListener("click", (e) => {
@@ -139,15 +128,8 @@ function applySmartSuggestion() {
   }
 
   updateSlidersList();
-  updateStatusBar();
+  updateHeaderKatsayi();
   updateSuggestionBar();
-  updateResultBadge();
-}
-
-function updateSimulatorUI() {
-  updateStatusBar();
-  updateSuggestionBar();
-  updateResultBadge();
 }
 
 // Yardımcı: map oluştur
@@ -168,23 +150,22 @@ function getPasifListe() {
 
 // ========== YENİ FONKSİYONLAR ==========
 
-// Header katsayı barını güncelle
-function updateStatusBar() {
+// Header katsayısını güncelle (sadece simüle katsayı)
+function updateHeaderKatsayi() {
   const mapNorm = getKatsayiMapNorm();
-  const surecKatsayisi = getSurecKatsayisi(getDomAy(), getDomYil());
-  const currentKatsayi = calculateCurrentKatsayi(currentData, mapNorm, surecKatsayisi);
+  let simData = JSON.parse(JSON.stringify(currentData));
+  sliderStates.forEach((value, islemAdi) => {
+    const item = simData.find((d) => d.ad === islemAdi);
+    if (item) item.yapilan = value;
+  });
 
-  const currentEl = document.getElementById("simCurrentKatsayi");
-  const tavanEl = document.getElementById("simTavanKatsayi");
+  const simKatsayi = calculateCurrentKatsayi(simData, mapNorm);
+  const reached = simKatsayi >= currentTavanKatsayi;
 
-  if (currentEl) currentEl.textContent = currentKatsayi.toFixed(5);
-  if (tavanEl) tavanEl.textContent = currentTavanKatsayi.toFixed(5);
-
-  // Tavan aşıldıysa yeşil renklendir
-  if (currentEl && tavanEl) {
-    const reached = currentKatsayi >= currentTavanKatsayi;
-    currentEl.style.color = reached ? "var(--green)" : "";
-    tavanEl.style.color = reached ? "var(--green)" : "";
+  const el = document.getElementById("simHeaderKatsayi");
+  if (el) {
+    el.textContent = simKatsayi.toFixed(5);
+    el.style.color = reached ? "var(--green)" : "";
   }
 }
 
@@ -223,23 +204,27 @@ function updateSuggestionBar() {
   }
 }
 
-// Öneri popup'ını aç (detaylı görünüm)
-async function openSuggestionPopup() {
+// Öneri popup'ını aç (modal içi inline overlay)
+function openSuggestionPopup() {
   const mapNorm = getKatsayiMapNorm();
   const strategy = calculateSmartStrategy(currentData, currentTavanKatsayi, mapNorm);
-  const { messageDialog } = await import("../../../ui/components/index.js");
+
+  // Eski popup varsa kaldır
+  document.getElementById("suggestionPopupOverlay")?.remove();
 
   if (strategy.reached && strategy.message) {
-    await messageDialog(strategy.message, "Akıllı Öneri");
+    showInlinePopup("🎉", strategy.message, false);
     return;
   }
 
+  let title = "💡 Akıllı Öneri";
   let content = "";
+
   if (strategy.type === "single" && strategy.strategy) {
     const s = strategy.strategy;
     const mevcutYuzde = Math.round((s.currentYapilan / s.gereken) * 100);
     const hedefYuzde = Math.round((s.targetYapilan / s.gereken) * 100);
-    content = `⭐ ${s.islem}\n\nMevcut: ${s.currentYapilan} / ${s.gereken} (%${mevcutYuzde})\nHedef:  ${s.targetYapilan} / ${s.gereken} (%${hedefYuzde})\n\n📌 Yapılması Gereken: +${s.needed} adet\n✅ Ulaşılırsa Katsayı: ${s.newKatsayi.toFixed(5)} (≥ ${currentTavanKatsayi.toFixed(5)})`;
+    content = `⭐ ${s.islem}\n\nMevcut: ${s.currentYapilan} / ${s.gereken} (%${mevcutYuzde})\nHedef:  ${s.targetYapilan} / ${s.gereken} (%${hedefYuzde})\n\n📌 Yapılması Gereken: +${s.needed} adet\n✅ Ulaşılırsa Katsayı: ${s.newKatsayi.toFixed(5)}`;
   } else if (strategy.type === "combination" && strategy.strategy.steps && strategy.strategy.steps.length > 0) {
     const steps = strategy.strategy.steps.map((s, i) => `  ${i + 1}. ${s.islem}: +${s.needed}`).join("\n");
     const finalKatsayi = strategy.strategy.finalKatsayi;
@@ -249,32 +234,36 @@ async function openSuggestionPopup() {
     content = `Mevcut hedeflerle tavan katsayısına ulaşılamıyor.\n\nMevcut: ${strategy.currentKatsayi.toFixed(5)}\nHedef:  ${strategy.tavanKatsayi.toFixed(5)}`;
   }
 
-  await messageDialog(content, "Akıllı Öneri Detayı");
+  showInlinePopup(title, content, true);
 }
 
-// Floating sonuç badge'ini güncelle
-function updateResultBadge() {
-  const floatEl = document.getElementById("simResultFloat");
-  const valueEl = document.getElementById("simResultFloatValue");
-  if (!floatEl || !valueEl) return;
-
-  const mapNorm = getKatsayiMapNorm();
-  let simData = JSON.parse(JSON.stringify(currentData));
-  sliderStates.forEach((value, islemAdi) => {
-    const item = simData.find((d) => d.ad === islemAdi);
-    if (item) item.yapilan = value;
+// Modal içi inline popup (overlay + card)
+function showInlinePopup(title, body, showApply) {
+  const overlay = document.createElement("div");
+  overlay.id = "suggestionPopupOverlay";
+  overlay.className = "suggestion-popup-overlay";
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
   });
 
-  const simKatsayi = calculateCurrentKatsayi(simData, mapNorm);
-  const reached = simKatsayi >= currentTavanKatsayi;
+  overlay.innerHTML = `
+    <div class="suggestion-popup-card">
+      <div class="suggestion-popup-title">${title}</div>
+      <div class="suggestion-popup-body">${body.replace(/\n/g, "<br>")}</div>
+      <div class="suggestion-popup-footer">
+        ${showApply ? '<button class="suggestion-popup-btn primary" id="popupApplyBtn">Uygula</button>' : ""}
+        <button class="suggestion-popup-btn" id="popupCloseBtn">Kapat</button>
+      </div>
+    </div>
+  `;
 
-  valueEl.textContent = simKatsayi.toFixed(5);
+  simulatorModal.appendChild(overlay);
 
-  if (reached) {
-    floatEl.classList.add("result-float-success");
-  } else {
-    floatEl.classList.remove("result-float-success");
-  }
+  overlay.querySelector("#popupCloseBtn")?.addEventListener("click", () => overlay.remove());
+  overlay.querySelector("#popupApplyBtn")?.addEventListener("click", () => {
+    applySmartSuggestion();
+    overlay.remove();
+  });
 }
 
 // Slider listesini oluştur
@@ -336,7 +325,6 @@ function updateSlidersList() {
     const slider = sliderItem.querySelector(".sim-slider");
     const maxBtn = sliderItem.querySelector(".slider-max-btn");
 
-    // Slider event listener
     slider.addEventListener("input", (e) => {
       const newValue = parseInt(e.target.value);
 
@@ -370,12 +358,10 @@ function updateSlidersList() {
         percentSpan.textContent = `%${Math.round(newPercentage)}`;
       }
 
-      updateStatusBar();
-      updateResultBadge();
+      updateHeaderKatsayi();
       updateSuggestionBar();
     });
 
-    // Max butonu event listener
     maxBtn.addEventListener("click", () => {
       slider.value = maxValue;
       sliderStates.set(item.ad, maxValue);
@@ -397,12 +383,12 @@ function updateSlidersList() {
         percentSpan.textContent = `%${Math.round(maxPercentage)}`;
       }
 
-      updateSimulatorUI();
+      updateHeaderKatsayi();
+      updateSuggestionBar();
     });
   });
 }
 
-// Grup ikonunu döndür
 function getGroupIcon(group) {
   const icons = {
     Tarama: "🔍",
@@ -413,9 +399,10 @@ function getGroupIcon(group) {
   return icons[group] || "📌";
 }
 
-// ESC tuşu ile kapat
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && simulatorModal?.style.display === "flex") {
-    closeSimulatorModal();
+  if (e.key === "Escape") {
+    const popup = document.getElementById("suggestionPopupOverlay");
+    if (popup) { popup.remove(); return; }
+    if (simulatorModal?.style.display === "flex") closeSimulatorModal();
   }
 });
