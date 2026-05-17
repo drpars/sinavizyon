@@ -264,9 +264,9 @@ function calculateCombinationStrategy(data, tavanKatsayi, currentKatsayi, katsay
     if (simKatsayi >= tavanKatsayi) break;
 
     const currentYapilan = parseFloat(item.yapilan) || 0;
+    const neededForMax = getNeededForMax(item, katsayiMapNorm);
+    if (neededForMax === 0) continue;
     const maxYapilan = getMaxYapilanForIslem(item, katsayiMapNorm);
-
-    if (currentYapilan >= maxYapilan) continue;
 
     // Binary search ile tavana ulaşmak için gereken minimum yapılanı bul
     let low = currentYapilan;
