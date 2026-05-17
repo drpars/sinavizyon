@@ -266,7 +266,7 @@ export function renderOtizmIzlem(hastalar, durum) {
     container.innerHTML = `
       <div class="otizm-izlem-section">
         <div class="otizm-section-header">
-          <span>🧩 OTİZM TARAMA TAKVİMİ</span>
+          <span>OTİZM TARAMA TAKVİMİ</span>
         </div>
         ${durumHtml}
         <div class="otizm-empty-state">
@@ -292,13 +292,13 @@ export function renderOtizmIzlem(hastalar, durum) {
   const buAySatirlar = hastalariAyIcinFiltrele(hastalar, buYil, buAy);
   const gelecekAySatirlar = hastalariAyIcinFiltrele(hastalar, gelecekYil, gelecekAy);
 
-  const buAyBaslik = `📅 BU AY (${ayAdi(buAy)} ${buYil})`;
-  const gelecekAyBaslik = `📅 GELECEK AY (${ayAdi(gelecekAy)} ${gelecekYil})`;
+  const buAyBaslik = `BU AY (${ayAdi(buAy)} ${buYil})`;
+  const gelecekAyBaslik = `GELECEK AY (${ayAdi(gelecekAy)} ${gelecekYil})`;
 
   container.innerHTML = `
     <div class="otizm-izlem-section">
       <div class="otizm-section-header">
-        <span>🧩 OTİZM TARAMA TAKVİMİ</span>
+        <span>OTİZM TARAMA TAKVİMİ</span>
         <span class="otizm-section-subtitle">Tarama periyodundaki hastalar</span>
       </div>
       ${durumHtml}
