@@ -295,7 +295,7 @@ function updateSlidersList() {
           <span class="slider-islem">${item.ad}</span>
           ${currentValue > etkiliYapilan
             ? `<span class="slider-badge added">+${currentValue - etkiliYapilan}</span>`
-            : '<span class="slider-badge complete">✓</span>'}
+            : '<span class="slider-badge complete">+0</span>'}
         </div>
         <div class="slider-stats">
           <span>${currentValue} / ${item.gereken}</span>
@@ -327,7 +327,7 @@ function updateSlidersList() {
       const added = newValue - etkiliYapilan;
       const badge = sliderItem.querySelector(".slider-badge");
       if (badge) {
-        badge.textContent = added > 0 ? `+${added}` : "✓";
+        badge.textContent = `+${added}`;
         badge.className = added > 0 ? "slider-badge added" : "slider-badge complete";
       }
 
@@ -349,7 +349,7 @@ function updateSlidersList() {
       const maxAdded = maxValue - etkiliYapilan;
       const badge = sliderItem.querySelector(".slider-badge");
       if (badge) {
-        badge.textContent = maxAdded > 0 ? `+${maxAdded}` : "✓";
+        badge.textContent = `+${maxAdded}`;
         badge.className = maxAdded > 0 ? "slider-badge added" : "slider-badge complete";
       }
 
