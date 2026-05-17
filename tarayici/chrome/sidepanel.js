@@ -61,7 +61,7 @@ function refreshDashboardIfOpen() {
   chrome.storage.local.get([storageKey], (res) => {
     const tabId = res[storageKey];
     if (tabId) {
-      chrome.tabs.reload(tabId, {}, () => {
+      chrome.tabs.sendMessage(tabId, { action: "refreshData" }, () => {
         if (chrome.runtime.lastError) { /* sekme kapanmis, sessiz */ }
       });
     }
