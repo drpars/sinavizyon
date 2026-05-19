@@ -244,7 +244,7 @@ async function fetchOtizmHastaListesi(expectedBirimId) {
     const allPatients = [];
     let page = 1;
     let totalCount = 0;
-    const pageSize = 100;
+    const pageSize = 200;
 
     do {
       const url = `https://hyp.saglik.gov.tr/api/Population/$query-population?status=all&careType=osb&count=${pageSize}&page=${page}`;

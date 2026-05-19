@@ -232,31 +232,243 @@ function openSuggestionPopup() {
 }
 
 function showInlinePopup(title, body, showApply) {
+  // Eski overlay'i temizle
+  document.getElementById("suggestionPopupOverlay")?.remove();
+
   const overlay = document.createElement("div");
   overlay.id = "suggestionPopupOverlay";
   overlay.className = "suggestion-popup-overlay";
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
-
-  overlay.innerHTML = `
-    <div class="suggestion-popup-card">
-      <div class="suggestion-popup-title">${title}</div>
-      <div class="suggestion-popup-body">${body.replace(/\n/g, "<br>")}</div>
-      <div class="suggestion-popup-footer">
-        ${showApply ? '<button class="suggestion-popup-btn primary" id="popupApplyBtn">Uygula</button>' : ""}
-        <button class="suggestion-popup-btn" id="popupCloseBtn">Kapat</button>
+  
+  // Holografik parçacık efekti için canvas
+  const canvas = document.createElement("canvas");
+  canvas.className = "holographic-particles";
+  
+  // Ana kart - 3D perspektifli
+  const card = document.createElement("div");
+  card.className = "suggestion-popup-card holographic-card";
+  
+  // Strateji tipine göre dinamik içerik
+  const strategyEmoji = getStrategyEmoji(body);
+  const animationClass = getAnimationClass(body);
+  
+  card.innerHTML = `
+    <div class="holographic-scan-line"></div>
+    <div class="holographic-glare"></div>
+    
+    <div class="popup-header-glow">
+      <div class="holographic-avatar ${animationClass}">
+        <div class="avatar-core">${strategyEmoji}</div>
+        <div class="avatar-rings">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+        </div>
       </div>
+      <div class="suggestion-popup-title typewriter">${title}</div>
+    </div>
+    
+    <div class="suggestion-popup-body interactive-strategy">
+      ${formatStrategyBody(body, showApply)}
+    </div>
+    
+    <div class="suggestion-popup-footer futuristic-controls">
+      ${showApply ? `
+        <button class="suggestion-popup-btn primary pulse-glow" id="popupApplyBtn">
+          <span class="btn-icon-wrapper">
+            <span class="icon-sparkle">✨</span>
+            <span class="btn-text">Uygula</span>
+          </span>
+          <div class="btn-particle-burst"></div>
+        </button>
+      ` : `
+        <div class="completion-celebration">
+          <span class="celebration-text">🎉 Mükemmel!</span>
+        </div>
+      `}
+      <button class="suggestion-popup-btn secondary-ghost" id="popupCloseBtn">
+        <span class="close-icon">✕</span>
+      </button>
+    </div>
+    
+    <div class="data-streams">
+      <div class="data-stream stream-left"></div>
+      <div class="data-stream stream-right"></div>
     </div>
   `;
 
+  overlay.appendChild(canvas);
+  overlay.appendChild(card);
+
   simulatorModal.appendChild(overlay);
 
-  overlay.querySelector("#popupCloseBtn")?.addEventListener("click", () => overlay.remove());
-  overlay.querySelector("#popupApplyBtn")?.addEventListener("click", () => {
-    applySmartSuggestion();
-    overlay.remove();
+  // Parçacık animasyonunu başlat
+  const animId = initHolographicParticles(canvas);
+  overlay._particleAnimId = animId;
+  overlay._particleCanvas = canvas;
+
+  // Mouse takibi ile 3D kart efekti
+  initParallaxTilt(card);
+  
+  // Event listeners
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      animateOut(overlay);
+    }
   });
+
+  overlay.querySelector("#popupCloseBtn")?.addEventListener("click", () => {
+    animateOut(overlay);
+  });
+  
+  overlay.querySelector("#popupApplyBtn")?.addEventListener("click", () => {
+    // Apply butonuna basınca partikül patlaması
+    createBurstEffect(overlay.querySelector("#popupApplyBtn"));
+    
+    setTimeout(() => {
+      applySmartSuggestion();
+      animateOut(overlay, true);
+    }, 400);
+  });
+
+  // Giriş animasyonu
+  requestAnimationFrame(() => {
+    overlay.classList.add("active");
+    card.classList.add("active");
+  });
+}
+
+// Yardımcı fonksiyonlar
+function getStrategyEmoji(body) {
+  if (body.includes("ulaşılamıyor")) return "🔬";
+  if (body.includes("Tavana ulaşılamaz")) return "📊";
+  if (body.includes("Ulaşılacak")) return "🎯";
+  return "💡";
+}
+
+function getAnimationClass(body) {
+  if (body.includes("ulaşılamıyor")) return "warning-pulse";
+  if (body.includes("Tavana ulaşılamaz")) return "analyzing-spin";
+  return "success-glow";
+}
+
+function formatStrategyBody(body, showApply) {
+  // Sayıları ve önemli verileri vurgula
+  return body
+    .replace(/(\+(\d+))/g, '<span class="highlight-number">$1</span>')
+    .replace(/(%\d+)/g, '<span class="highlight-percentage">$1</span>')
+    .replace(/(\d+\.\d{5})/g, '<span class="highlight-katsayi">$1</span>')
+    .replace(/\n/g, "<br>");
+}
+
+function initHolographicParticles(canvas) {
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  
+  const particles = Array.from({ length: 50 }, () => ({
+  const particles = Array.from({ length: 20 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 2 + 0.5,
+    speedX: (Math.random() - 0.5) * 0.5,
+    speedY: (Math.random() - 0.5) * 0.5,
+    opacity: Math.random() * 0.5 + 0.2,
+    color: `hsl(${Math.random() * 60 + 200}, 100%, 70%)`
+  }));
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    particles.forEach(p => {
+      p.x += p.speedX;
+      p.y += p.speedY;
+      
+      if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+      
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.opacity;
+      ctx.fill();
+      
+      // Bağlantı çizgileri
+      particles.forEach(p2 => {
+        const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = `rgba(100, 200, 255, ${0.1 * (1 - dist/100)})`;
+          ctx.stroke();
+        }
+      });
+    });
+    
+    ctx.globalAlpha = 1;
+    return requestAnimationFrame(animate);
+  }
+
+  return animate();
+}
+
+function initParallaxTilt(card) {
+  card.addEventListener("mousemove", (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateX = (y - centerY) / centerY * -10;
+    const rotateY = (x - centerX) / centerX * 10;
+    
+    card.style.transform = `
+      perspective(1000px) 
+      rotateX(${rotateX}deg) 
+      rotateY(${rotateY}deg) 
+      scale(1.02)
+    `;
+  });
+  
+  card.addEventListener("mouseleave", () => {
+    card.style.transform = "perspective(1000px) rotateX(0) rotateY(0) scale(1)";
+  });
+}
+
+function createBurstEffect(element) {
+  const burst = element.querySelector(".btn-particle-burst");
+  if (!burst) return;
+  
+  for (let i = 0; i < 12; i++) {
+    const particle = document.createElement("div");
+    particle.className = "burst-particle";
+    const angle = (i / 12) * Math.PI * 2;
+    const velocity = 50 + Math.random() * 30;
+    
+    particle.style.setProperty("--tx", Math.cos(angle) * velocity + "px");
+    particle.style.setProperty("--ty", Math.sin(angle) * velocity + "px");
+    particle.style.background = `hsl(${Math.random() * 60 + 200}, 100%, 60%)`;
+    
+    burst.appendChild(particle);
+    setTimeout(() => particle.remove(), 600);
+  }
+}
+
+function animateOut(element, success = false) {
+  // Canvas animasyonunu durdur
+  if (element._particleAnimId) {
+    cancelAnimationFrame(element._particleAnimId);
+  }
+
+  element.style.opacity = "0";
+  element.style.transform = "scale(0.9)";
+  if (success) {
+    element.querySelector(".suggestion-popup-card").style.transform = 
+      "perspective(1000px) rotateY(15deg) translateX(50px)";
+  }
+  
+  setTimeout(() => element.remove(), 300);
 }
 
 // ========== SLIDER LİSTESİ ==========
