@@ -550,3 +550,32 @@ body.dark-mode .slider-item.priority-kanser { border-left-color: var(--orange); 
   from { transform: scale(0) rotate(-180deg); opacity: 0; }
   to { transform: scale(1) rotate(0deg); opacity: 1; }
 }
+
+/* === POPUP FOOTER === */
+.futuristic-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.secondary-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.secondary-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+}
