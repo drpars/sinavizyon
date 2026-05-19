@@ -364,8 +364,7 @@ function initHolographicParticles(canvas) {
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
-  
-  const particles = Array.from({ length: 50 }, () => ({
+
   const particles = Array.from({ length: 20 }, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
